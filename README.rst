@@ -40,7 +40,7 @@ The ``api_version`` is recommended to be the highest version supported by
 your FlashArray's current Purity code version. You can check which API version
 is deployed with your version of Purity by using the reference table in the
 Pure Storage support website (https://support.purestorage.com/FlashArray/PurityOE/REST_API/REST_API_Reference_Guides).
-You can also get the Reference Guide for your ReastAPI version to help you
+You can also get the Reference Guide for your RestAPI version to help you
 develop more Playbooks.
 
 The ``array_token`` get be obtained from your FlashArray for specific users
