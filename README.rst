@@ -39,10 +39,12 @@ The ``arrayurl`` is the Management VIP of your FlashArray.
 The ``api_version`` is recommended to be the highest version supported by 
 your FlashArray's current Purity code version. You can check which API version
 is deployed with your version of Purity by using the reference table in the
-Pure Storage support website.
+Pure Storage support website (https://support.purestorage.com/FlashArray/PurityOE/REST_API/REST_API_Reference_Guides).
+You can also get the Reference Guide for your ReastAPI version to help you
+develop more Playbooks.
 
 The ``array_token`` get be obtained from your FlashArray for specific users
-using the GUI interface in System -> Users -> API Tokens and select Showe API Token from the
+using the GUI interface in **System -> Users -> API Tokens** and select **Show API Token** from the
 gear icon next to the user you require the token for. You may also obtain the token
 using the get-token.yaml playbook example in this repo in which you must provide a valid username
 and password.
