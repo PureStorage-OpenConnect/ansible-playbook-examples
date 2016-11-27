@@ -2,8 +2,8 @@ Introduction
 ============
 
 This repository contains a number of simple Ansible playbooks using the URI 
-module to issue commands to a Pure Storage FlashArray utilizing the FlashArray
-RestAPI interface.
+module to issue commands to a Pure Storage Arrays utilizing their
+RestAPI interfaces.
 
 The following items are assumed by all playbooks:
 
@@ -11,17 +11,19 @@ The following items are assumed by all playbooks:
 
 -  Ansible 2.2 or higher is used. These playbooks were tested on this version. 
 
--  Your Pure Storage FlashArray should be accessible from your local
+-  Your Pure Storage Array should be accessible from your local
    Ansible host.
 
 -  You have obtained a privileged API token from the Pure Storage
-   FlashArray that will be used by the playbooks.
+   Array that will be used by the playbooks.
 
-Playbooks will be simple and not use Inventory files as there are for
-informative and demonstration purposes only.
+Playbooks will be simple and not use Inventory files as they are for
+informational and demonstration purposes only.
 
+FlashArray Playbooks
+====================
 Customizing Playbooks for your environment
-==========================================
+------------------------------------------
 
 All Playbooks include the following variables:
 
