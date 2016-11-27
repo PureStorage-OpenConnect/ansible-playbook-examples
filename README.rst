@@ -1,3 +1,4 @@
+============
 Introduction
 ============
 
@@ -20,6 +21,7 @@ The following items are assumed by all playbooks:
 Playbooks will be simple and not use Inventory files as they are for
 informational and demonstration purposes only.
 
+====================
 FlashArray Playbooks
 ====================
 Customizing Playbooks for your environment
