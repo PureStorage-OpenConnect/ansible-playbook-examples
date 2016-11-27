@@ -1,0 +1,47 @@
+---
+
+# Example playbook to create an iSCSI host on a FlashArray
+#
+# Provide the following parameters to the ansible-playbook command 
+# using the -e switch:
+# 
+#   -e "hostname=name iqn=IQN"
+#
+# For example:
+#
+#  ansible-playbook flasharray_create_iscsi_host.yaml -e "hostname=test-host iqn=iqn.1994-05.com.redhat:7d366003913"
+# 
+# Note: hostnames must conform to the naming convention rules required by the FlashArray and
+#       the supplied IQN must be in standard IQN format
+#
+- name: Create iSCSI host on FlashArray
+  hosts: localhost
+  gather_facts: no
+  vars:
+    arrayurl: 10.234.112.107
+    array_token: e31060a7-21fc-e277-6240-25983c6c4592
+    api_version: "1.6"
+
+  tasks:
+    - name: open session
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/auth/session
+        method: POST
+        validate_certs: no
+        return_content: yes
+        body:
+          api_token: "{{ array_token }}"
+        body_format: json
+      register: session
+
+    - name: create iSCSI host
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/host/{{ hostname }}
+        method: POST
+        validate_certs: no
+        HEADER_Cookie: "{{session.set_cookie}}"
+        return_content: yes
+        body:
+          iqnlist: ["{{ iqn }}"]
+        body_format: json
+      ignore_errors: yes
