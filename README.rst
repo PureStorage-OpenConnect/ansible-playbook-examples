@@ -1,7 +1,7 @@
 Introduction
 ============
 
-This irepository contains a number of simple Ansible playbooks using the URI 
+This repository contains a number of simple Ansible playbooks using the URI 
 module to issue commands to a Pure Storage FlashArray utilizing the FlashArray
 RestAPI interface.
 
@@ -46,7 +46,7 @@ develop more Playbooks.
 The ``array_token`` get be obtained from your FlashArray for specific users
 using the GUI interface in **System -> Users -> API Tokens** and select **Show API Token** from the
 gear icon next to the user you require the token for. You may also obtain the token
-using the get-token.yaml playbook example in this repo in which you must provide a valid username
+using the ``flasharray_get_token.yaml`` playbook example in this repo in which you must provide a valid username
 and password.
 
 Running Playbooks
