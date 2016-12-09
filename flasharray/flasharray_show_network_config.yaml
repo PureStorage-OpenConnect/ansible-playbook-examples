@@ -1,10 +1,10 @@
 ---
 
-# Example playbook to list volumes on a FlashArray
+# Example playbook to show network config for a FlashArray
 #
 # No parameters are required for this playbook
 # 
-- name: List volumes on FlashArray
+- name: List hosts on FlashArray
   hosts: localhost
   gather_facts: no
   vars:
@@ -24,15 +24,15 @@
         body_format: json
       register: session
 
-    - name: list volumes
+    - name: show network config
       uri:
-        url: https://{{ arrayurl }}/api/{{ api_version }}/volume
+        url: https://{{ arrayurl }}/api/{{ api_version }}/network
         method: GET
         validate_certs: no
         HEADER_Cookie: "{{session.set_cookie}}"
         return_content: yes
       ignore_errors: yes
-      register: voldata
+      register: hostdata
 
-    - name: show volume list
-      debug: msg="{{ voldata.json }}"
+    - name: show host list
+      debug: msg="{{ hostdata.json }}"

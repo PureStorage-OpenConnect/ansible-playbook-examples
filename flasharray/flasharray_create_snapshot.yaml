@@ -1,10 +1,17 @@
 ---
 
-# Example playbook to list volumes on a FlashArray
+# Example playbook to create a snapshot of a volume on a FlashArray
 #
-# No parameters are required for this playbook
+# Provide the following parameters to the ansible-playbook command 
+# using the -e switch:
 # 
-- name: List volumes on FlashArray
+#   -e "volname=volume-name"
+#
+# For example:
+#
+#  ansible-playbook flasharray_create_snapshot.yaml -e "volname=test-vol"
+# 
+- name: Create snapshot on FlashArray
   hosts: localhost
   gather_facts: no
   vars:
@@ -24,15 +31,15 @@
         body_format: json
       register: session
 
-    - name: list volumes
+    - name: create snapshot
       uri:
         url: https://{{ arrayurl }}/api/{{ api_version }}/volume
-        method: GET
+        method: POST
         validate_certs: no
         HEADER_Cookie: "{{session.set_cookie}}"
         return_content: yes
+        body:
+          snap: "true"
+          source: ["{{ volname }}"]
+        body_format: json
       ignore_errors: yes
-      register: voldata
-
-    - name: show volume list
-      debug: msg="{{ voldata.json }}"

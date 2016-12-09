@@ -1,10 +1,10 @@
 ---
 
-# Example playbook to list volumes on a FlashArray
+# Example playbook to list snapshots on a FlashArray
 #
 # No parameters are required for this playbook
 # 
-- name: List volumes on FlashArray
+- name: List snapshots on FlashArray
   hosts: localhost
   gather_facts: no
   vars:
@@ -24,9 +24,9 @@
         body_format: json
       register: session
 
-    - name: list volumes
+    - name: list snapshots
       uri:
-        url: https://{{ arrayurl }}/api/{{ api_version }}/volume
+        url: https://{{ arrayurl }}/api/{{ api_version }}/volume?snap=true
         method: GET
         validate_certs: no
         HEADER_Cookie: "{{session.set_cookie}}"
