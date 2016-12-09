@@ -1,0 +1,141 @@
+---
+
+# Example playbook to create a new volume and attach to a new host on a FlashArray
+#
+# We will also list the current volumes, hosts and host attachments before and after 
+# host and volume creation and attachment
+#
+# This script is also found in the following Pure Storage blog post:
+#
+#    http://blog.purestorage.com/from-zero-to-ansible-for-the-pure-storage-flasharray-in-one-easy-lesson/
+#
+# Provide the following parameters to the ansible-playbook command
+# using the -e switch:
+#
+#   -e "hostname=host-name iqn=<IQN> volname=volume-name size=<size>"
+#
+# For example:
+#
+#  ansible-playbook flasharray_example_create_host_attach_new_volume.yaml -e "hostname=ansible-host iqn=iqn.1993-08.org.debian:01:75d12373667c volname=ansible-vol size=10G"
+#
+# Note: this playbook assumes that the host and volume have already been created correctly.
+#
+
+
+- name: Attach new volume to a new host in a FlashArray
+  hosts: localhost
+  gather_facts: no
+  vars:
+    arrayurl: 10.234.112.107
+    array_token: e31060a7-21fc-e277-6240-25983c6c4592
+    api_version: "1.6"
+ 
+  tasks:
+    - name: open RestAPI session
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/auth/session
+        method: POST
+        validate_certs: no
+        return_content: yes
+        body:
+          api_token: "{{ array_token }}"
+        body_format: json
+      register: session
+ 
+    - name: list all hosts
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/host
+        method: GET
+        validate_certs: no
+        HEADER_Cookie: "{{session.set_cookie}}"
+        return_content: yes
+      ignore_errors: yes
+      register: hosts
+ 
+    - name: show hosts data
+      debug: msg="{{ hosts.json }}"
+ 
+    - name: list all volumes
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/volume
+        method: GET
+        validate_certs: no
+        HEADER_Cookie: "{{session.set_cookie}}"
+        return_content: yes
+      ignore_errors: yes
+      register: volumes
+ 
+    - name: show volumes data
+      debug: msg="{{ volumes.json }}"
+ 
+    - name: create new host
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/host/{{ hostname }}
+        method: POST
+        validate_certs: no
+        HEADER_Cookie: "{{session.set_cookie}}"
+        return_content: yes
+        body:
+          iqnlist: ["{{ iqn }}"]
+        body_format: json
+      ignore_errors: yes
+ 
+    - name: create new volume
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/volume/{{ volname }}
+        method: POST
+        validate_certs: no
+        HEADER_Cookie: "{{session.set_cookie}}"
+        return_content: yes
+        body:
+          size: "{{ size }}"
+        body_format: json
+      ignore_errors: yes
+ 
+    - name: attach volume to host
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/host/{{ hostname }}/volume/{{ volname }}
+        method: POST
+        validate_certs: no
+        HEADER_Cookie: "{{session.set_cookie}}"
+        return_content: yes
+      ignore_errors: yes
+ 
+    - name: list all hosts
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/host
+        method: GET
+        validate_certs: no
+        HEADER_Cookie: "{{session.set_cookie}}"
+        return_content: yes
+      ignore_errors: yes
+      register: hosts
+ 
+    - name: show hosts data
+      debug: msg="{{ hosts.json }}"
+ 
+    - name: list all volumes
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/volume
+        method: GET
+        validate_certs: no
+        HEADER_Cookie: "{{session.set_cookie}}"
+        return_content: yes
+      ignore_errors: yes
+      register: volumes
+ 
+    - name: show volumes data
+      debug: msg="{{ volumes.json }}"
+ 
+    - name: show host volume attachments
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/host/{{ hostname }}/volume
+        method: GET
+        validate_certs: no
+        HEADER_Cookie: "{{session.set_cookie}}"
+        return_content: yes
+      ignore_errors: yes
+      register: attached_volumes
+ 
+    - name: show attached volumes data
+      debug: msg="{{ attached_volumes.json }}"
