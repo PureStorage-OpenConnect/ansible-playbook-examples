@@ -2,6 +2,6 @@
     "id": "ansible-playbook-examples",
     "filter": "devops",
     "image": "http://code.purestorage.com/images/microsoft-azure.png",
-    "featured": 2,
+    "featured": 1,
     "priority": 2
 }
