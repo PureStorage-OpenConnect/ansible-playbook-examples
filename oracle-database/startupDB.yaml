@@ -1,0 +1,21 @@
+---
+#######################################################
+# Startup Oracle database 
+- name: Start Oracle Database 
+  hosts: z-oracle2
+  gather_facts: no
+  vars:
+    tgt_db: devslob
+    tgt_dir: /home/oracle/.ansible
+    tgt_oh: /u01/app/oracle/product/12.1.0/dbhome_1
+    tgt_init: /home/oracle/demo/demo2a/initdevslob.ora
+
+  tasks:
+    - name: Copy database startup script to target database server
+      template: src=templates/startupDB.sh.j2 dest={{ tgt_dir }}/startupDB.sh mode=0755
+
+# Startup Target Database
+    - include: tasks/startup_DB.yaml
+
+    - name: output startup 
+      debug: msg="{{ startup }}" 

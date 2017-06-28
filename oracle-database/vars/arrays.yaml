@@ -1,0 +1,10 @@
+# PURE FlashArray details
+se_EMEA_EBC_m20:
+  ip:      10.223.112.80
+  array_token: be912751-60e9-d0c2-f7af-c650bcdcef40
+  api_version: 1.9
+
+se_EMEA_EBC_fa420:
+  ip:      10.223.112.12
+  array_token: cef628f0-831b-30b9-4494-4e8ea56c207c
+  api_version: 1.9

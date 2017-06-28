@@ -1,0 +1,13 @@
+[dbservers]
+z-oracle 	  ansible_host=z-oracle 	ansible_user=oracle
+z-oracle1	  ansible_host=z-oracle1	ansible_user=oracle
+z-oracle2	  ansible_host=z-oracle2	ansible_user=oracle
+
+[flasharrays]
+se-EMEA-EBC-m20   array_token=be912751-60e9-d0c2-f7af-c650bcdcef40
+se-EMEA-EBC-FA420 array_token=cef628f0-831b-30b9-4494-4e8ea56c207c
+
+[flasharrays:vars]
+ansible_connection=local
+api_version=1.9
+

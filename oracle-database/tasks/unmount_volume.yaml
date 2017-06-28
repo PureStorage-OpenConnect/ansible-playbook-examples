@@ -1,0 +1,7 @@
+---
+# Unmount database file systems 
+- name: unmount database filesystems 
+# use ansible mount module
+  mount: name={{ item.value.name }} state=unmounted
+  become: true
+  with_dict: "{{ target }}" 
