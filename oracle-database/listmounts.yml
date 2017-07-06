@@ -1,0 +1,15 @@
+---
+#######################################################
+# List database file systems 
+- name: list database filesystems
+  hosts: z-oracle2
+  gather_facts: no
+  vars:
+      dbmounts: "{{ devslob }}"
+
+  tasks:
+
+  - name: Print mount points
+    debug:
+      msg: "Mount {{ item.key }} is {{ item.value.name }} at {{ item.value.src }}"
+    with_dict: "{{ dbmounts }}"

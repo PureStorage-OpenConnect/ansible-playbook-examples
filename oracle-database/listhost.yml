@@ -1,0 +1,40 @@
+---
+# Example playbook to list hosts on a FlashArray
+#
+- name: List hosts on FlashArray
+  hosts: flasharrays
+  gather_facts: no
+
+  vars:
+      arrayurl: "{{ inventory_hostname }}"
+ 
+  tasks:
+    - name: open session
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/auth/session
+        method: POST
+        HEADER_Content-Type: "application/json"
+        validate_certs: "no"
+        return_content: "yes"
+        body: 
+            api_token: "{{ array_token }}"
+        body_format: json
+      register: session
+
+    - debug: msg="{{ session }}"
+
+    - name: Write JSON to disk
+      copy: content={{ session }} dest="~/session.json"
+
+    - name: get flash array
+      uri:
+        url: https://{{ arrayurl }}/api/{{ api_version }}/host
+        method: GET
+        HEADER_Content-Type: "application/json"
+        HEADER_Cookie: "{{ session.set_cookie }}"
+        validate_certs: "no"
+        return_content: "yes"
+      register: hostdata
+
+    - name: output rest data
+      debug: msg="{{ hostdata.json }}" 
