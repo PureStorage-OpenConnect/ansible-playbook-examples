@@ -1,0 +1,152 @@
+- name: Pure Storage storage module examples
+  hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: Create new volume ansible_iscsi
+      purefa_volume:
+        name: ansible_iscsi
+        size: 32G
+
+  - name: Create new volume ansible_fc
+      purefa_volume:
+        name: ansible_fc
+        size: 32G
+
+  - name: Create new volume ansible_data
+      purefa_volume:
+        name: ansible_data
+        size: 1T
+
+  - name: Create new iscsi host and attach volume
+      purefa_host:
+        host: ansible-iscsi
+        protocol: iscsi
+        iqn:
+          - "iqn.1994-05.com.redhat:7d3660d3913"
+        volume: ansible_iscsi
+
+  - name: Create new fc host and attach volume
+      purefa_host:
+        host: ansible-fc
+        protocol: fc
+        wwns:
+          - "00:00:00:00:00:00:00:00"
+          - "11:11:11:11:11:11:11:11"
+       volume: ansible_fc
+
+  - name: Create new hostgroup ansible and connect hosts and volumes
+      purefa_hg:
+        hostgroup: ansible
+        host:
+          - ansible-iscsi
+          - ansible-fc
+        volume:
+          - ansible_data
+
+  - name: Create new (disabled) protection group pgvol and connect volumes
+      purefa_pg:
+        pgroup: pgvol
+        volume:
+          - ansible_data
+        enabled: False
+
+  - name: Create new protection group pghost and connect hosts
+      purefa_pg:
+        pgroup: pghost
+        host:
+          - ansible-iscsi
+          - ansible-fc
+
+  - name: Create new protection group pghg and connect hostgroups
+      purefa_pg:
+        pgroup: pghg
+        hostgroup:
+          - ansible
+
+  - name: Clone data volume
+      purefa_volume:
+        name: ansible_data
+        target: ansible_data_clone
+
+  - name: take snapshot of data volume
+      purefa_snap:
+        name: ansible_data
+        suffix: snap
+
+  - name: convert snapshot to volume
+      purefa_snap:
+        name: ansible_data
+        suffix: snap
+        target: ansible_data_snap_volume
+        state: copy
+
+  - pause:
+
+  - name: Remove host group protection group
+      purefa_pg:
+        pgroup: pghg
+        state: absent
+        eradicate: true
+
+  - name: Remove host protection group
+      purefa_pg:
+        pgroup: pghost
+        state: absent
+        eradicate: true
+
+  - name: Remove volume protection group
+      purefa_pg:
+        pgroup: pgvol
+        state: absent
+        eradicate: true
+
+  - name: Remove host group
+      purefa_hg:
+        hostgroup: ansible
+        state: absent
+
+  - name: Remove fc host
+      purefa_host:
+        host: ansible-fc
+        state: absent
+
+  - name: Remove iSCSI host
+      purefa_host:
+        host: ansible-iscsi
+        state: absent
+
+  - name: Delete snapshots
+      purefa_snap:
+        name: ansible_data
+        suffix: snap
+        state: absent
+
+  - name: Delete snap copy volume
+       purefa_volume:
+        name: ansible_data_snap_volume
+        state: absent
+        eradicate: true
+
+  - name: Delete data clone volume
+      purefa_volume:
+        name: ansible_data_clone
+        state: absent
+        eradicate: true
+
+  - name: Delete data volume
+      purefa_volume:
+        name: ansible_data
+        state: absent
+        eradicate: true
+
+  - name: Delete fc volume
+      purefa_volume:
+        name: ansible_fc
+        state: absent
+        eradicate: true
+
+  - name: Delete iscsi volume
+      purefa_volume:
+        name: ansible_iscsi
+        state: absent
+        eradicate: true
