@@ -1,0 +1,83 @@
+- name: Pure Storage storage module examples
+  hosts: caas
+  gather_facts: yes
+  tasks:
+  - name: Install EPEL repo.
+    yum:
+      name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm
+      state: present
+
+  - name: Import EPEL GPG key.
+    rpm_key:
+      key: /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}
+      state: present
+
+  - name: Install python-pip module
+    yum:
+      name: python-pip
+
+  - name: Install purestorage python module
+    pip:
+      name: purestorage
+
+  - name: Create new shared volume ansible_share
+    purefa_volume:
+      name: ansible_share
+      size: 1T
+      fa_url: 10.10.10.10
+      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+
+  - name: Create new volume ansible_<hostname>_data
+    purefa_volume:
+      name: ansible_{{ ansible_hostname }}_data
+      size: 32G
+      fa_url: 10.10.10.10
+      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+
+  - name: Create iscsi host and attach hosts volume
+    purefa_host:
+      host: "{{ ansible_hostname }}"
+      protocol: iscsi
+      iqn: "{{ ansible_iscsi_iqn }}"
+      volume: ansible_{{ ansible_hostname }}_data
+      fa_url: 10.10.10.10
+      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+
+  - name: Create new hostgroup called ansible
+    purefa_hg:
+      hostgroup: ansible
+      fa_url: 10.10.10.10
+      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+
+  - name: Add hosts to hostgroup ansible and connect shared volume
+    purefa_hg:
+      hostgroup: ansible
+      host:
+        - "{{ ansible_hostname }}"
+      volume:
+        - ansible_share
+      fa_url: 10.10.10.10
+      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+
+  - name: Clone share volume
+    purefa_volume:
+      name: ansible_share
+      target: ansible_share_clone
+      fa_url: 10.10.10.10
+      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+
+  - name: take snapshot of share volume
+    purefa_snap:
+      name: ansible_share
+      suffix: snap
+      fa_url: 10.10.10.10
+      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+
+  - name: convert snapshot to volume
+    purefa_snap:
+      name: ansible_share
+      suffix: snap
+      target: ansible_share_snap_volume
+      state: copy
+      fa_url: 10.10.10.10
+      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
