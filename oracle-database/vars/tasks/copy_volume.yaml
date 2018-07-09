@@ -1,0 +1,14 @@
+---
+- name: Overwrite Database volume(s)
+  uri:
+    url: https://{{ array.ip }}/api/{{ array.api_version }}/volume/{{ item.value.target }}
+    method: POST
+    HEADER_Content-Type: "application/json"
+    HEADER_Cookie: "{{ session.set_cookie }}"
+    validate_certs: "no"
+    return_content: "yes"
+    body:
+        source: "{{ item.value.source }}.{{ suffix }}"
+        overwrite: "true"
+    body_format: json
+  with_dict: "{{ volmap }}"

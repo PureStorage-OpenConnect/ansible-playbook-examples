@@ -1,0 +1,35 @@
+---
+#Test database variables
+tgt_db: TEST
+tgt_oh: /u01/app/oracle/product/12.1.0/db_1
+tgt_dir: ~/.ansible
+array: "{{ se_EMEA_EBC_fa420 }}"
+target: "{{ test }}"
+volmap: "{{ tgtmap }}"
+
+#test database volumes
+test:
+  oraredo:
+    name:   /u03/app/oracle/oraredo
+    src:    /dev/mapper/ol-oraredo 
+    fstype: xfs
+  oradata: 
+    name:   /u03/app/oracle/oradata
+    src:    /dev/mapper/ol-oradata
+    fstype: xfs
+  orafra: 
+    name:   /u03/app/oracle/fast_recovery_area
+    src:    /dev/mapper/ol-orafra
+    fstype: xfs
+
+#Target database volume mappings
+tgtmap:
+  vol1:
+    source:  z-oracle-testPG.GOLD.z-oracle-oraredo
+    target:  z-oracle-oraredo 
+  vol2:
+    source:  z-oracle-testPG.GOLD.z-oracle-oradata
+    target:  z-oracle-oradata
+  vol3:
+    source:  z-oracle-testPG.GOLD.z-oracle-orafra
+    target:  z-oracle-orafra

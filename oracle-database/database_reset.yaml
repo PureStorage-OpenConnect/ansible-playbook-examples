@@ -1,0 +1,42 @@
+---
+# Summary of Steps
+# 1. Stop target database (if running)
+# 2. Unmount the filesystem on target server (if mounted)
+# 3. Overwrite database volumes with Pure GOLD snapshot
+# 4. Mount the database volumes on target server
+# 5. Star-up the database on target server
+#
+- name: Oracle Database Reset
+  hosts: z-oracle
+  vars_files:
+    - vars/arrays.yaml
+    - vars/test.yaml 
+  
+  tasks:
+# Set Suffix
+
+# Set-up
+    - name: Copy database shutdown script to target database server
+      template: src=templates/shutdownDB.sh.j2 dest={{ tgt_dir }}/shutdownDB.sh mode=0755
+
+    - name: Copy database startup script to target database server
+      template: src=templates/startupDB.sh.j2 dest={{ tgt_dir }}/startupDB.sh mode=0755
+
+# Create Pure session
+    - include: tasks/create_session.yaml
+      run_once: yes
+    
+# Stop Target Database
+    - include: tasks/shutdown_DB.yaml
+
+# Unmount Target volumes
+    - include: tasks/unmount_volume.yaml
+
+# Copy database volumes
+    - include: tasks/reset_volume.yaml
+
+# Mount Target volumes
+    - include: tasks/mount_volume.yaml
+
+# Startup Mount Target Database
+    - include: tasks/startup_DB.yaml

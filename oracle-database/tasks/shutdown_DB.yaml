@@ -1,0 +1,13 @@
+---
+# Check to see if Database is up?
+- name: check to see if database is up 
+  shell: ps -ef | grep -w [o]ra_smon_{{ tgt_db }}
+  register: dbcheck
+  ignore_errors: True
+
+# Shutdown target database
+- name: shutdown database
+  shell: '{{ tgt_dir }}/shutdownDB.sh > shutdownDB.log 2>&1'
+  args:
+    chdir: "{{ tgt_dir }}"
+  when: dbcheck.stdout != ""

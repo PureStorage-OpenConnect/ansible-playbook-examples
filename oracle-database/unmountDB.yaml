@@ -1,0 +1,17 @@
+---
+#######################################################
+# Unmount database file systems 
+- name: Unmount DB filesystems
+#  hosts: dbservers
+  hosts: z-oracle2
+  gather_facts: no
+  vars:
+      dbmounts: "{{ devslob }}"
+
+  tasks:
+
+  - name: unmount database filesystems 
+# use ansible mount module
+    mount: name={{ item.value.name }} state=unmounted
+    become: true
+    with_dict: "{{ dbmounts }}" 

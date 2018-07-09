@@ -1,0 +1,8 @@
+source ~/.bash_profile
+export ORACLE_SID={{ tgt_db }}
+export ORACLE_HOME={{ tgt_oh }}
+export PATH=$PATH:$ORACLE_HOME/bin
+
+sqlplus -s "/ as sysdba" << EOF
+startup
+EOF

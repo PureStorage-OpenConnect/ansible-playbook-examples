@@ -1,0 +1,24 @@
+---
+# Delete database snapshots
+- name: Delete PURE Database Snapshot(s)
+  uri:
+    url: https://{{ array.ip }}/api/{{ array.api_version }}/volume/{{ item.value.source }}.{{ suffix }}
+    method: DELETE
+    HEADER_Content-Type: "application/json"
+    HEADER_Cookie: "{{session.set_cookie}}"
+    validate_certs: "no"
+    return_content: "yes"
+    ignore_errors: yes
+  with_dict: "{{ volmap }}"
+
+# Eradicate PURE Flasharray snaphot
+- name: eradicate PURE snapshot(s)
+  uri:
+    url: https://{{ array.ip }}/api/{{ array.api_version }}/volume/{{ item.value.source }}.{{ suffix }}?eradicate=true
+    method: DELETE
+    HEADER_Content-Type: "application/json"
+    HEADER_Cookie: "{{session.set_cookie}}"
+    validate_certs: "no"
+    return_content: "yes"
+    ignore_errors: yes
+  with_dict: "{{ volmap }}"

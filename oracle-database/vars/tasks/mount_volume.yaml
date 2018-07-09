@@ -1,0 +1,12 @@
+---
+# Mount database file systems 
+- name: mount database filesystems
+# use ansible mount module
+  mount: name={{ item.value.name }} 
+         state=mounted 
+         src={{ item.value.src }} 
+         fstype={{ item.value.fstype }}
+  become: true
+  with_dict: "{{ target }}"
+  tags:
+  - mount

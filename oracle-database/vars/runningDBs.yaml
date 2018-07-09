@@ -1,0 +1,17 @@
+---
+#######################################################
+# Report running databases 
+- name: Report Databases which are up
+  hosts: dbservers
+  gather_facts: no
+
+  tasks:
+
+# use ansible shell module
+    - name: check to see which databases are up
+      shell: ps -ef | egrep [o]ra_smon
+      register: dbcheck
+      ignore_errors: True
+
+    - name: list databases which are up
+      debug: msg="{{ dbcheck.stdout_lines}}"

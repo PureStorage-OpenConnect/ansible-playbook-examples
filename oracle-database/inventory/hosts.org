@@ -1,0 +1,24 @@
+[tgtservers]
+z-oracle2	  ansible_host=z-oracle2	ansible_user=oracle
+z-oracle3	  ansible_host=z-oracle3	ansible_user=oracle
+z-oracle4	  ansible_host=z-oracle4	ansible_user=oracle
+z-oracle5	  ansible_host=z-oracle5	ansible_user=oracle
+z-oracle6	  ansible_host=z-oracle6	ansible_user=oracle
+z-oracle7	  ansible_host=z-oracle7	ansible_user=oracle
+
+[srcservers]
+z-oracle 	  ansible_host=z-oracle 	ansible_user=oracle
+z-oracle1	  ansible_host=z-oracle1	ansible_user=oracle
+
+[dbservers:children]
+tgtservers
+srcservers
+
+[flasharrays]
+se-EMEA-EBC-m20   array_token=c4eb5b21-4122-b871-8b0f-684bf72b5283
+se-EMEA-EBC-FA420 array_token=cef628f0-831b-30b9-4494-4e8ea56c207c
+
+[flasharrays:vars]
+ansible_connection=local
+api_version=1.9
+

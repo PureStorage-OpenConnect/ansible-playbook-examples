@@ -1,0 +1,17 @@
+---
+# Perform PURE Flasharray Database snapshots
+- name: perform PURE database snapshot {{ suffix }}
+  uri:
+    url: https://{{ array.ip }}/api/{{ array.api_version }}/volume
+    method: POST
+    HEADER_Content-Type: "application/json"
+    HEADER_Cookie: "{{ session.set_cookie }}"
+    validate_certs: "no"
+    return_content: "yes"
+    body:
+        snap: "true"
+        source: "{{ source }}"
+        suffix: "{{ suffix }}"
+    body_format: json
+  ignore_errors: yes
+  register: snap

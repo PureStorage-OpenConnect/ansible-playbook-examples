@@ -1,0 +1,11 @@
+- name: Pure Storage storage module examples
+  hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: Create snap of protection group oraslob
+    purefa_pgsnap:
+      name: oraslob
+      suffix: ansible
+      fa_url: 10.223.112.80
+      api_token: be912751-60e9-d0c2-f7af-c650bcdcef40
+      state: present

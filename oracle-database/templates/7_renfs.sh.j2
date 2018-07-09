@@ -1,0 +1,6 @@
+source ~/.bash_profile
+export ORACLE_SID={{ src_db }}
+export ORACLE_HOME={{ tgt_oh }}
+export PATH=$PATH:$ORACLE_HOME/bin
+
+sqlplus -s sys/{{ sys_pwd }}@{{ src_db }} as sysdba @rename.sql

@@ -1,0 +1,24 @@
+---
+#Target database volumes
+devslob:
+  u02:
+    name:   /u02 
+    src:    /dev/sdd 
+    fstype: ext4
+  u03: 
+    name:   /u03
+    src:    /dev/sde
+    fstype: ext4
+
+#Target database volume mappings
+tgtmap:
+  vol1:
+    source:  z-oracle1-u02
+    sourced: /u02/oradata/oraslob
+    target:  "{{ inventory_hostname }}-u02"
+    targetd: /u02/oradata/devslob
+  vol2:
+    source:  z-oracle1-u03
+    sourced: /u03/redologs/oraslob
+    target:  "{{ inventory_hostname }}-u03"
+    targetd: /u03/redologs/devslob
