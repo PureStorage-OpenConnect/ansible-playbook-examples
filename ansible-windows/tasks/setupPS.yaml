@@ -1,0 +1,22 @@
+---
+# Setup PowerShell module
+- name: Remove Pure Storage Dba Tools PowerShell module
+  win_psmodule:
+    name: PureStorageDbaTools
+    state: absent
+
+#- name: Add Pure Storage PowerShell SDK module
+#  win_psmodule:
+#    name: PureStoragePowerShellSDK
+#    state: present
+
+#- name: Add dbatools PowerShell module
+#  win_psmodule:
+#    name: dbatools
+#    state: present
+
+- name: Add Pure Storage Dba Tools PowerShell module
+  win_psmodule:
+    name: PureStorageDbaTools
+    state: present
+

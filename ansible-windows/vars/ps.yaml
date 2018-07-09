@@ -1,0 +1,7 @@
+---
+#Variables
+tgt_dir:     C:\Users\devops\.ansible
+rSource: Z-STN-WIN2016-A\DEVOPSPRD
+pEndpoint: 10.225.112.10
+pUser:     pureuser
+pPassword: pureuser

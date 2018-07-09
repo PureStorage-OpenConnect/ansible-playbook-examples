@@ -1,0 +1,22 @@
+---
+#######################################################
+- name:  dbRefresh PowerShell Test
+  hosts: z-stn-win2016-a
+  gather_facts: no
+  vars_files:
+    - vars/ps.yaml
+
+  tasks:
+
+#Set-up
+    - name: Copy PowerShell 'dbRefresh' script
+      win_copy: src=files/dbRefresh.ps1 dest={{ tgt_dir }}\dbRefresh.ps1
+
+# use ansible shell module
+    - name: Execute dbRefresh PowerShell script
+      win_shell : C:\Users\devops\.ansible\dbRefresh.ps1 
+      args:
+        chg_dir: "{{ tgt_dir }}"
+      register: out
+
+    - debug: var=out.stdout_lines

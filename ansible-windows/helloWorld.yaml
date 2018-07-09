@@ -1,0 +1,22 @@
+---
+#######################################################
+# HelloWorld Powershell Test
+- name:  HelloWorld PowerShell Test
+  hosts: z-sql-util
+  gather_facts: no
+  vars_files:
+    - vars/ps.yaml
+
+  tasks:
+
+#Set-up
+    - name: Copy PowerShell 'Hello World' script
+      win_copy: src=files/helloWorld.ps1 dest={{ tgt_dir }}\helloWorld.ps1
+
+
+# use ansible shell module
+    - name: Execute Hello World PowerShell script
+      win_command: powershell.exe -ExecutionPolicy ByPass -File {{ tgt_dir }}\helloWorld.ps1 
+      register: out
+
+    - debug: var=out.stdout_lines

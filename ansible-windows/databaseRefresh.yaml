@@ -1,0 +1,35 @@
+---
+#######################################################
+# Windows Powershell Test
+- name:  PowerShell Test
+#  hosts: z-sql-util
+  hosts: z-stn-win2016-a 
+  gather_facts: no
+  vars_files:
+    - vars/ps.yaml
+
+  tasks:
+
+#Set-up
+#    - name: Copy PowerShell 'Hello World' script
+#      win_copy: src=files/helloWorld.ps1 dest={{ tgt_dir }}\helloWorld.ps1
+
+    - name: Copy PowerShell 'Database Refresh' script
+      win_template: src=templates/databaseRefresh.ps1.j2 dest={{ tgt_dir }}\databaseRefresh.ps1
+
+#Add Powershell module
+#    - include: tasks/setupPS.yaml
+
+# use ansible shell module
+#    - name: Execute Hello World PowerShell script
+#      win_command: powershell.exe -ExecutionPolicy ByPass -File {{ tgt_dir }}\helloWorld.ps1 
+#      register: out
+
+    - name: Execute Database Refresh PowerShell script
+#      win_command: powershell.exe -ExecutionPolicy ByPass -File {{ tgt_dir}}\databaseRefresh.ps1
+      win_shell: C:\Users\devops\.ansible\databaseRefresh.ps1
+      args:
+        chg_dir: "{{ tgt_dir }}"
+      register: out 
+
+    - debug: var=out.stdout_lines
