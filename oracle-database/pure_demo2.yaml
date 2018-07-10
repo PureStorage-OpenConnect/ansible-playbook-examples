@@ -1,0 +1,33 @@
+- name: Pure Storage Ansible module Demo
+  hosts: localhost 
+  vars_files:
+    - vars/demo.yaml
+
+  gather_facts: false
+
+  tasks:
+
+  - name: Eradicate FlashArray Snapshot
+    purefa_pgsnap:
+      name: "{{ pgName }}"
+      suffix: "{{ pgSuffix }}"
+      eradicate: true
+      fa_url: "{{ faUrl }}"
+      api_token: "{{ apiToken }}"
+      state: absent
+ 
+  - name: Remove FlashArray Protection Group
+    purefa_pg:
+      pgroup: "{{ pgName }}"
+      fa_url: "{{ faUrl }}"
+      api_token: "{{ apiToken }}"
+      state: absent
+      eradicate: true
+ 
+  - name: Delete FlashArray Volume
+    purefa_volume:
+      name: "{{ volName }}"
+      fa_url: "{{ faUrl }}"
+      api_token: "{{ apiToken }}"
+      state: absent
+      eradicate: true

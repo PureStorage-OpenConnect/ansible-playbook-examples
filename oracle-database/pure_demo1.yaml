@@ -1,0 +1,31 @@
+- name: Pure Storage Ansible module Demo
+  hosts: localhost 
+  vars_files:
+    - vars/demo.yaml
+
+  gather_facts: false
+
+  tasks:
+
+  - name: Create new FlashArray Volume
+    purefa_volume:
+      name: "{{ volName }}"
+      size: "{{ volSize }}"
+      fa_url: "{{ faUrl }}"
+      api_token: "{{ apiToken }}"
+ 
+  - name: Create new FlashArray Protection Group
+    purefa_pg:
+      pgroup: "{{ pgName }}"
+      volume:
+        - "{{ volName }}"
+      fa_url: "{{ faUrl }}"
+      api_token: "{{ apiToken }}"
+      enabled: False
+ 
+  - name: Take FlashArray Protection Group Snapshot
+    purefa_pgsnap:
+      name: "{{ pgName }}"
+      suffix: "{{ pgSuffix }}"
+      fa_url: "{{ faUrl }}"
+      api_token: "{{ apiToken }}"

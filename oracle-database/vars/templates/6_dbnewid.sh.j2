@@ -1,6 +1,0 @@
-source ~/.bash_profile
-export ORACLE_SID={{ src_db }}
-export ORACLE_HOME={{ tgt_oh }}
-export PATH=$PATH:$ORACLE_HOME/bin
-
-nid target=sys/{{ sys_pwd }} dbname={{ tgt_db }} logfile={{ tgt_dir }}/dbnamechg.log setname='YES'
