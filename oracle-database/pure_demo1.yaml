@@ -1,5 +1,5 @@
 - name: Pure Storage Ansible module Demo
-  hosts: localhost 
+  hosts: z-oracle 
   vars_files:
     - vars/demo.yaml
 
