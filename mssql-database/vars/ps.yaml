@@ -1,7 +1,8 @@
 ---
 #Variables
-tgt_dir:     C:\Users\devops\.ansible
-rSource: Z-STN-WIN2016-A\DEVOPSPRD
+tgt_dir:   C:\Users\devops\.ansible
+dbSource:  Z-STN-WIN2016-A\DEVOPSPRD
+dbTarget:  Z-STN-WIN2016-A\DEVOPSDEV1
 pEndpoint: 10.225.112.10
 pUser:     pureuser
 pPassword: pureuser

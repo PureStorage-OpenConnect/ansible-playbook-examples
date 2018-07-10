@@ -1,8 +1,7 @@
 ---
 #######################################################
-# Windows Powershell Test
-- name:  PowerShell Test
-#  hosts: z-sql-util
+# Windows Powershell MS SQL Database refresh 
+- name:  PowerShell MS SQL Database refresh 
   hosts: z-stn-win2016-a 
   gather_facts: no
   vars_files:
@@ -10,26 +9,37 @@
 
   tasks:
 
-#Set-up
-#    - name: Copy PowerShell 'Hello World' script
-#      win_copy: src=files/helloWorld.ps1 dest={{ tgt_dir }}\helloWorld.ps1
+# PowerShell database refresh
+  - name: PowerShell Database Snapshot   
+    win_shell: |
+      New-PfaDbSnapshot -Database    'tpch-no-compression' `
+             -SqlInstance {{ dbSource }} `
+             -PfaEndpoint {{ pEndpoint }} `
+             -PfaUser     {{ pUser }}  `
+             -PfaPassword {{ pPassword }}  
+    args:
+      chg_dir: "{{ tgt_dir }}"
+    register: snapshot
 
-    - name: Copy PowerShell 'Database Refresh' script
-      win_template: src=templates/databaseRefresh.ps1.j2 dest={{ tgt_dir }}\databaseRefresh.ps1
+  - set_fact:
+      sName: "{{snapshot.stdout_lines | select('match','name.*') | list | first}}"
 
-#Add Powershell module
-#    - include: tasks/setupPS.yaml
+  - set_fact:
+      snapName: "{{ sName[10:] }}"
 
-# use ansible shell module
-#    - name: Execute Hello World PowerShell script
-#      win_command: powershell.exe -ExecutionPolicy ByPass -File {{ tgt_dir }}\helloWorld.ps1 
-#      register: out
+#  - debug: 
+#      msg: "Refreshing database using snapshot name {{ snapName }}"
 
-    - name: Execute Database Refresh PowerShell script
-#      win_command: powershell.exe -ExecutionPolicy ByPass -File {{ tgt_dir}}\databaseRefresh.ps1
-      win_shell: C:\Users\devops\.ansible\databaseRefresh.ps1
-      args:
-        chg_dir: "{{ tgt_dir }}"
-      register: out 
+  - name: PowerShell Database Refesh
+    win_shell: |
+      Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression `
+             -RefreshSource   {{ snapName }} `
+             -DestSqlInstance {{ dbTarget }} `
+             -PfaEndpoint     {{ pEndpoint }} `
+             -PfaUser         {{ pUser }} `
+             -PfaPassword     {{ pPassword }} `
+             -RefreshFromSnapshot `
+             -NoPsRemoting
+    register: refresh
 
-    - debug: var=out.stdout_lines
+  - debug: msg="{{ refresh.stdout_lines }}"

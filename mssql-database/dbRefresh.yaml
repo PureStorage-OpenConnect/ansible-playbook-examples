@@ -1,7 +1,8 @@
 ---
 #######################################################
-- name:  dbRefresh PowerShell Test
-  hosts: z-stn-win2016-a
+# Windows Powershell Test
+- name:  PowerShell Test
+  hosts: z-stn-win2016-a 
   gather_facts: no
   vars_files:
     - vars/ps.yaml
@@ -9,14 +10,14 @@
   tasks:
 
 #Set-up
-    - name: Copy PowerShell 'dbRefresh' script
-      win_copy: src=files/dbRefresh.ps1 dest={{ tgt_dir }}\dbRefresh.ps1
+    - name: Copy PowerShell 'Database Refresh' script
+      win_template: src=templates/databaseRefresh.ps1.j2 dest={{ tgt_dir }}\databaseRefresh.ps1
 
-# use ansible shell module
-    - name: Execute dbRefresh PowerShell script
-      win_shell : C:\Users\devops\.ansible\dbRefresh.ps1 
+
+    - name: Execute Database Refresh PowerShell script
+      win_shell: C:\Users\devops\.ansible\databaseRefresh.ps1
       args:
         chg_dir: "{{ tgt_dir }}"
-      register: out
+      register: out 
 
     - debug: var=out.stdout_lines
