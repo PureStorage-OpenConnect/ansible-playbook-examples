@@ -9,17 +9,25 @@
 
   tasks:
 
+# Include Pure Storage PowerShell DBA tools
+  - include: tasks/setupPS.yaml
+
 # PowerShell database refresh
   - name: PowerShell Database Snapshot   
     win_shell: |
-      New-PfaDbSnapshot -Database    'tpch-no-compression' `
-             -SqlInstance {{ dbSource }} `
-             -PfaEndpoint {{ pEndpoint }} `
-             -PfaUser     {{ pUser }}  `
-             -PfaPassword {{ pPassword }}  
+      $Pwd = Get-Content ‘C:\Temp\Secure-Credentials.txt’ | ConvertTo-SecureString
+      $Creds = New-Object System.Management.Automation.PSCredential ("pureuser", $pwd)
+
+      New-PfaDbSnapshot   -Database        tpch-no-compression `
+                          -SqlInstance {{ dbSource }} `
+                          -PfaEndpoint {{ pEndpoint }} `
+                          -PfaCredentials  $Creds
     args:
       chg_dir: "{{ tgt_dir }}"
     register: snapshot
+
+#  - debug: 
+#      msg: "Refreshing database using snapshot name {{ snapshot }}"
 
   - set_fact:
       sName: "{{snapshot.stdout_lines | select('match','name.*') | list | first}}"
@@ -32,14 +40,16 @@
 
   - name: PowerShell Database Refesh
     win_shell: |
+      $Pwd = Get-Content ‘C:\Temp\Secure-Credentials.txt’ | ConvertTo-SecureString
+      $Creds = New-Object System.Management.Automation.PSCredential ("pureuser", $pwd)
+
       Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression `
-             -RefreshSource   {{ snapName }} `
-             -DestSqlInstance {{ dbTarget }} `
-             -PfaEndpoint     {{ pEndpoint }} `
-             -PfaUser         {{ pUser }} `
-             -PfaPassword     {{ pPassword }} `
-             -RefreshFromSnapshot `
-             -NoPsRemoting
+                    -RefreshSource   {{ snapName }} `
+                    -DestSqlInstance {{ dbTarget }} `
+                    -PfaEndpoint     {{ pEndpoint }} `
+                    -PfaCredentials  $Creds `
+                    -RefreshFromSnapshot `
+                    -NoPsRemoting
     register: refresh
 
   - debug: msg="{{ refresh.stdout_lines }}"
