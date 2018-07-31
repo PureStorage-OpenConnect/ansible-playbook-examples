@@ -4,7 +4,7 @@ export ORACLE_HOME={{ tgt_oh }}
 export PATH=$PATH:$ORACLE_HOME/bin
 
 sqlplus / as sysdba <<EOF
-startup mount pfile='{{ new_init }}'
+startup mount pfile='{{ tgt_oh }}/dbs/{{ tgt_init }}'
 @rename_files.sql
 alter database open;
 EOF

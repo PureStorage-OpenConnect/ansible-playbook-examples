@@ -1,5 +1,5 @@
 - name: Pure Storage Ansible module Demo
-  hosts: z-oracle 
+  hosts: localhost 
   vars_files:
     - vars/demo.yaml
 
@@ -9,16 +9,19 @@
 
   - name: Create new FlashArray Volume
     purefa_volume:
-      name: "{{ volName }}"
+      name: "{{ volName }}{{ item }}"
       size: "{{ volSize }}"
       fa_url: "{{ faUrl }}"
       api_token: "{{ apiToken }}"
+    with_sequence: count="{{ volNbr }}"
  
   - name: Create new FlashArray Protection Group
     purefa_pg:
       pgroup: "{{ pgName }}"
       volume:
-        - "{{ volName }}"
+        - "{{ volName }}1"
+        - "{{ volName }}2"
+        - "{{ volName }}3"
       fa_url: "{{ faUrl }}"
       api_token: "{{ apiToken }}"
       enabled: False

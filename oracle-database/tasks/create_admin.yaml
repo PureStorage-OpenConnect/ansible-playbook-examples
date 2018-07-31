@@ -1,0 +1,36 @@
+---
+# Create audit and diag directories 
+- name: Create Source Oracle audit and diag directories
+# use ansible file module
+  file: 
+    path: "{{ item }}"
+    state: directory
+    mode:  0750 
+  loop:
+    - "{{ tgt_ob }}/diag/rdbms/{{ src_db }}/{{ src_db }}"
+    - "{{ tgt_ob }}/diag/rdbms/{{ src_db }}/{{ src_db }}/trace"
+    - "{{ tgt_ob }}/diag/rdbms/{{ src_db }}/{{ src_db }}/alert"
+    - "{{ tgt_ob }}/diag/rdbms/{{ src_db }}/{{ src_db }}/incident"
+    - "{{ tgt_ob }}/diag/rdbms/{{ src_db }}/{{ src_db }}/cdump"
+    - "{{ tgt_ob }}/diag/rdbms/{{ src_db }}/{{ src_db }}/hm"
+    - "{{ tgt_ob }}/admin/{{ src_db }}/adump"
+    - "{{ tgt_ob }}/admin/{{ src_db }}/dpdump"
+  tags: setup
+
+- name: Create Target Oracle audit and diag directories
+# use ansible file module
+  file: 
+    path: "{{ item }}"
+    state: directory
+    mode:  0750 
+  loop:
+    - "{{ tgt_ob }}/diag/rdbms/{{ tgt_db }}/{{ tgt_db }}"
+    - "{{ tgt_ob }}/diag/rdbms/{{ tgt_db }}/{{ tgt_db }}/trace"
+    - "{{ tgt_ob }}/diag/rdbms/{{ tgt_db }}/{{ tgt_db }}/alert"
+    - "{{ tgt_ob }}/diag/rdbms/{{ tgt_db }}/{{ tgt_db }}/incident"
+    - "{{ tgt_ob }}/diag/rdbms/{{ tgt_db }}/{{ tgt_db }}/cdump"
+    - "{{ tgt_ob }}/diag/rdbms/{{ tgt_db }}/{{ tgt_db }}/hm"
+    - "{{ tgt_ob }}/admin/{{ tgt_db }}/adump"
+    - "{{ tgt_ob }}/admin/{{ tgt_db }}/dpdump"
+  tags: setup
+

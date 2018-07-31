@@ -2,6 +2,7 @@
 # 
 volName:   ansible_demo
 volSize:   1T
+volNbr:    3
 pgName:    demoPG
 pgSuffix:  snap
 tgtServer: z-oracle     

@@ -11,15 +11,13 @@ prompt set feed off
 prompt set term off
 select 'alter database rename file '''||
         name||''' to '''||
-        substr(name,1,instr(name,'{{ src_db }}')-1) ||'{{ tgt_db }}'||substr(name,instr(name,'{{ src_db }}')+7) ||''';'
+        substr(name,1,instr(name,'{{ src_db | upper }}')-1) ||'{{ tgt_db | upper }}'||substr(name,instr(name,'{{ src_db | upper }}')+7) ||''';'
   from v$datafile;
 select 'alter database rename file '''||member||''' to '''||
-       substr(member,1,instr(member,'{{ src_db }}')-1) ||'{{ tgt_db }}'||substr(member,instr(member,'{{ src_db }}')+7) ||''';'
+       substr(member,1,instr(member,'{{ src_db | upper }}')-1) ||'{{ tgt_db | upper }}'||substr(member,instr(member,'{{ src_db | upper }}')+7) ||''';'
   from v$logfile;
 select 'alter database enable block change tracking using file '''||
-        substr(filename,1,instr(filename,'{{ src_db }}')-1) ||'{{ tgt_db }}'||substr(filename,instr(filename,'{{ src_db }}')+7) ||''';'
+        substr(filename,1,instr(filename,'{{ src_db | upper }}')-1) ||'{{ tgt_db | upper }}'||substr(filename,instr(filename,'{{ src_db | upper }}')+7) ||''';'
   from v$block_change_tracking;
 prompt set term on
 spool off
-exit
-
