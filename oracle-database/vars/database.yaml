@@ -9,7 +9,7 @@ tgt_init: "init{{ tgt_db }}.ora"
 tgt_ob: /u01/app/oracle
 tgt_oh: "{{ tgt_ob }}/product/18.0.0/dbhome_1"
 tgt_dir: ~/.ansible
-sys_pwd: Osmium76
+sys_pwd: change_on_install 
 
 array: "{{ se_EMEA_EBC_m20 }}"
 source: "{{ sourceVol }}"
