@@ -52,6 +52,8 @@
     - include: tasks/copy_volume.yaml
       tags: refresh
 
+#    - meta: end_play
+
 # Mount Target volume
     - include: tasks/mount_volume.yaml
       tags: mount
@@ -73,8 +75,6 @@
         chdir: "{{ tgt_dir }}"
       with_dict: "{{ dirmap }}"
     
-#    - meta: end_play
-
 # Rename target database file names
     - name: Rename Target database file names
       shell: '{{ tgt_dir }}/8_rendbfiles.sh > 8_rendbfiles.log 2>&1'

@@ -4,7 +4,7 @@
 src_db: oraslob
 src_init: "init{{ src_db }}.ora"
 
-tgt_db: devslob
+tgt_db: test
 tgt_init: "init{{ tgt_db }}.ora"
 tgt_ob: /u01/app/oracle
 tgt_oh: "{{ tgt_ob }}/product/18.0.0/dbhome_1"
@@ -12,18 +12,18 @@ tgt_dir: ~/.ansible
 sys_pwd: Osmium76
 
 array: "{{ se_EMEA_EBC_m20 }}"
-source: "{{ oraslob }}"
-target: "{{ devslob }}"
+source: "{{ sourceVol }}"
+target: "{{ targetVol }}"
 volmap: "{{ tgtmap }}"
 dirmap: "{{ tgtdir }}"
 
 #Source database volumes
-oraslob:
+sourceVol:
 - z-oracle1-u02
 - z-oracle1-u03
 
 #Target database volumes
-devslob:
+targetVol:
   u02:
     name:   /u02 
     src:    /dev/sdd 
