@@ -1,5 +1,8 @@
- name: Pure Storage storage module examples
+- name: Pure Storage storage module examples
   hosts: caas
+  vars:
+    fa_url: 10.10.10.10
+    fa_api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
   gather_facts: yes
   tasks:
   - name: Remove host from hostgroup
@@ -7,59 +10,59 @@
       hostgroup: ansible
       host: "{{ ansible_hostname }}"
       state: absent
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: Remove hostgroup
     purefa_hg:
       hostgroup: ansible
       state: absent
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: Remove iSCSI host
     purefa_host:
       host: "{{ ansible_hostname }}"
       state: absent
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: Delete snapshots
     purefa_snap:
       name: ansible_share
       suffix: snap
       state: absent
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: Delete snap copy volume
     purefa_volume:
       name: ansible_share_snap_volume
       state: absent
       eradicate: true
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: Delete shared clone volume
     purefa_volume:
       name: ansible_share_clone
       state: absent
       eradicate: true
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: Delete shared volume
     purefa_volume:
       name: ansible_share
       state: absent
       eradicate: true
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: Delete host data volume
     purefa_volume:
       name: ansible_{{ ansible_hostname }}_data
       state: absent
       eradicate: true
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
