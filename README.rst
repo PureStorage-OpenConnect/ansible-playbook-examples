@@ -9,7 +9,7 @@ The following items are assumed by all playbooks:
 
 -  The user has a working knowledge of Ansible and Ansible Playbooks
 
--  Minimum Ansible version is denoted by the direcotry name. Playbooks in these directories
+-  Minimum Ansible version is denoted by the directory name. Playbooks in these directories
    were tested on the named version. 
 
 -  Your Pure Storage Array should be accessible from your local
@@ -18,8 +18,8 @@ The following items are assumed by all playbooks:
 -  You have obtained a privileged API token from the Pure Storage
    Array that will be used by the playbooks.
 
-Playbooks will be simple and not use Inventory files as they are for
-informational and demonstration purposes only.
+Playbooks are simple and do not use Ansible inventory files as they are for
+informational and demonstrational purposes only.
 
 ====================
 FlashArray Playbooks
@@ -44,13 +44,13 @@ The ``api_version`` is recommended to be the highest version supported by
 your FlashArray's current Purity code version. You can check which API version
 is deployed with your version of Purity by using the reference table in the
 Pure Storage support website (https://support.purestorage.com/FlashArray/PurityOE/REST_API/REST_API_Reference_Guides).
-You can also get the Reference Guide for your RestAPI version to help you
+You can also get the Reference Guide for your REST API version to help you
 develop more Playbooks.
 
-The ``array_token`` get be obtained from your FlashArray for specific users
+The ``array_token`` can be obtained from your FlashArray for specific users
 using the GUI interface in **System -> Users -> API Tokens** and select **Show API Token** from the
 gear icon next to the user you require the token for. You may also obtain the token
-using the ``flasharray_get_token.yaml`` playbook example in this repo in which you must provide a valid username
+using the ``flasharray_get_token.yaml`` playbook example in the *2.2/flasharray* folder of this repo in which you must provide a valid username
 and password.
 
 **Playbooks using the PUREFA modules (Ansible 2.4 or higher) must contain the following variables:**
