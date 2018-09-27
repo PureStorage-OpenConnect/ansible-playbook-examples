@@ -21,6 +21,19 @@ The following items are assumed by all playbooks:
 Playbooks are simple and do not use Ansible inventory files as they are for
 informational and demonstrational purposes only.
 
+FlashArray modules are natively included in Ansible and are obtained by installing
+the latest Ansible package:
+
+
+``#  pip install ansible``
+
+FlashBlade modules will be available in Ansible 2.7, expected to release on
+October 4, 2018. Until that time you can get this modules by installing the
+latest 2.7 Release Candidtate code:
+
+
+``# pip install ansible==2.7.0rc3 --user``
+
 ====================
 FlashArray Playbooks
 ====================
