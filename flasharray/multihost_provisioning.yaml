@@ -1,20 +1,31 @@
 - name: Pure Storage storage module examples
   hosts: caas
   gather_facts: yes
+  vars:
+    fa_url: 10.10.10.10
+    fa_api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
   tasks:
-  - name: Install EPEL repo.
+  - name: Install EPEL repo on RedHat
     yum:
       name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm
       state: present
+    when: ansible_os_family == "RedHat"
 
-  - name: Import EPEL GPG key.
+  - name: Import EPEL GPG key on RedHat
     rpm_key:
       key: /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}
       state: present
+    when: ansible_os_family == "RedHat"
 
-  - name: Install python-pip module
+  - name: Install python-pip module on RedHat
     yum:
       name: python-pip
+    when: ansible_os_family == "RedHat"
+
+  - name: Install python-pip module on RedHat
+    apt:
+      name: python-pip
+    when: ansible_os_family == "Ubuntu"
 
   - name: Install purestorage python module
     pip:
@@ -24,15 +35,15 @@
     purefa_volume:
       name: ansible_share
       size: 1T
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: Create new volume ansible_<hostname>_data
     purefa_volume:
       name: ansible_{{ ansible_hostname }}_data
       size: 32G
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: Create iscsi host and attach hosts volume
     purefa_host:
@@ -40,14 +51,14 @@
       protocol: iscsi
       iqn: "{{ ansible_iscsi_iqn }}"
       volume: ansible_{{ ansible_hostname }}_data
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: Create new hostgroup called ansible
     purefa_hg:
       hostgroup: ansible
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: Add hosts to hostgroup ansible and connect shared volume
     purefa_hg:
@@ -55,23 +66,22 @@
       host:
         - "{{ ansible_hostname }}"
       volume:
-        - ansible_share
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: Clone share volume
     purefa_volume:
       name: ansible_share
       target: ansible_share_clone
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: take snapshot of share volume
     purefa_snap:
       name: ansible_share
       suffix: snap
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
 
   - name: convert snapshot to volume
     purefa_snap:
@@ -79,5 +89,5 @@
       suffix: snap
       target: ansible_share_snap_volume
       state: copy
-      fa_url: 10.10.10.10
-      api_token: c6033033-xxxx-xxxx-xxxx-966bb7fe4b40
+      fa_url: "{{fa_url}}"
+      api_token: "{{fa_api_token}}"
