@@ -9,15 +9,20 @@ tgt_init: "init{{ tgt_db }}.ora"
 tgt_ob: /u01/app/oracle
 tgt_oh: "{{ tgt_ob }}/product/18.0.0/dbhome_1"
 tgt_dir: ~/.ansible
-sys_pwd: change_on_install 
+sys_pwd: Osmium76
 
-array: "{{ se_EMEA_EBC_m20 }}"
+array: "{{ se_EMEA_EBC_FAm20 }}"
+arrayT: "{{ se_EMEA_EBC_FA420 }}"
 source: "{{ sourceVol }}"
 target: "{{ targetVol }}"
 volmap: "{{ tgtmap }}"
 dirmap: "{{ tgtdir }}"
+sourceName: z-oracle1PG
 
 #Source database volumes
+sourcePG: 
+- z-oracle1PG
+
 sourceVol:
 - z-oracle1-u02
 - z-oracle1-u03

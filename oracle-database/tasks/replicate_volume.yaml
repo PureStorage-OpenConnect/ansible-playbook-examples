@@ -1,16 +1,10 @@
 ---
-# Local PG snapshot name example:
-#   z-oracle1-u01.ansible123
-# 
-# Replicated volume name example
-#   se-EMEA-EBC-FAm20-a:z-oracle1PG.11551.z-oracle1-u01
-# 
 - name: Overwrite Database volume(s)
   uri:
     url: https://{{ array.ip }}/api/{{ array.api_version }}/volume/{{ item.value.target }}
     method: POST
-    headers:
-      Cookie: "{{ session.set_cookie }}"
+    HEADER_Content-Type: "application/json"
+    HEADER_Cookie: "{{ session.set_cookie }}"
     validate_certs: "no"
     return_content: "yes"
     body:

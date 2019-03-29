@@ -1,0 +1,88 @@
+---
+# Summary of Steps
+# 1. Stop target database (if running)
+# 2. Unmount the filesystem on target server (if mounted)
+# 3. Take snapshot of the source volumes and replicate to target array
+# 4. Mount the cloned volumes on target server
+# 5. Bring up the database on target server in mount mode
+# 6. Change the database name using nid
+# 7. Rename the directories on cloned database
+# 8. Bring up the database & change filenames
+#
+- name: Oracle Database Refresh
+  hosts: repservers 
+  vars_files:
+    - vars/arrays.yaml
+    - vars/database.yaml 
+
+  tasks:
+# Set Suffix
+    - set_fact:
+        suffix: "ansible{{ 1000 | random }}"
+      run_once: yes
+
+# Set-up
+#    - include: tasks/setup.yaml
+#      tags: setup
+
+# Create Oracle admin directories
+#    - include: tasks/create_admin.yaml
+#      tags: setup
+
+# Create Pure session
+    - include: tasks/create_session.yaml
+      run_once: yes
+    
+#    - pause:
+#        prompt: "Look in /tmp"
+
+# Take Snapshot of database volumes
+    - include: tasks/take_PGsnapshot.yaml
+      run_once: yes
+
+#    - meta: end_play
+
+# Stop Target Database
+    - include: tasks/shutdown_DB.yaml
+      tags: shutdown
+
+# Unmount Target volume
+    - include: tasks/unmount_volume.yaml
+      tags: unmount
+
+# Monitor Protection Group replication
+    - include: tasks/monitor_PGsnapshot.yaml
+      tags: replicate
+
+# Copy Snapshot to target database volume
+    - include: tasks/copyRep_volume.yaml
+      tags: refresh
+
+# Mount Target volume
+    - include: tasks/mount_volume.yaml
+      tags: mount
+
+#    - meta: end_play
+
+# Startup Mount Target Database
+    - include: tasks/5_startup.yaml
+      tags: startup
+
+# Change Database Name
+    - name: Change database name 
+      shell: '{{ tgt_dir }}/6_dbnewid.sh > 6_dbnewid.log 2>&1'
+      args:
+        chdir: "{{ tgt_dir }}"
+
+# Rename target database file names
+    - name: Rename Target database directories
+      shell: 'mv -v {{ item.value.sourced }} {{ item.value.targetd }}'
+      args:
+        chdir: "{{ tgt_dir }}"
+      with_dict: "{{ dirmap }}"
+    
+# Rename target database file names
+    - name: Rename Target database file names
+      shell: '{{ tgt_dir }}/8_rendbfiles.sh > 8_rendbfiles.log 2>&1'
+      args:
+        chdir: "{{ tgt_dir }}"

@@ -4,7 +4,6 @@
   uri:
     url: https://{{ array.ip }}/api/{{ array.api_version }}/auth/session
     method: POST
-    HEADER_Content-Type: "application/json"
     validate_certs: "no"
     return_content: "yes"
     body:
