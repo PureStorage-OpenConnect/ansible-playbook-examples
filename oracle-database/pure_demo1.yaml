@@ -9,19 +9,16 @@
 
   - name: Create new FlashArray Volume
     purefa_volume:
-      name: "{{ volName }}{{ item }}"
+      name: "{{ volName }}"
       size: "{{ volSize }}"
       fa_url: "{{ faUrl }}"
       api_token: "{{ apiToken }}"
-    with_sequence: count="{{ volNbr }}"
  
   - name: Create new FlashArray Protection Group
     purefa_pg:
       pgroup: "{{ pgName }}"
       volume:
-        - "{{ volName }}1"
-        - "{{ volName }}2"
-        - "{{ volName }}3"
+        - "{{ volName }}"
       fa_url: "{{ faUrl }}"
       api_token: "{{ apiToken }}"
       enabled: False

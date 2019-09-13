@@ -6,9 +6,6 @@
 - name: Copy rename database files sql
   template: src=templates/rename.sql.j2 dest={{ tgt_dir }}/rename.sql mode=0644
 
-#- name: Copy rename datafiles script
-#  template: src=templates/6_renfs.sh.j2 dest={{ tgt_dir }}/6_renfs.sh mode=0755
-
 - name: Copy rename db datafiles script
   template: src=templates/8_rendbfiles.sh.j2 dest={{ tgt_dir }}/8_rendbfiles.sh mode=0755
 
@@ -26,6 +23,3 @@
 
 - name: Copy database target init.ora files to target database server
   template: src=templates/tgt_init.ora.j2 dest={{ tgt_oh }}/dbs/init{{ tgt_db }}.ora mode=0755
-
-- name: Copy database SQL script to target database server
-  copy: src=files/showDB.sql dest={{ tgt_dir }}/showDB.sql mode=0755
