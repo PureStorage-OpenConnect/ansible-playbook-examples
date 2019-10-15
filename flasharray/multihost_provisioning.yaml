@@ -22,7 +22,7 @@
       name: python-pip
     when: ansible_os_family == "RedHat"
 
-  - name: Install python-pip module on RedHat
+  - name: Install python-pip module on Ubuntu
     apt:
       name: python-pip
     when: ansible_os_family == "Ubuntu"
