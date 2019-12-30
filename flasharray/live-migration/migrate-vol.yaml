@@ -1,0 +1,164 @@
+- name: Live migration using ActiveCluster
+  hosts: localhost
+  gather_facts: true
+  collections:
+  - purestorage.flasharray
+  vars_files:
+    - mig-vars.yaml
+  tasks:
+  - name: Get source FlashArray info
+    purefa_info:
+      gather_subset:
+      - minimum
+      - network
+      - interfaces
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+    register: src_array_info
+
+  - name: Get destination FlashArray info
+    purefa_info:
+      gather_subset:
+      - minimum
+      - network
+      - interfaces
+      fa_url: "{{ dst_array_ip }}"
+      api_token: "{{ dst_array_api }}"
+    register: dst_array_info
+
+  - name: Connect arrays in ActiveCluster configuration
+    purefa_connect:
+      target_url: "{{ dst_array_ip }}"
+      target_api: "{{ dst_array_api }}"
+      connection: sync
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+
+  - name: Create migration pod
+    purefa_pod:
+      name: "{{ migration_pod }}"
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+
+  - name: Move migration volume to migration pod
+    purefa_volume:
+      name: "{{ migration_volume }}"
+      move: "{{ migration_pod }}"
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+
+  - name: Stretch migration pod to destination array
+    purefa_pod:
+      name: "{{ migration_pod }}"
+      stretch: "{{ dst_array_info['purefa_info']['default']['array_name'] }}"
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+
+  - name: Wait for pod sync
+    purefa_info:
+      gather_subset: pods
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+    register: output
+    retries: 40
+    delay: 5
+    until: "output | json_query('purefa_info.pods.\"{{ migration_pod }}\".arrays[].status') == ['online', 'online']"
+
+  - name: Create host object on destination array
+    purefa_host:
+      host: "{{ ansible_hostname }}"
+      iqn: "{{ ansible_iscsi_iqn }}"
+      volume: "{{ migration_pod }}::{{ migration_volume }}"
+      fa_url: "{{ dst_array_ip }}"
+      api_token: "{{ dst_array_api }}"
+
+  - name: Discover destination FlashArray using iSCSI
+    open_iscsi:
+      show_nodes: yes
+      discover: yes
+      portal: "{{ dst_array_info.purefa_info.network[dst_iscsi_port].address }}"
+    register: dst_iscsi_iqn
+
+  - name: Connect to destination FlashArray over iSCSI
+    open_iscsi:
+      target: "{{ dst_iscsi_iqn.nodes[0] }}"
+      login: yes
+
+  - name: Ensure new multipath links from destination array are connected
+    command: /usr/sbin/multipath -r
+
+  - debug:
+      msg: "Volume fully sync'ed and ready for removal from source array"
+
+  - pause:
+
+  - name: Disconnect migration volume from host on source array
+    purefa_host:
+      volume: "{{ migration_pod }}::{{ migration_volume }}"
+      host: "{{ ansible_hostname }}"
+      state: absent
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+
+  - name: Unstretch pod from source array
+    purefa_pod:
+      name: "{{ migration_pod }}"
+      state: absent
+      stretch: "{{ src_array_info['purefa_info']['default']['array_name'] }}"
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+
+  - name: Move migrated volume out of pod on destination array
+    purefa_volume:
+      name: '{{ migration_pod }}::{{ migration_volume }}'
+      move: local
+      fa_url: "{{ dst_array_ip }}"
+      api_token: "{{ dst_array_api }}"
+
+  - name: Remove old multipath links to source array
+    command: /usr/sbin/multipath -r
+
+  - debug:
+      msg: "Volume fully migrated to destination array. Ready to clean up both arrays."
+
+  - pause:
+
+  - name: Eradicate migration pod on destination array
+    purefa_pod:
+      name: "{{ migration_pod }}"
+      state: absent
+      eradicate: true
+      fa_url: "{{ dst_array_ip }}"
+      api_token: "{{ dst_array_api }}"
+
+  - name: Cleanup hanging migration pod on source array
+    purefa_pod:
+      name: "{{ migration_pod }}.restretch"
+      state: absent
+      eradicate: true
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+
+  - name: Disconnect arrays from ActiveCluster mode
+    purefa_connect:
+      target_url: "{{ dst_array_ip }}"
+      target_api: "{{ dst_array_api }}"
+      state: absent
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+
+  - name: Remove old multipath links to source array
+    command: /usr/sbin/multipath -r
+
+  - name: Get source array IQN
+    shell:
+      cmd: /usr/sbin/iscsiadm -m node | grep {{ src_array_info.purefa_info.network[src_iscsi_port].address }} | awk '{print $2}'
+    register: src_iqn
+
+  - name:  Logout iSCSI sessions to source array
+    shell:
+      cmd: /usr/sbin/iscsiadm -m node -T {{ src_iqn.stdout }} -u
+
+  - name:  Delete iSCSI sessions to source array
+    shell:
+      cmd: /usr/sbin/iscsiadm -m node -o delete -T {{ src_iqn.stdout }}

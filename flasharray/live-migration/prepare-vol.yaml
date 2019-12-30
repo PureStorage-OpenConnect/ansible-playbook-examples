@@ -1,0 +1,74 @@
+- name: Create volume for migration example
+  hosts: localhost
+  gather_facts: true
+  collections:
+  - purestorage.flasharray
+  vars_files:
+    - mig-vars.yaml
+  tasks:
+  - name: Get source FlashArray info
+    purefa_info:
+      gather_subset:
+      - minimum
+      - network
+      - interfaces
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+    register: src_array_info
+
+  - name: Create volume for migration
+    purefa_volume:
+      name: "{{ migration_volume }}"
+      size: 10G
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+
+  - name: Get serial number of migration volume
+    purefa_info:
+      gather_subset: volumes
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+    register: volumes_data
+
+  - set_fact:
+      volume_serial: "{{ volumes_data.purefa_info.volumes[migration_volume].serial }}"
+
+  - name: Create host object on source array and connect volume
+    purefa_host:
+      host: "{{ ansible_hostname }}"
+      iqn: "{{ ansible_iscsi_iqn }}"
+      volume: "{{ migration_volume }}"
+      fa_url: "{{ src_array_ip }}"
+      api_token: "{{ src_array_api }}"
+
+  - name: Discover source FlashArray for iSCSI
+    open_iscsi:
+      show_nodes: yes
+      discover: yes
+      portal: "{{ src_array_info.purefa_info.network[src_iscsi_port].address }}"
+    register: src_iscsi_iqn
+
+  - name: Connect to source FlashArray over iSCSI
+    open_iscsi:
+      target: "{{ src_iscsi_iqn.nodes[0] }}"
+      login: yes
+
+  - name: Force multipath rescan
+    command: /usr/sbin/multipath -r
+
+  - name: Get multipath device for migration volume
+    shell:
+        cmd:  /usr/sbin/multipath -ll | grep -i {{ volume_serial }} | awk '{print $2}'
+    register: mpath_dev
+
+  - name: Format migration volume
+    filesystem:
+      fstype: ext4
+      dev: '/dev/{{ mpath_dev.stdout }}'
+
+  - name: Mount migration volume
+    mount:
+      path: "{{ mount_path }}"
+      fstype: ext4
+      src: '/dev/{{ mpath_dev.stdout }}'
+      state: mounted

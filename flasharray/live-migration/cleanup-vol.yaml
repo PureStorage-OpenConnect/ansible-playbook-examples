@@ -1,0 +1,65 @@
+- name: Cleanup environment after migration complete
+  hosts: localhost
+  gather_facts: true
+  collections:
+  - purestorage.flasharray
+  vars_files:
+    - mig-vars.yaml
+  tasks:
+  - name: Get destination array information
+    purefa_info:
+      gather_subset:
+      - network
+      - volumes
+      fa_url: "{{ dst_array_ip }}"
+      api_token: "{{ dst_array_api }}"
+    register: dst_array_info
+
+  - set_fact:
+      volume_serial: "{{ dst_array_info.purefa_info.volumes[migration_volume].serial }}"
+
+  - name: Unmount filesystem
+    mount:
+      path: "{{ mount_path }}"
+      state: absent
+
+  - name: Get multipath device of migrated volume
+    shell:
+        cmd: /usr/sbin/multipath -ll | grep -i {{ volume_serial }} | awk '{print $2}'
+    register: mpath_dev
+
+  - name: Delete host object from destination array
+    purefa_host:
+      host: "{{ ansible_hostname }}"
+      state: absent
+      fa_url: "{{ dst_array_ip }}"
+      api_token: "{{ dst_array_api }}"
+
+  - name: Delete migrated volume from destination array
+    purefa_volume:
+      name: "{{ migration_volume }}"
+      state: absent
+      eradicate: true
+      fa_url: "{{ dst_array_ip }}"
+      api_token: "{{ dst_array_api }}"
+
+  - name: Remove multipath device
+    shell:
+      cmd: /usr/sbin/multipath -r /dev/{{ mpath_dev.stdout }}
+
+  - name: Flush multipath cache
+    shell:
+      cmd: /usr/sbin/multipath -F
+
+  - name: Get destination array IQN
+    shell:
+      cmd: /usr/sbin/iscsiadm -m node | grep {{ dst_array_info.purefa_info.network[dst_iscsi_port].address }} | awk '{print $2}'
+    register: dst_iqn
+
+  - name:  Logout iSCSI sessions to destination array
+    shell:
+      cmd: /usr/sbin/iscsiadm -m node -T {{ dst_iqn.stdout }} -u
+
+  - name:  Delete iSCSI sessions to destination array
+    shell:
+      cmd: /usr/sbin/iscsiadm -m node -o delete -T {{ dst_iqn.stdout }}
