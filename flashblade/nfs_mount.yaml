@@ -1,0 +1,37 @@
+- name: Pure Storage storage module examples
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    share_name: nfs_test
+    url: 10.10.10.10
+    api: T-9f276a18-xxxx-yyyy-8a0c-666a3529a1b6
+    mount_point: "/mnt/nfs_test"
+  collections:
+  - purestorage.flashblade
+  tasks:
+    - name: Get FB facts
+      purefb_info:
+        gather_subset: all
+      register: blade_info
+
+    - name: Create test filesystem
+      purefb_fs:
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"
+        name: '{{ share_name }}'
+        state: present
+        size: 1T
+        nfsv3: True
+        nfsv4: True
+        hard_limit: true
+        nfs_rules: '{{ansible_default_ipv4.address }}(rw,no_root_squash)'
+        snapshot: True
+
+    - name: Mount filesystem
+      mount:
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"
+        path: '{( mount_point }}'
+        state: mounted
+        fstype: nfs
+        src: '{{ blade_info.purefb_info.network.nfs1.address }}:/{{ share_name }}'
