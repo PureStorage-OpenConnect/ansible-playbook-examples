@@ -1,0 +1,86 @@
+- name: Pure Storage storage module examples
+  gather_facts: yes
+  hosts: nfs_test
+  vars:
+    share_name: nfs_test
+    url: 10.10.10.10
+    api: T-9f276a18-xxxx-yyyy-8a0c-666a3529a1b6
+    mount_point: "/mnt/nfs_test"
+  collections:
+  - purestorage.flashblade
+  tasks:
+    - name: Install EPEL repo on RedHat
+      yum:
+        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Import EPEL GPG key on RedHat
+      rpm_key:
+        key: /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Install python-pip module on RedHat
+      yum:
+        name: python-pip
+      when: ansible_os_family == "RedHat"
+
+    - name: Install python-pip module on Ubuntu
+      apt:
+        name: python-pip
+      when: ansible_os_family == "Ubuntu"
+
+    - name: Install purity_fb python module
+      pip:
+        name: purity_fb
+
+    - name: Get FB facts
+      purefb_info:
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"
+        gather_subset: all
+      register: blade_info
+        api_token: "{{ api }}"
+        gather_subset: all
+      register: blade_info
+
+    - set_fact:
+        current_share_rules: "{{ blade_info['purefb_info']['filesystems'][share_name]['nfs_rules'] }}"
+      when: "{{ blade_info['purefb_info']['filesystems'][share_name] }}"
+      ignore_errors: True
+
+    - name: Create test filesystem
+      purefb_fs:
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"
+        name: '{{ share_name }}'
+        state: present
+        size: 1T
+        nfsv3: True
+        nfsv4: True
+        hard_limit: true
+        nfs_rules: "{{ ansible_default_ipv4.address }}(rw,no_root_squash)"
+        snapshot: True
+      when: current_share_rules is not defined
+
+    - name: Update test filesystem
+      purefb_fs:
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"
+        name: '{{ share_name }}'
+        state: present
+        size: 1T
+        nfsv3: True
+        nfsv4: True
+        hard_limit: true
+        nfs_rules: "{{ current_share_rules }} {{ ansible_default_ipv4.address }}(rw,no_root_squash)"
+        snapshot: True
+      when: '"{{ ansible_default_ipv4.address}}" not in "{{ current_share_rules }}"'
+
+    - name: Mount filesystem
+      mount:
+        path: "{{ mount_point }}"
+        state: mounted
+        fstype: nfs
+        src: '{{ blade_info.purefb_info.network.nfs1.address }}:/{{ share_name }}'
