@@ -29,8 +29,6 @@
 
     - name: Mount filesystem
       mount:
-        fb_url: "{{ url }}"
-        api_token: "{{ api }}"
         path: '{( mount_point }}'
         state: mounted
         fstype: nfs
