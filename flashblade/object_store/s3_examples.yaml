@@ -1,0 +1,23 @@
+- name: Pure Storage storage module examples
+  hosts: localhost
+  gather_facts: no
+  collections:
+  - purestorage.flashblade
+  tasks:
+    - name: Create s3 account
+      purefb_s3acc:
+        name: foo
+
+    - name: Create s3 user
+      purefb_s3user:
+        name:  bar
+        account: foo
+      register: user_info
+
+    - debug:
+        var: user_info.s3user_info.fb_s3user
+
+    - name: Create bucket
+      purefb_bucket:
+        name: testbucket
+        account: foo
