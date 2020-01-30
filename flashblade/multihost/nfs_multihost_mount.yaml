@@ -41,9 +41,6 @@
         api_token: "{{ api }}"
         gather_subset: all
       register: blade_info
-        api_token: "{{ api }}"
-        gather_subset: all
-      register: blade_info
 
     - set_fact:
         current_share_rules: "{{ blade_info['purefb_info']['filesystems'][share_name]['nfs_rules'] }}"
