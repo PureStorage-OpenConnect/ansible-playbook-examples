@@ -1,17 +1,24 @@
 - name: Pure Storage storage module examples
   hosts: localhost
   gather_facts: no
+  vars:
+    url: 10.10.10.10
+    api: T-9f276a18-xxxx-yyyy-8a0c-666a3529a1b6
   collections:
   - purestorage.flashblade
   tasks:
     - name: Create s3 account
       purefb_s3acc:
         name: foo
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"
 
     - name: Create s3 user
       purefb_s3user:
         name:  bar
         account: foo
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"
       register: user_info
 
     - debug:
@@ -21,3 +28,6 @@
       purefb_bucket:
         name: testbucket
         account: foo
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"
+
