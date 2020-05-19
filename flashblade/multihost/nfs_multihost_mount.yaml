@@ -1,5 +1,7 @@
 - name: Pure Storage storage module examples
   gather_facts: yes
+  collections:
+  - purestorage.flashblade
   hosts: nfs_test
   vars:
     share_name: nfs_test
