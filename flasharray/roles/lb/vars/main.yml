@@ -1,0 +1,12 @@
+---
+# Add as many arrays as you want to this list.
+# Te API token must be for a user with a minimum of Storage Admin privilaege
+arrays:
+  - url: <Array 1 management address>
+    api: <Array 1 user API token>
+  - url: <Array 2 management address>
+    api: <Array 2 user API token>
+  - url: <Array 3 management address>
+    api: <Array 3 user API token>
+  - url: <Array 4 management address>
+    api: <Array 4 user API token>

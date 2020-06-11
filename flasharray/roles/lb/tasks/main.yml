@@ -1,0 +1,18 @@
+---
+- name: Pure FlashArray Infra Config
+  include_tasks:
+    file: "all.yml"
+  vars:
+    url: "{{ item.url }}"
+    api: "{{ item.api }}"
+  loop: "{{ arrays }}"
+  loop_control:
+    extended: yes
+
+- name: Set details for least used array
+  set_fact:
+   use_capacity: "{{ (array_usage|sort(attribute='usage')|first).usage }}"
+   use_api: "{{ (array_usage|sort(attribute='usage')|first).api }}"
+   use_url: "{{ (array_usage|sort(attribute='usage')|first).url }}"
+   use_name: "{{ (array_usage|sort(attribute='usage')|first).name }}"
+

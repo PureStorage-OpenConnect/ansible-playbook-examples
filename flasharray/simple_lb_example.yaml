@@ -1,0 +1,16 @@
+- name: Pure Storage load balancing example
+  hosts: localhost
+  gather_facts: no
+  vars:
+          array_usage: []     # Do not remove - required by the role
+  roles:
+    - role: lb
+
+  tasks:
+  - name: Provisoning to array {{ use_name }}
+    purefa_volume:
+      fa_url: "{{ use_url }}"
+      api_token: "{{ use_api }}"
+      name: lb_test
+      size: 50G
+
