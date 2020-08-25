@@ -70,9 +70,9 @@ $ ansible-vault encrypt fb_secrets.yml
     ```
     array_secrets:               
       FBServer1:
-        token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a
+        api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a
       FBServer2:
-        token: T-79ced0e5-1d36-yyyy-8741-66482f04c6d1 
+        api_token: T-79ced0e5-1d36-yyyy-8741-66482f04c6d1 
     ```
 ##### Case: 2 - Array to S3(AWS) Object Replication
 
@@ -95,7 +95,7 @@ $ ansible-vault encrypt fb_secrets.yml
     ```
     array_secrets:               
       FBServer1:
-        token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a
+        api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a
 
     s3_secrets:
       aws1:
