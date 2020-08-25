@@ -1,0 +1,18 @@
+---
+# FBServer details
+array_inventory:               
+  FBServer1:
+    fb_url: 10.xx.106.80
+  FBServer2:
+    fb_url: 10.yy.112.100                                    
+
+# FB-FB or FB-AWS replication
+S3Replication: 
+  replication1:
+    common_params: { state: present }
+    src: { server: FBServer1, account: srcaccount, user: srcuser, bucket: srcbucket }
+    dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket }
+  replication2:
+    common_params: { state: present }
+    src: { server: FBServer1, account: srcaccount, user: srcuser, bucket: srcbucket }
+    dst: { server: FBServer2, account: dstaccount, user: dstuser, bucket: dstbucket }
