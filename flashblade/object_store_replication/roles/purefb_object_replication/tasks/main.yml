@@ -16,4 +16,3 @@
   when: 
     - S3Replication is defined
     - not repl_loop.value.dst.server is search("FBServer")
-
