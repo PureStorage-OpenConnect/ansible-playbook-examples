@@ -118,11 +118,11 @@ Example Playbook
       - "vars/{{ env }}/fb_details.yml"
       - "vars/{{ env }}/fb_secrets.yml"
       roles:
-        - pure_fb_object-store_replication
+        - purefb_object_replication
 
 To execute the playbook, issue the following command:
 ( Replace `<enviorement_name>` with the correct value )
    ```bash
-   $ ansible-playbook object-store_replication.yml -e "env=<enviorement_name>" --ask-vault-pass
+   $ ansible-playbook object_replication.yml -e "env=<enviorement_name>" --ask-vault-pass
    ```
 Enter Ansible-Vault password which used to encrypt "fb_secrets.yml" file.
