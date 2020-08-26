@@ -166,7 +166,7 @@ Example Playbook
         - "vars/{{ env }}/fb_secrets.yml"
         roles:
             - purefb_filesystem_setup
-      ```
+     ```
 
 * Filesystem failover
      ```
