@@ -1,0 +1,7 @@
+---
+- name: object-store | Include task to setup object-store
+  include: object-store.yml fb_vars={{outer_loop.value}}
+  loop: "{{ array_inventory|combine(array_secrets, recursive=True)|default({})|dict2items  }}"
+  loop_control:
+    loop_var: outer_loop
+  no_log: true
