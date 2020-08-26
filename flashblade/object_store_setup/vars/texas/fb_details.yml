@@ -1,0 +1,11 @@
+---
+array_inventory:               
+  FBServer1:
+    fb_url: 10.22.222.151                   
+    object_store:
+    - account: srclogaccount
+      state: present
+      users: 
+        - {name: srcloguser2, create_new_access_key: true, state: present}
+      buckets: 
+        - {name: srclogbucket, state: present, eradication: false, versioning: enabled}

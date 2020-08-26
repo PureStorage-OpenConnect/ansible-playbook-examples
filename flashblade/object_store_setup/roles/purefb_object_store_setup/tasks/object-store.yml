@@ -1,0 +1,7 @@
+---
+- name: setup object-store
+  include_tasks: setup_object-store.yml
+  loop: "{{ fb_vars.object_store | default([]) }}"
+  loop_control:
+    loop_var: s3_var
+  when: s3_var is defined and (s3_var|default([])|length > 0)
