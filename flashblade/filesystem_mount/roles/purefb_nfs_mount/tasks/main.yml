@@ -1,0 +1,9 @@
+---
+- name: packages | Install nfs-utils packages
+  include: packages.yml
+
+- name: "{{ mount_state | default('mount') }} | Create directory and do nfs mount"
+  include: nfsmount.yml mount_details={{ outer_loop.value }}
+  loop: "{{ linux_client_mount | dict2items }}"
+  loop_control: 
+    loop_var: outer_loop

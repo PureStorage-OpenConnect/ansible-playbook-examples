@@ -1,0 +1,17 @@
+---
+- name: FlashBlade filesystem setup
+  hosts: "localhost"
+  gather_facts: false
+  vars_files:
+  - "vars/{{ env }}/fb_details.yml"
+  - "vars/{{ env }}/fb_secrets.yml"
+  roles:
+    - purefb_filesystem_setup
+
+- name: Mount file share on hosts
+  hosts: all
+  vars_files:
+  - "vars/{{ env }}/fb_details.yml"
+  - "vars/{{ env }}/fb_secrets.yml"
+  roles:
+    - purefb_nfs_mount
