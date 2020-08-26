@@ -35,7 +35,7 @@ Role Variables
 
 There are two variable files "fb_details.yml" and "fb_secrets.yml" are holding the Ansible variables for the role at path `vars/<enviorement_name>`. 
 
-This role and playbook can be used to setup network on FlashBlade servers in different environments. To store role variable files user can create different directories with `vars/<environment_name>`. User must specify `<environment_name>` while running `ansible-playbook` by specifying value in extra vars command line flag `-e "env=<environment_name>"`.
+This role and playbook can be used to setup network on FlashBlade servers in different environments. To store role variable files, User can create different directories with `vars/<environment_name>`. User must specify `<environment_name>` while running `ansible-playbook` by specifying value in extra vars command line flag `-e "env=<environment_name>"`.
 
 Ansible playbooks require API token to connect to FlashBlade servers. API token can be obtained by connecting FlashBlade management VIP through ssh for a specific user and running the following purity command.
    ```
@@ -94,6 +94,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     ```
  * To extend the network setup configuration on the fleet of FlashBlade Arrays, add multiple "FBServer1...N" blocks under array_inventory in "fb_details.yml" file.
  Example configuration to setup DNS on two FlashBlade servers.
+   
    **fb_details.yml**
    ```
    # FBServer details
