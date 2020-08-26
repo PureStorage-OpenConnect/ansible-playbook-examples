@@ -1,3 +1,4 @@
+---
 ##################### FB array filesystem and object-store provisioning ##################
 array_inventory:               
   FBServer1:
