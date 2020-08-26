@@ -1,0 +1,6 @@
+---
+- name: smb | Create map drive
+  include: smbmount.yml mount_details={{ outer_loop.value }}
+  loop: "{{ windows_client_mount | dict2items }}"
+  loop_control: 
+    loop_var: outer_loop
