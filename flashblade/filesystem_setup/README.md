@@ -25,10 +25,9 @@ Requirements
     ```bash
     $ sudo pip install -r requirements.txt 
     ```
-* Install Ansible Collection for Pure Storage FlashBlade and AWS
+* Install Ansible Collection for Pure Storage FlashBlade
     ```bash
     $ ansible-galaxy collection install purestorage.flashblade
-    $ ansible-galaxy collection install community.aws
     ```
 
 Role Variables
