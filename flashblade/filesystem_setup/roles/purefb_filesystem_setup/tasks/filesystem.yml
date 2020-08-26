@@ -1,0 +1,80 @@
+---
+- name: filesystem | Provision file system on {{ outer_loop.key }}
+  purefb_fs:
+    name: "{{ item.name }}"
+    size: "{{ item.size | default(omit) }}"
+    nfsv3: "{{ 'nfsv3' in item.type | default(omit)}}"
+    nfsv4: "{{ 'nfsv4' in item.type | default(omit) }}"
+    user_quota: "{{ item.user_quota | default(omit) }}"
+    group_quota: "{{ item.group_quota | default(omit) }}"
+    nfs_rules: "{{ item.nfs_rules | default(omit) }}"
+    snapshot: "{{ item.snapshot | default('false') }}"
+    fastremove: "{{ item.fastremove | default('false') }}"
+    hard_limit: "{{ item.hard_limit | default('false') }}"
+    smb: "{{ 'smb' in item.type | default(omit) }}"
+    smb_aclmode: "{{ item.smb_aclmode | default(omit) }}"
+    writable: "{{ item.writable | default(omit) }}"
+    http: "{{ item.http | default(omit) }}"
+    eradicate: "{{ item.eradicate | default('false') }}"
+    promote: "{{ item.eradicate | default('true') }}"
+    state: "{{ item.state | default('present') }}"
+    policy: "{{ item.policy | default(omit) }}"
+    policy_state: "{{ item.policy_state | default(omit) }}"
+    fb_url: "{{ fb_vars.fb_url }}"
+    api_token: "{{ fb_vars.token }}"
+  loop: "{{ fb_vars.filesystem | default([]) }}"
+  when:
+    - item is defined and (item|default([])|length > 0)
+    - item.count is not defined or item.count == 0
+
+- name: filesystem | Include task to setup multiple filesystem if count defined on {{ outer_loop.key }}
+  include: filesystem_multi.yml
+  loop: "{{ fb_vars.filesystem|default([]) }}"
+  loop_control:
+    loop_var: fs_loop
+  when:
+    - fs_loop is defined and (fs_loop|default([])|length > 0)
+    - fs_loop.count is defined and fs_loop.count > 0
+
+- name: snapshot | Create a filesystem snapshot on {{ outer_loop.key }}
+  purefb_snap:
+    name: "{{ item.filesystem_name }}"
+    suffix: "{{ item.suffix }}"
+    state: "{{ item.state if item.state is defined else 'present' }}"
+    eradicate: "{{ item.eradicate | default('false') }}"
+    fb_url: "{{ fb_vars.fb_url }}"
+    api_token: "{{ fb_vars.token }}"
+  loop: "{{ fb_vars.filesystem_snapshot|default([]) }}"
+  when:
+    - item is defined and (item|default([])|length > 0)
+    - item.restore_fs_from_snap is not defined or not item.restore_fs_from_snap|bool 
+
+- name: snapshot | Restore filesystem from snapshot on {{ outer_loop.key }}
+  purefb_snap:
+    name: "{{ item.filesystem_name }}"
+    suffix: "{{ item.suffix }}"
+    state: restore
+    eradicate: "{{ item.eradicate | default('false') }}"
+    fb_url: "{{ fb_vars.fb_url }}"
+    api_token: "{{ fb_vars.token }}"
+  loop: "{{ fb_vars.filesystem_snapshot|default([]) }}"
+  when:
+    - item is defined and (item|default([])|length > 0)
+    - item.restore_fs_from_snap is defined and item.restore_fs_from_snap|bool
+
+- name: policy | Create a filesystem snapshot policy on {{ outer_loop.key }}
+  purefb_policy:
+    name: "{{ item.name }}"
+    enabled: "{{ item.enabled | default('True') }}"
+    at: "{{ item.at | default(omit)}}"
+    keep_for: "{{ item.keep_for | default(omit)}}"
+    every: "{{ item.every | default(omit) }}"
+    timezone: "{{ item.timezone | default(omit) }}"
+    state: "{{ item.state | default('present') }}"
+    filesystem: "{{ item.filesystem | default(omit) }}"
+    replica_link:  "{{ replica_link | default(omit) }}"
+    fb_url: "{{ fb_vars.fb_url }}"
+    api_token: "{{ fb_vars.token }}"
+  loop: "{{ fb_vars.filesystem_snapshot_policy|default([]) }}"
+  when:
+    - item is defined and (item|default([])|length > 0)
