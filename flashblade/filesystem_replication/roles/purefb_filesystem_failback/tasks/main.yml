@@ -1,0 +1,7 @@
+---
+# tasks file for pure_fb_filesystem_failback
+- name: failover | Include task for failback
+  include: failback.yml repl_vars={{repl_loop.value}}
+  loop: "{{ FSReplication|dict2items }}"
+  loop_control:
+    loop_var: repl_loop

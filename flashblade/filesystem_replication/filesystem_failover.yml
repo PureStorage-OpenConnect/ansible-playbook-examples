@@ -1,0 +1,8 @@
+---
+- name: FlashBlade filesystem failover
+  hosts: all
+  vars_files:
+  - "vars/{{ env }}/fb_details.yml"
+  - "vars/{{ env }}/fb_secrets.yml"
+  roles:
+    - purefb_filesystem_failover

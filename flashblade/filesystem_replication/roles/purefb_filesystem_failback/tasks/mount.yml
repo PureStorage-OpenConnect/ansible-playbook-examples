@@ -1,0 +1,17 @@
+---
+- name: Install nfs-utils and mount filesystems on clients
+  block:
+  - name: packages | Install nfs-utils packages
+    include: packages.yml
+
+  - name: mount | Unmout all the clients from src and mount back to dst filesystem
+    mount:
+      path: "{{ mount.mount_point }}"
+      state: mounted
+      fstype: nfs
+      src: "{{ src_data_vip }}:/{{ repl_vars.src.fileshare  }}"
+    become: true
+  when: > 
+    ( mount.hosts in group_names ) or
+    ( mount.hosts == inventory_hostname ) or
+    ( mount.hosts == ansible_hostname )

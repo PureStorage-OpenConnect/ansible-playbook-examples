@@ -1,0 +1,81 @@
+---
+- name: facts | Combine array_inventory and array_secrets for {{ repl_loop.key }}
+  set_fact:
+    combined_inventory: "{{ array_inventory|combine(array_secrets, recursive=True) }}"
+  run_once: true
+  no_log: true
+
+- name: validation | Fail if source Flashblade server not exist for {{ repl_loop.key }}
+  fail:
+    msg: FB server {{ repl_vars.src.fb_name }} not available
+  when: repl_vars.src.fb_name not in array_inventory
+
+- name: validation | Fail if target Flashblade server not exist for {{ repl_loop.key }}
+  fail:
+    msg: FB server {{ repl_vars.dst.fb_name }} not available
+  when: repl_vars.dst.fb_name not in array_inventory
+
+- name: facts | Set source and target facts for {{ repl_loop.key }}
+  set_fact:
+    src_fb_url: "{{ array_inventory[repl_vars.src.fb_name].fb_url }}"
+    src_fb_token: "{{ array_secrets[repl_vars.src.fb_name].api_token }}"
+    dst_fb_url: "{{ array_inventory[repl_vars.dst.fb_name].fb_url }}"
+    dst_fb_token: "{{ array_secrets[repl_vars.dst.fb_name].api_token }}"
+  no_log: true
+
+- name: facts | Get information from src FB server for {{ repl_loop.key }}
+  purefb_info:
+    gather_subset:
+      - minimum
+      - replication
+    fb_url: "{{ src_fb_url }}"
+    api_token: "{{ src_fb_token }}"
+  run_once: true
+  register: src_fb_info
+
+- name: facts | Get information from dst FB server for {{ repl_loop.key }}
+  purefb_info:
+    gather_subset:
+      - minimum
+      - replication
+    fb_url: "{{ dst_fb_url }}"
+    api_token: "{{ dst_fb_token }}"
+  run_once: true
+  register: dst_fb_info
+
+- name: facts | Set src fb name and dst fb name for {{ repl_loop.key }}
+  set_fact:
+    src_fb_name: "{{ src_fb_info.purefb_info.default.flashblade_name }}" 
+    dst_fb_name: "{{ dst_fb_info.purefb_info.default.flashblade_name }}" 
+
+- name: facts | Set dst fileshare name for {{ repl_loop.key }}
+  set_fact:
+    dst_fileshare: "{{ repl_vars.dst.fileshare if repl_vars.dst.fileshare is defined else repl_vars.src.fileshare }}" 
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+# Create replication
+- name: Create remote credential and replica link for {{ repl_loop.key }}
+  block:
+  - name: replication | Create a connection from {{ repl_vars.src.fb_name }} to remote FlashBlade {{ repl_vars.dst.fb_name }} server
+    purefb_connect:
+      state: present
+      target_url: "{{ dst_fb_url }}"
+      target_api: "{{ dst_fb_token }}"
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+
+  - name: replica | Create new filesystem replica-link between {{ repl_vars.src.fb_name }} and {{ repl_vars.dst.fb_name }}
+    purefb_fs_replica:
+      name: "{{ repl_vars.src.fileshare }}"
+      target_array: "{{ dst_fb_name }}"
+      target_fs: "{{ repl_vars.dst.fileshare | default(omit) }}"
+      policy: "{{ repl_vars.common_params.repl_policy | default(omit) }}"
+      state: present
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+    when: ( not repl_vars.src.fileshare in src_fb_info.purefb_info.file_replication )
+  when: >
+    (repl_vars.common_params.state is not defined) or
+    (repl_vars.common_params.state == 'present')
