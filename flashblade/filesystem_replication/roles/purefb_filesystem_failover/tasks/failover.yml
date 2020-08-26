@@ -1,0 +1,157 @@
+---
+- name: facts | Combine array_inventory and array_secrets for {{ repl_loop.key }}
+  set_fact:
+    combined_inventory: "{{ array_inventory|combine(array_secrets, recursive=True) }}"
+  no_log: true
+  run_once: true
+  delegate_to: localhost
+  become: false
+
+- name: validation | Fail if source Flashblade server not exist for {{ repl_loop.key }}
+  fail:
+    msg: FB server {{ repl_vars.src.fb_name }} not available
+  when: repl_vars.src.fb_name not in array_inventory
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: validation | Fail if target Flashblade server not exist for {{ repl_loop.key }}
+  fail:
+    msg: FB server {{ repl_vars.dst.fb_name }} not available
+  when: repl_vars.dst.fb_name not in array_inventory
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: facts | Set source and target facts for {{ repl_loop.key }}
+  set_fact:
+    src_fb_url: "{{ array_inventory[repl_vars.src.fb_name].fb_url }}"
+    src_fb_token: "{{ array_secrets[repl_vars.src.fb_name].token }}"
+    dst_fb_url: "{{ array_inventory[repl_vars.dst.fb_name].fb_url }}"
+    dst_fb_token: "{{ array_secrets[repl_vars.dst.fb_name].token }}"
+  no_log: true
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: facts | Get information from src FB server for {{ repl_loop.key }}
+  purefb_info:
+    gather_subset:
+      - minimum
+      - replication
+      - network
+      - filesystems
+    fb_url: "{{ src_fb_url }}"
+    api_token: "{{ src_fb_token }}"
+  run_once: true
+  register: src_fb_info
+  delegate_to: localhost
+  become: false
+
+- name: facts | Get information from dst FB server for {{ repl_loop.key }}
+  purefb_info:
+    gather_subset:
+      - minimum
+      - replication
+      - network
+    fb_url: "{{ dst_fb_url }}"
+    api_token: "{{ dst_fb_token }}"
+  run_once: true
+  register: dst_fb_info
+  delegate_to: localhost
+  become: false
+
+- name: facts | Set dst fileshare name for {{ repl_loop.key }}
+  set_fact:
+    dst_fileshare: "{{ repl_vars.dst.fileshare if repl_vars.dst.fileshare is defined else repl_vars.src.fileshare }}" 
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: facts | Set src fb name and dst fb name for {{ repl_loop.key }}
+  set_fact:
+    src_fb_name: "{{ src_fb_info.purefb_info.default.flashblade_name }}" 
+    dst_fb_name: "{{ dst_fb_info.purefb_info.default.flashblade_name }}" 
+    src_rl_policy: "{{ src_fb_info['purefb_info']['file_replication'][repl_vars.src.fileshare].policies | list }}"
+    dst_rl_policy: "{{ dst_fb_info['purefb_info']['file_replication'][dst_fileshare].policies | list }}"
+    src_data_vip: "{{ src_fb_info.purefb_info.network[repl_vars.src.data_vip].address }}" 
+    dst_data_vip: "{{ dst_fb_info.purefb_info.network[repl_vars.dst.data_vip].address }}" 
+    src_fs_policies: "{{ src_fb_info.purefb_info.filesystems[repl_vars.src.fileshare].policies | list }}" 
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: filesystem | Promote destination file system for {{ repl_loop.key }}
+  purefb_fs:
+    name: "{{ dst_fileshare }}"
+    promote: true
+    fb_url: "{{ dst_fb_url }}"
+    api_token: "{{ dst_fb_token }}"
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: mount | Unmout all the clients from src and mount back to dst filesystem
+  include: mount.yml
+  loop: "{{ repl_vars.client_details }}"
+  loop_control:
+    loop_var: mount
+
+- name: filesystem | Remove src snapshot policy for {{ repl_loop.key }}
+  purefb_fs:
+    name: "{{ repl_vars.src.fileshare }}"
+    policy: "{{ repl_vars.common_params.src_policy }}"
+    policy_state: absent
+    fb_url: "{{ src_fb_url }}"
+    api_token: "{{ src_fb_token }}"
+  when: repl_vars.common_params.src_policy is defined
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+- name: replica | Remove replica link policy for {{ repl_loop.key }}
+  purefb_fs_replica:
+    name: "{{ repl_vars.src.fileshare }}"
+    policy: "{{ repl_vars.common_params.repl_policy }}"
+    state: absent
+    fb_url: "{{ src_fb_url }}"
+    api_token: "{{ src_fb_token }}"
+  when: >
+    repl_vars.common_params.repl_policy is defined and
+    src_fb_info.purefb_info.file_replication[repl_vars.src.fileshare].direction == "outbound" 
+  delegate_to: localhost
+  become: false
+  run_once: true
+  ignore_errors: true
+
+#  src_fs_policies
+# remove all snapshots
+- name: filesystem | Demote source file system for {{ repl_loop.key }}
+  purefb_fs:
+    name: "{{ repl_vars.src.fileshare }}"
+    promote: false
+    fb_url: "{{ src_fb_url }}"
+    api_token: "{{ src_fb_token }}"
+  delegate_to: localhost
+  register: demote_fs
+  become: false
+  run_once: true
+
+- name: sleep for 30 seconds and continue with play
+  wait_for:
+    timeout: 30
+  delegate_to: localhost
+  when: demote_fs.changed | bool
+  become: false 
+  run_once: true
+
+- name: replica | Add replica link policy for {{ repl_loop.key }}
+  purefb_fs_replica:
+    name: "{{ dst_fileshare }}"
+    policy: "{{ src_fb_name + ':' + repl_vars.common_params.repl_policy }}"
+    state: present
+    fb_url: "{{ dst_fb_url }}"
+    api_token: "{{ dst_fb_token }}"
+  delegate_to: localhost
+  become: false
+  run_once: true

@@ -1,0 +1,9 @@
+---
+- name: FlashBlade filesystem failback/Reprotect
+  hosts: all
+  vars_files:
+  - "vars/{{ env }}/fb_details.yml"
+  - "vars/{{ env }}/fb_secrets.yml"
+  roles:
+    - purefb_filesystem_replication
+    - purefb_filesystem_failback

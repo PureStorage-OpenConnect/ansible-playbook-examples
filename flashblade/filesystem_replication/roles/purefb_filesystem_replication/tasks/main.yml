@@ -1,0 +1,7 @@
+---
+# tasks file for pure_fb_filesystem_replication
+- name: replication | Include task for replication
+  include: replication.yml repl_vars={{repl_loop.value}}
+  loop: "{{ FSReplication|dict2items }}"
+  loop_control:
+    loop_var: repl_loop
