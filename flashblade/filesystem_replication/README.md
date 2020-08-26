@@ -74,9 +74,9 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     ```
     array_secrets:               
       FBServer1:
-          token: T-c61e4dec-xxxx-xxxx-87f8-315264d9e65a
+          api_token: T-c61e4dec-xxxx-xxxx-87f8-315264d9e65a
       FBServer2:
-          token: T-79ced0e5-xxxx-xxxx-8741-66482f04c6d1 
+          api_token: T-79ced0e5-xxxx-xxxx-8741-66482f04c6d1 
     ```
  
  ##### Filesystem Replication 

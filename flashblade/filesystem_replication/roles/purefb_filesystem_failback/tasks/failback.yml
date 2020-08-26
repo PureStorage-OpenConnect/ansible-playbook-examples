@@ -26,9 +26,9 @@
 - name: facts | Set source and target facts for {{ repl_loop.key }}
   set_fact:
     src_fb_url: "{{ array_inventory[repl_vars.src.fb_name].fb_url }}"
-    src_fb_token: "{{ array_secrets[repl_vars.src.fb_name].token }}"
+    src_fb_token: "{{ array_secrets[repl_vars.src.fb_name].api_token }}"
     dst_fb_url: "{{ array_inventory[repl_vars.dst.fb_name].fb_url }}"
-    dst_fb_token: "{{ array_secrets[repl_vars.dst.fb_name].token }}"
+    dst_fb_token: "{{ array_secrets[repl_vars.dst.fb_name].api_token }}"
   no_log: true
   delegate_to: localhost
   run_once: true
