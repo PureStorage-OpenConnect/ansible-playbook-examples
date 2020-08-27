@@ -1,0 +1,9 @@
+---
+- name: Include common setup task
+  include: common.yml
+
+- name: Include tasks to create user
+  include: users.yml
+
+- name: Include tasks to deploy docker
+  include: docker.yml

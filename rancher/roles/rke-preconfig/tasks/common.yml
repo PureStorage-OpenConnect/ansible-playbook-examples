@@ -1,0 +1,64 @@
+---
+# - name: install updates using yum
+#   yum:
+#     name: "*"
+#     state: latest
+#   become: yes
+#   when: ansible_os_family == "RedHat"
+
+# - name: Update apt packages
+#   apt:
+#     update_cache: yes
+#     cache_valid_time: 3600
+#   become: yes
+#   when: ansible_os_family == "Debian"
+
+- name: Install libselinux python package
+  package:
+    name: "{{ ( (ansible_distribution_major_version | int) < 8) | ternary('libselinux-python','python3-libselinux') }}"
+    state: present
+  become: true
+
+- name: Set SELinux to disabled state
+  selinux:
+    state: disabled
+  register: selinux_reboot_required
+  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
+
+- name: Reboot the vm when required by SELinux 
+  reboot:
+    msg: "Reboot initiated by Ansible for kernel updates"
+    connect_timeout: 5
+    reboot_timeout: 300
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: uptime
+  when: selinux_reboot_required.reboot_required | bool
+
+- name: Load br_netfilter
+  modprobe:
+    name: br_netfilter
+    state: present
+  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
+
+- name: Set bridge-nf-call-iptables (just to be sure)
+  sysctl:
+    name: "{{ item }}"
+    value: "1"
+    state: present
+    reload: yes
+  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
+  loop:
+    - net.bridge.bridge-nf-call-iptables
+    - net.bridge.bridge-nf-call-ip6tables
+
+- name: Remove swap volumes from /etc/fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+.*)$'
+    replace: '# \1'
+  register: remove_swap_volumes
+
+- name: Disable SWAP
+  command: swapoff -a
+  when: remove_swap_volumes is changed

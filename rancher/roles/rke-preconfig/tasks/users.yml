@@ -1,0 +1,51 @@
+---
+- name: Make sure we have a 'wheel' group
+  group:
+    name: wheel
+    state: present
+
+- name: Allow 'wheel' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
+
+- name: Add sudoers users to wheel group
+  user:
+    name: "{{ rke_ssh_user }}"
+    groups: wheel
+    append: yes
+
+# tasks file for sshkey-distribution
+- name: Create ssh key on installer node and distribute to the rke management nodes
+  block:
+  - name: Generate SSH keys for rke user
+    user:
+      name: "{{rke_ssh_user}}"
+      shell: /bin/bash
+      generate_ssh_key: yes
+      ssh_key_bits: 2048
+      ssh_key_file: .ssh/id_rsa
+
+  - name: Fetch the keyfile from the loadbalancer to ansible node
+    fetch: 
+      src: "/home/{{rke_ssh_user}}/.ssh/id_rsa.pub"
+      dest: "/tmp/{{rke_ssh_user}}/id_rsa.pub"
+      flat: yes
+  when: 'groups["loadbalancer"][0] == inventory_hostname'
+
+- name: Copy the key to add authorized_keys using Ansible module
+  authorized_key:
+    user: "{{rke_ssh_user}}"
+    state: present
+    key: "{{ lookup('file','/tmp/{{rke_ssh_user}}/id_rsa.pub')}}"
+
+- name: Recursively remove directory
+  file:
+    path: /tmp/{{rke_ssh_user}}
+    state: absent
+  delegate_to: localhost
+  run_once: true
+  become: false
