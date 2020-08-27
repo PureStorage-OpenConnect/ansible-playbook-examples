@@ -3,6 +3,10 @@ Rancher Kubernetes Engine(rke) pre-config and deployment
 
 Ansible playbook and roles for Rancher Kubernetes Engine pre-config and deployment.
 
+Disclaimer
+------------
+
+##### These sample playbooks and roles not supported by PureStorage.
 
 Requirements
 ------------
