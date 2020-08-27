@@ -1,30 +1,36 @@
 ---
-- name: Download RKE binary
-  get_url:
-    url: "{{ rke_binary_url }}"
-    checksum: "{{ rke_binary_checksum }}"
-    dest: /usr/local/bin/rke
-    mode: "+rx"
-  register: rke_binary
-  become: true
-
 - name: Ensure config directory exists
   file:
     path: "{{ rke_config_dir }}"
     state: directory
+    owner: "{{ rke_ssh_user }}"
+    group: "{{ rke_ssh_user }}"
+
+- name: Download RKE binary
+  get_url:
+    url: "{{ rke_binary_url }}"
+    checksum: "{{ rke_binary_checksum }}"
+    dest: "{{ rke_config_dir }}/rke"
+    mode: "+rx"
+  register: rke_binary
+  become: true
 
 - name: Create/update RKE config file
   template:
     src: rancher_cluster.yml.j2
-    dest: "{{ rke_config_dir }}/cluster.yml"
+    dest: "{{ rke_config_dir }}/rancher-cluster.yml"
     mode: u=rw,g=r,o=
+    owner: "{{ rke_ssh_user }}"
+    group: "{{ rke_ssh_user }}"
   register: rke_cluster_config
 
 - name: Run RKE installer
-  shell: rke up
+  shell: ./rke up --config rancher-cluster.yml
   args:
     chdir: "{{ rke_config_dir }}"
   when: rke_binary is changed or rke_cluster_config is changed or rke_force_configure
+  become: true
+  become_user: "{{ rke_ssh_user }}"
 
 - name: Install kubectl
   get_url:
@@ -35,11 +41,15 @@
 
 - name: Ensure $HOME/.kube exists
   file:
-    path: "{{ ansible_env.HOME }}/.kube"
+    path: "/home/{{ rke_ssh_user }}/.kube"
     state: directory
+    owner: "{{ rke_ssh_user }}"
+    group: "{{ rke_ssh_user }}"
 
 - name: Copy kubeconfig to default location
   copy:
     remote_src: yes
-    src: "{{ rke_config_dir }}/kube_config_cluster.yml"
-    dest: "{{ ansible_env.HOME }}/.kube/config"
+    src: "{{ rke_config_dir }}/kube_config_rancher-cluster.yml"
+    dest: "/home/{{ rke_ssh_user }}/.kube/config"
+    owner: "{{ rke_ssh_user }}"
+    group: "{{ rke_ssh_user }}"

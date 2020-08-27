@@ -14,7 +14,7 @@ rke_binary_url: "https://github.com/rancher/rke/releases/download/{{ rke_release
 rke_binary_checksum: sha256:1c7bb6e7eb3c820475b3ecbc4fc5786a912658b9d0e1f4323759c1bb72d6a758
 rke_kubernetes_version: "{{ kubernetes_supported_versions[kubernetes_version] }}"
 
-rke_config_dir: "{{ ansible_env.HOME | default(ansible_env.PWD) | default('/root') }}/rancher"
+rke_config_dir: "/home/{{ rke_ssh_user }}/rancher"
 rke_force_configure: true
 
 rke_ssh_user: centos
