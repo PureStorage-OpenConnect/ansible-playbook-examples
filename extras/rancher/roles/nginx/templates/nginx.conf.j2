@@ -1,0 +1,34 @@
+{% block worker %}
+worker_processes  {{ nginx_worker_processes }};
+worker_rlimit_nofile {{ nginx_worker_rlimit_nofile }};
+{% endblock %}
+
+{% block events %}
+events {
+	worker_connections {{ nginx_worker_connections }};
+}
+{% endblock %}
+
+{% block http %}
+http {
+	server {
+		listen 80;
+		return 301 https://$host$request_uri;
+		}
+	}
+{% endblock %}
+
+{% block stream %}
+stream {
+	upstream rancher_servers {
+		least_conn;
+        {% for host in groups['node'] %}
+          server {{ hostvars[host]['ansible_host'] }}:443 max_fails=3 fail_timeout=5s;
+        {% endfor %}
+	}
+	server {
+		listen 443;
+		proxy_pass rancher_servers;
+	}
+}
+{% endblock %}

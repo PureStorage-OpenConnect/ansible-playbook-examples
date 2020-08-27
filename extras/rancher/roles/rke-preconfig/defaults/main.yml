@@ -1,0 +1,7 @@
+---
+# defaults file for pure_rancher_setup
+# supported docker versions [17.03, 18.06, 18.09.2, 19.03]
+docker_version: 18.09.2
+
+add_docker_user: true
+rke_ssh_user: centos

@@ -1,0 +1,25 @@
+---
+- name: Install Docker {{docker_version}}
+  shell: curl https://releases.rancher.com/install-docker/{{docker_version}}.sh | sh
+  args:
+    warn: no
+
+- name: Deploy Docker daemon.json.
+  copy:
+    src: files/daemon.json
+    dest: /etc/docker/daemon.json
+
+- name: Add users to docker group
+  user:
+    name: '{{ rke_ssh_user | default( ansible_user ) }}'
+    groups: 'docker'
+    append: 'yes'
+
+- name: Restart Docker Engine service
+  service:
+    name: docker
+    enabled: yes
+    state: restarted
+
+- name: reset ssh connection to allow user changes to affect 'current login user'
+  meta: reset_connection

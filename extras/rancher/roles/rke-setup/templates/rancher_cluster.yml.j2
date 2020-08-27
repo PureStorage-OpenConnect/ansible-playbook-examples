@@ -1,0 +1,27 @@
+---
+#{{ ansible_managed }}
+
+nodes:
+{% for host in groups['node'] %}
+  - address: "{{ hostvars[host]['ansible_host'] }}"
+{% if hostvars[host]['private_ip'] is defined %}
+    internal_address: "{{ hostvars[host]['private_ip'] }}"
+{% endif %}
+    user: "{{ rke_ssh_user }}"
+    role: ["{{ rke_node_roles | list | join("\", \"") }}"]
+{% endfor %}
+
+ssh_key_path: /home/{{ rke_ssh_user }}/.ssh/id_rsa
+
+kubernetes_version: "{{ rke_kubernetes_version }}"
+
+{% if rke_cloud_provider_config is defined %}
+cloud_provider:
+  {{ rke_cloud_provider_config | to_nice_yaml(indent=2) | indent(width=2) }}
+{% endif %}
+
+services:
+  etcd:
+    snapshot: true
+    creation: 6h
+    retention: 24h

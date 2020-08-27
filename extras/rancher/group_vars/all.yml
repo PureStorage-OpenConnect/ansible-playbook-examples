@@ -1,0 +1,6 @@
+---
+rke_ssh_user: centos
+rke_release: v1.1.4
+kubernetes_version: "1.18"
+ntp_enabled: true
+ntp_timezone: America/New_York

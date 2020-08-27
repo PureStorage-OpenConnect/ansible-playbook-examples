@@ -1,0 +1,19 @@
+---
+- name: Setup ntp and firewall
+  hosts: all
+  become: true
+  roles:
+    - ntp
+    - firewall
+
+- name: Setup rke pre-configuration
+  hosts: all
+  become: true
+  roles:
+    - rke-preconfig
+
+- name: Deploy loadbalancer and rke-setup
+  hosts: loadbalancer
+  roles:
+    - { role: nginx, become: yes }
+    - rke-setup
