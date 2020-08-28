@@ -5,6 +5,13 @@
     state: present
   become: true
 
+- name: Install nfs-utils package
+  yum:
+    name: nfs-utils
+    state: present
+  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
+  become: true
+
 - name: Set SELinux to disabled state
   selinux:
     state: disabled

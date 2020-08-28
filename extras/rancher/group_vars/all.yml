@@ -1,6 +1,9 @@
 ---
-rke_ssh_user: centos
+rke_ssh_user: rke
 rke_release: v1.1.4
 kubernetes_version: "1.18"
 ntp_enabled: true
 ntp_timezone: America/New_York
+
+# supported docker versions [17.03, 18.06, 18.09.2, 19.03]
+docker_version: 18.09.2

@@ -13,7 +13,6 @@
     dest: "{{ rke_config_dir }}/rke"
     mode: "+rx"
   register: rke_binary
-  become: true
 
 - name: Create/update RKE config file
   template:
@@ -28,16 +27,17 @@
   shell: ./rke up --config rancher-cluster.yml
   args:
     chdir: "{{ rke_config_dir }}"
+  retries: 1
+  delay: 3
+  register: result
+  until: result is not failed
   when: rke_binary is changed or rke_cluster_config is changed or rke_force_configure
-  become: true
-  become_user: "{{ rke_ssh_user }}"
 
 - name: Install kubectl
   get_url:
     url: https://storage.googleapis.com/kubernetes-release/release/{{ rke_kubernetes_version.split('-', 1)[0] }}/bin/linux/amd64/kubectl
     dest: /usr/local/bin/kubectl
     mode: "+rx"
-  become: true
 
 - name: Ensure $HOME/.kube exists
   file:
@@ -50,6 +50,113 @@
   copy:
     remote_src: yes
     src: "{{ rke_config_dir }}/kube_config_rancher-cluster.yml"
-    dest: "/home/{{ rke_ssh_user }}/.kube/config"
+    dest: "{{ kube_config }}"
     owner: "{{ rke_ssh_user }}"
     group: "{{ rke_ssh_user }}"
+  
+- name: Download cert-manager yaml defination
+  get_url:
+    url: https://github.com/jetstack/cert-manager/releases/download/v0.16.0/cert-manager.yaml
+    dest: /tmp/cert-manager.yaml
+    owner: "{{ rke_ssh_user }}"
+    group: "{{ rke_ssh_user }}"
+
+- name: Ensure epel-release is installed.
+  yum:
+    name: epel-release
+    state: latest
+
+- name: Ensure python-pip is installed.
+  yum:
+    name: python-pip
+    state: latest
+
+- name: install the pip package, force upgrade
+  pip: 
+    name: pip
+    extra_args: --upgrade
+
+- name: install the setuptools package, force upgrade
+  pip: 
+    name: setuptools
+    extra_args: --upgrade
+
+- name: Ensure K8s module dependencies are installed.
+  pip:
+    name: openshift
+    extra_args: --ignore-installed PyYAML
+
+- name: Create a cert-manager Deployment by reading the definition from a local file
+  k8s:
+    state: present
+    src: /tmp/cert-manager.yaml
+    kubeconfig: "{{ kube_config }}"
+    wait: yes
+    wait_timeout: 60
+
+- name: Check if inside AWS
+  uri:
+    url: http://169.254.169.254/latest/meta-data
+    timeout: 2
+  register: aws_uri_check
+  failed_when: False
+
+- name: set fact for ec2 enviorement
+  set_fact:
+    is_aws_environment: "{{ aws_uri_check.status == 200 }}"
+
+- name: Get EC2 instance metadata
+  ec2_metadata_facts:
+  register: ec2_info
+  when: is_aws_environment | bool
+
+- name: set fact for ec2 loadbalancer_public_dns
+  set_fact:
+    loadbalancer_public_dns: >
+       "{{ ec2_info.ansible_facts.ansible_ec2_public_hostname }}"
+  when: is_aws_environment | bool
+
+- name: set fact for bare metal server loadbalancer_public_dns
+  set_fact:
+    loadbalancer_public_dns: >
+       "{{ loadbalancer_dns_address if loadbalancer_dns_address is defined else }}"
+  when: >
+    ( not is_aws_environment | bool ) and
+    ( loadbalancer_dns_address is not defined and loadbalancer_dns_address | length == 0 ) 
+
+- name: set fact for local VM loadbalancer_public_dns
+  set_fact:
+    loadbalancer_public_dns: >
+       "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] + '.xip.io' }}"
+  when: >
+    ( not is_aws_environment | bool ) and
+    ( loadbalancer_dns_address is not defined and loadbalancer_dns_address | length == 0 ) 
+
+- name: Retrieve helm binary archive.
+  unarchive:
+    src: https://get.helm.sh/helm-v3.2.1-linux-amd64.tar.gz
+    dest: /tmp
+    creates: /usr/local/bin/helm
+    remote_src: yes
+
+- name: Move helm binary into place.
+  command: cp /tmp/linux-amd64/helm /usr/local/bin/helm
+  args:
+    creates: /usr/local/bin/helm
+
+- name: Add rancher chart repo
+  helm_repository:
+    name: rancher-latest
+    repo_url: "https://releases.rancher.com/server-charts/latest"
+    binary_path: "{{ helm_binary_path }}"
+
+- name: Deploy latest version of rancher chart inside cattle-system namespace with values
+  helm:
+    name: rancher
+    chart_ref: rancher-latest/rancher
+    release_namespace: cattle-system
+    create_namespace: yes
+    values:
+      hostname: "{{ loadbalancer_public_dns }}"
+    kubeconfig: "{{ kube_config }}"
+    binary_path: "{{ helm_binary_path }}"

@@ -4,4 +4,4 @@
 docker_version: 18.09.2
 
 add_docker_user: true
-rke_ssh_user: centos
+rke_ssh_user: rke
