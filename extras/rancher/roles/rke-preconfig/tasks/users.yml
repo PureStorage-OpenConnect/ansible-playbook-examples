@@ -42,7 +42,7 @@
     state: present
     key: "{{ lookup('file','/tmp/{{rke_ssh_user}}/id_rsa.pub')}}"
 
-- name: Recursively remove directory
+- name: Recursively remove ssh key directory from local system
   file:
     path: /tmp/{{rke_ssh_user}}
     state: absent

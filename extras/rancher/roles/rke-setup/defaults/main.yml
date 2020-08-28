@@ -17,5 +17,9 @@ rke_kubernetes_version: "{{ kubernetes_supported_versions[kubernetes_version] }}
 rke_config_dir: "/home/{{ rke_ssh_user }}/rancher"
 rke_force_configure: true
 
-rke_ssh_user: centos
+rke_ssh_user: rke
 rke_node_roles: [controlplane, worker, etcd]
+
+helm_binary_path: /usr/local/bin/helm
+
+kube_config: "/home/{{ rke_ssh_user }}/.kube/config"
