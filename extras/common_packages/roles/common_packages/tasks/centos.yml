@@ -1,0 +1,29 @@
+---
+- name: Install system packages
+  become: true
+  yum:
+    name: "{{ centos_packages }}"
+    state: present
+
+- name: Ensure pip packages are installed.
+  become: true
+  pip:
+    name: "{{ pip_install_packages }}"
+    state: present
+    executable: pip3
+
+- name: Set system facts
+  set_fact:
+    python3_command: python3.6
+
+- name: Find installed executable
+  shell: "type -p {{ python3_command }}" 
+  register: python3_which
+  changed_when: false
+
+- name: Link executable to generic name
+  become: true
+  file:
+    src: "{{ python3_which.stdout }}"
+    dest: "{{ python3_which.stdout|dirname }}/python3"
+    state: link
