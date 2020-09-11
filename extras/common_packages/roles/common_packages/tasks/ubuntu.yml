@@ -1,0 +1,19 @@
+---
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400
+  become: true
+
+- name: Install ubuntu system packages
+  apt:
+    name: "{{ ubuntu_packages }}"
+  become: true
+
+- name: Ensure pip packages are installed.
+  pip:
+    name: "{{ pip_install_packages }}"
+    state: present
+    executable: pip3
+  become: true

@@ -1,0 +1,6 @@
+---
+- name: Install common packages
+  hosts: all
+  become: true
+  roles:
+    - common_packages

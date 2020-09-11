@@ -1,0 +1,11 @@
+---
+- name: OS-specific tasks
+  include_tasks: "{{ ansible_distribution|lower }}.yml"
+
+- name: Add local Python path to login file
+  lineinfile:
+    line: "export PATH={{ python3_local }}:$PATH"
+    path: "{{ python3_bashrc }}"
+    create: true
+    state: present
+  become: true

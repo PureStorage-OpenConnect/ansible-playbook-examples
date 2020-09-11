@@ -1,0 +1,18 @@
+---
+ubuntu_packages:
+    - python3
+    - python3-pip
+    - nfs-common
+
+centos_packages:
+    - python3
+    - python3-pip
+    - nfs-utils
+
+pip_install_packages:
+    - boto3
+    - numpy
+
+python3_command: python3
+python3_bashrc: "{{ ansible_user_dir}}/.bash_profile"
+python3_local: "{{ ansible_user_dir}}/.local/bin"
