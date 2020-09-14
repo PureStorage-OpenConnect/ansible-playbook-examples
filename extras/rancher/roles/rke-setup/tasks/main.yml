@@ -65,9 +65,10 @@
   yum:
     name: epel-release
     state: latest
+  when: ansible_distribution|lower == "centos"
 
 - name: Ensure python-pip is installed.
-  yum:
+  package:
     name: python-pip
     state: latest
 
@@ -75,16 +76,19 @@
   pip: 
     name: pip
     extra_args: --upgrade
+    executable: pip
 
 - name: install the setuptools package, force upgrade
   pip: 
     name: setuptools
     extra_args: --upgrade
+    executable: pip
 
 - name: Ensure K8s module dependencies are installed.
   pip:
     name: openshift
     extra_args: --ignore-installed PyYAML
+    executable: pip
 
 - name: Create a cert-manager Deployment by reading the definition from a local file
   k8s:

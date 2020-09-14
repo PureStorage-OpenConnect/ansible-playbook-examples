@@ -52,6 +52,15 @@ Role variables are available in `roles/common_packages/defaults/main.yml` direct
 Set the required values for these variables before running playbook.
 
 `hosts.ini` file containing the host inventory details, Update this file with host details.
+ ```
+  [all]
+  ec2_host1 ansible_host=54.XXX.XXX.210 ansible_ssh_private_key_file=path/to/private/key
+  ec2_host2 ansible_host=54.XXX.XX.211 ansible_ssh_private_key_file=path/to/private/key
+  ec2_host3 ansible_host=54.XXX.XXX.212 ansible_ssh_private_key_file=path/to/private/key
+  ec2_host4 ansible_host=54.XXX.XX.213 ansible_ssh_private_key_file=path/to/private/key
+  ec2_host5 ansible_host=54.XXX.XXX.214 ansible_ssh_private_key_file=path/to/private/key
+  ec2_host6 ansible_host=54.XXX.XX.215 ansible_ssh_private_key_file=path/to/private/key
+ ```
 
 Dependencies
 ------------
@@ -71,12 +80,5 @@ Example Playbook
 To execute playbook, issue the following command:
 ( Replace `<ssh_user>` with host ssh user name and `<key_file_path>` with host private key file path )
    ```bash
-   $ ansible-playbook install_common_packages.yml -i hosts.ini -u <ssh_user> --key-file=<key_file_path>
+   $ ansible-playbook install_common_packages.yml -i hosts.ini -u <ssh_user>
    ```
-
-To execute playbook with host password instead of private key( Not recommended ), use following command.
-
-   ```bash
-   $ ansible-playbook install_common_packages.yml -i hosts.ini -u <ssh_user> -k -K
-   ```
-Enter remote host password and root password when prompted.

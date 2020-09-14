@@ -27,7 +27,6 @@
 - include_tasks: setup-Archlinux.yml
   when: ansible_os_family == 'Archlinux'
 
-
 # Nginx setup.
 - name: Copy nginx configuration in place.
   template:
@@ -38,6 +37,11 @@
     mode: 0644
   notify:
     - reload nginx
+
+- name: reload nginx
+  command: nginx -s reload -t
+  changed_when: false
+  failed_when: false
 
 - name: Ensure nginx service is running as configured.
   service:

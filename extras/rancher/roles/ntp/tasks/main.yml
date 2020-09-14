@@ -23,6 +23,13 @@
     ntp_daemon: "{{ __ntp_daemon }}"
   when: ntp_daemon is not defined
 
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: "yes"
+    update_cache: yes
+    cache_valid_time: 86400
+  when: ansible_distribution|lower == "ubuntu"
+
 - name: Ensure NTP package is installed.
   package:
     name: "{{ ntp_package }}"
