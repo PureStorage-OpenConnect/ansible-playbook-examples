@@ -1,38 +1,47 @@
 ---
 - name: Install libselinux python package
-  package:
+  yum:
     name: "{{ ( (ansible_distribution_major_version | int) < 8) | ternary('libselinux-python','python3-libselinux') }}"
     state: present
+  when: ansible_distribution|lower == "centos"
   become: true
 
-- name: Install nfs-utils package
+- name: Install nfs-utils package on centos
   yum:
     name: nfs-utils
     state: present
-  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
+  when: ansible_distribution|lower == "centos"
   become: true
 
-- name: Set SELinux to disabled state
-  selinux:
-    state: disabled
-  register: selinux_reboot_required
-  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
+- name: Install nfs-common package on ubuntu
+  apt:
+    name: nfs-common
+  become: true
+  when: ansible_distribution|lower == "ubuntu"
 
-- name: Reboot the vm when required by SELinux 
-  reboot:
-    msg: "Reboot initiated by Ansible for kernel updates"
-    connect_timeout: 5
-    reboot_timeout: 300
-    pre_reboot_delay: 0
-    post_reboot_delay: 30
-    test_command: uptime
-  when: selinux_reboot_required.reboot_required | bool
+- name: Selinux config
+  block:
+  - name: Set SELinux to disabled state
+    selinux:
+      state: disabled
+    register: selinux_reboot_required
+    when: ansible_distribution|lower == "centos"
+
+  - name: Reboot the vm when required by SELinux 
+    reboot:
+      msg: "Reboot initiated by Ansible for kernel updates"
+      connect_timeout: 5
+      reboot_timeout: 300
+      pre_reboot_delay: 0
+      post_reboot_delay: 30
+      test_command: uptime
+    when: selinux_reboot_required is defined and selinux_reboot_required.reboot_required | bool
+  when: ansible_distribution|lower == "centos"
 
 - name: Load br_netfilter
   modprobe:
     name: br_netfilter
     state: present
-  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
 
 - name: Set bridge-nf-call-iptables (just to be sure)
   sysctl:
@@ -40,7 +49,6 @@
     value: "1"
     state: present
     reload: yes
-  when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
   loop:
     - net.bridge.bridge-nf-call-iptables
     - net.bridge.bridge-nf-call-ip6tables

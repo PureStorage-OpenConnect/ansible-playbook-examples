@@ -1,13 +1,36 @@
 ---
+- name: Check current docker-compose version.
+  command: docker --version
+  register: docker_current_version
+  changed_when: false
+  failed_when: false
+
 - name: Install Docker {{docker_version}}
   shell: curl https://releases.rancher.com/install-docker/{{docker_version}}.sh | sh
   args:
     warn: no
+  when: docker_current_version.stdout is not defined
+
+- name: check docker directory
+  stat:
+    path: /etc/docker
+  register: docker_folder
+
+- name: Create docker directory if not exists
+  file:
+    path: /etc/docker
+    state: directory
+  when: docker_folder.stat.exists == false
 
 - name: Deploy Docker daemon.json.
   copy:
     src: files/daemon.json
     dest: /etc/docker/daemon.json
+
+- name: Ensure group "docker" exists
+  group:
+    name: docker
+    state: present
 
 - name: Add users to docker group
   user:
