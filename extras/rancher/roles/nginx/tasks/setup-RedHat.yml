@@ -12,8 +12,3 @@
   package:
     name: "{{ nginx_package_name }}"
     state: present
-
-# - name: Ensure nginx stream module is installed.
-#   package:
-#     name: nginx-mod-stream
-#     state: present
