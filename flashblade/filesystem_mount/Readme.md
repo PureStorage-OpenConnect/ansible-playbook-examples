@@ -1,7 +1,7 @@
 FlashBlade NFS File System mount
 =========
 
-Ansible playbook and role for FlashBlade nfs File System mount on clients.
+Ansible playbook and role for FlashBlade NFS File System mount on clients.
 
 
 Requirements
@@ -128,7 +128,7 @@ To execute playbook with host ssh key, issue the following command:
 To execute playbook with host password( Not Recommended ), issue the following command:
 ( Replace `<enviorement_name>` with the correct value )
    ```bash
-   $ ansible-playbook filesystem_mount.yml -e "env=<enviorement_name>" --ask-vault-pass --ask-pass --ask-become-pass
+   $ ansible-playbook filesystem_mount.yml -e "env=<enviorement_name>" -i hosts.ini --ask-vault-pass --ask-pass --ask-become-pass
    ```
 Enter Ansible-Vault password, hosts/clients ssh password and root password.
 
