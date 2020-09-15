@@ -6,6 +6,10 @@ Ansible playbook and role for FlashBlade Array to Array and Array to S3 object R
 Requirements
 ------------
 
+**Requires: Python >=2.7, <=3.6 on Ansible control node.**
+
+As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed Python version on Ansible control Node must be >=2.7 and <=3.6.
+
 * Install python-pip on Ansible control node.
 
   CentOS:
@@ -19,7 +23,13 @@ Requirements
     $ sudo apt install python-pip
     $ sudo pip install --upgrade pip
     ```
-
+  MacOS
+    ```bash
+    $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    $ python get-pip.py --user
+    ```
+  For more details to install Ansible on MacOS, follow this [link](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-with-pip).
+  
 * Install dependencies from "requirements.txt"
     ```bash
     $ sudo pip install -r requirements.txt 

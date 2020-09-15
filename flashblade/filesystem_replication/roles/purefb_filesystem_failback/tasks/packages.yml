@@ -5,6 +5,7 @@
     yum:
       name: "*"
       state: latest
+    ignore_errors: true
 
   - name: packages | Install nfs packages on CentOS
     yum:
@@ -21,7 +22,8 @@
     apt:
       update_cache: yes
       cache_valid_time: 3600
-
+    ignore_errors: true
+    
   - name: packages | Install nfs packages on Ubuntu
     apt:
       name: 
