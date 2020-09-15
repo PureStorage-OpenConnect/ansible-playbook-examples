@@ -25,4 +25,3 @@ linux_client_mount:
   mount3:
     server: { fb_name: FBServer1, fileshare: database, data_vip: nfs-a04-data1 }
     client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/database, opts: "rw" }
-
