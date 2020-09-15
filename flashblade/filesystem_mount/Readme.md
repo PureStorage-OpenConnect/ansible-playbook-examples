@@ -7,6 +7,10 @@ Ansible playbook and role for FlashBlade nfs File System mount on clients.
 Requirements
 ------------
 
+**Requires: Python >=2.7, <=3.6 on Ansible control node.**
+
+As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed Python version on Ansible control Node must be >=2.7 and <=3.6.
+
 * Install python-pip on Ansible control node.
 
   CentOS:
@@ -20,10 +24,16 @@ Requirements
     $ sudo apt install python-pip
     $ sudo pip install --upgrade pip
     ```
+  MacOS
+    ```bash
+    $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    $ python get-pip.py --user
+    ```
+  For more details to install Ansible on MacOS, follow this [link](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-with-pip).
 
 * Install dependencies from "requirements.txt"
     ```bash
-    $ sudo pip install -r requirements.txt 
+    $ sudo pip install -r requirements.txt
     ```
 * Install Ansible Collection for Pure Storage FlashBlade
     ```bash
@@ -53,7 +63,6 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
 
 * fb_details.yml
     ```
-    ##################### FB array filesystem and object-store provisioning ##################
     array_inventory:               
       FBServer1:
         fb_url: 10.22.222.80                   
@@ -62,17 +71,16 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
           - { name: scratch, size: 1T, type: nfsv3, nfs_rules: '*(ro,noatime)' } 
           - { name: database, size: 1T, type: [nfsv3 , nfsv4], nfs_rules: '*(rw,noatime)' }
 
-    ######################## Mount/Unmount Filesystem on client/host ########################
     linux_client_mount:
       mount1:
-        server: { fb_name: FBServer1, fileshare: nfs-fs-dst, data_vip: data-vip } 
+        server: { fb_name: FBServer1, fileshare: tools, data_vip: data-vip } 
         client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/tools, opts: rw,noatime }
       mount2:
         server: { fb_name: FBServer1, fileshare: scratch, data_vip: nfs-a04-data1 } 
-        client: { hosts: host2, mount_state: mount, mount_point: /mnt/var/scratch, opts: rw }
+        client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/scratch, opts: rw }
       mount3:
         server: { fb_name: FBServer1, fileshare: database, data_vip: nfs-a04-data1 }
-        client: { hosts: host3, mount_state: mount, mount_point: /mnt/var/database, opts: rw }
+        client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/database, opts: rw }
                        
     ```
 
@@ -111,9 +119,18 @@ Example Playbook
         roles:
           - purefb_nfs_mount
 
-To execute playbook, issue the following command:
+To execute playbook with host ssh key, issue the following command:
+( Replace `<ssh_user>` with host ssh user name and `<key_file_path>` with host private key file path )
+   ```bash
+   $ ansible-playbook filesystem_mount.yml -e "env=<enviorement_name>" -i hosts.ini --user=<ssh_user> --key-file=<key_file_path> --ask-vault-pass 
+   ```
+
+To execute playbook with host password( Not Recommended ), issue the following command:
 ( Replace `<enviorement_name>` with the correct value )
    ```bash
-   $ ansible-playbook filesystem_mount.yml -e "env=<enviorement_name>" --ask-vault-pass -k -K
+   $ ansible-playbook filesystem_mount.yml -e "env=<enviorement_name>" --ask-vault-pass --ask-pass --ask-become-pass
    ```
-Enter Ansible-Vault password, clients ssh password and root password.
+Enter Ansible-Vault password, hosts/clients ssh password and root password.
+
+Note: If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
+The workaround for this limitation is to pass `-c paramiko` flag in ansible-playbook command. Install paramiko using `pip install paramiko`.

@@ -6,6 +6,10 @@ Ansible playbooks and roles to perform FlashBlade File System Replication, Failo
 Requirements
 ------------
 
+**Requires: Python >=2.7, <=3.6 on Ansible control node.**
+
+As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed Python version on Ansible control Node must be >=2.7 and <=3.6.
+
 * Install python-pip on Ansible control node.
 
   CentOS:
@@ -19,6 +23,12 @@ Requirements
     $ sudo apt install python-pip
     $ sudo pip install --upgrade pip
     ```
+  MacOS
+    ```bash
+    $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    $ python get-pip.py --user
+    ```
+  For more details to install Ansible on MacOS, follow this [link](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-with-pip).
 
 * Install dependencies from "requirements.txt"
     ```bash
@@ -101,7 +111,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
  ##### Filesystem failover 
    Filesystem failover required target(dst) filesystem to be promoted and all the clients must then be directed to the target array. The local file system is then demoted.
    **fb_details.yml for failover**
-   Enter Clients detail in `hosts.ini` and use provide mount point and "host/group_name" under "client_details" section in `fb_details.yml` file.
+   Enter Clients detail in `hosts.ini` and use specify `mount_point` under "client_details" section in `fb_details.yml` file.
    Data VIP is required to redirect clients from local to remote array.
 
    ```
@@ -195,13 +205,30 @@ To execute playbook, issue the following command:
    $ ansible-playbook filesystem_replication.yml -e "env=<enviorement_name>" --ask-vault-pass
    ```
 * Failover
+  Using Remote host SSH key(Replace `<ssh-key-path>` with ssh private key path)
+     ```bash
+   $ ansible-playbook filesystem_failover.yml -i hosts -e "env=<enviorement_name>" --ask-vault-pass --key-file=<ssh-key-path>
+   ```
+   Enter vault password when prompted.
+  
+  Using Remote host password(Not Recommended)
    ```bash
-   $ ansible-playbook filesystem_failover.yml -i hosts -e "env=<enviorement_name>" --ask-vault-pass -k -K
+   $ ansible-playbook filesystem_failover.yml -i hosts -e "env=<enviorement_name>" --ask-vault-pass --ask-pass --ask-become-pass
    ```
    Enter vault password, hosts ssh password and root password.
 
 * Failback
+  Using Remote host SSH key(Replace `<ssh-key-path>` with ssh private key path)
+     ```bash
+   $ ansible-playbook filesystem_failback.yml -i hosts -e "env=<enviorement_name>" --ask-vault-pass --key-file=<ssh-key-path>
+   ```
+   Enter vault password when prompted.
+
+  Using Remote host password(Not Recommended)
    ```bash
-   $ ansible-playbook filesystem_failback.yml -i hosts -e "env=<enviorement_name>" --ask-vault-pass -k -K
+   $ ansible-playbook filesystem_failback.yml -i hosts -e "env=<enviorement_name>" --ask-vault-pass --ask-pass --ask-become-pass
    ```
    Enter vault password, hosts ssh password and root password.
+
+Note: If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
+The workaround for this limitation is to pass `-c paramiko` flag in ansible-playbook command. Install paramiko using `pip install paramiko`.

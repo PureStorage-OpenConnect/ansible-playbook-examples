@@ -1,5 +1,5 @@
 ---
-##################### FB array filesystem and object-store provisioning ##################
+############################# FB array filesystem provisioning ##########################
 array_inventory:               
   FBServer1:
     fb_url: 10.22.222.80                   
@@ -17,11 +17,11 @@ array_inventory:
 ######################## Mount/Unmount Filesystem on client/host ########################
 linux_client_mount:
   mount1:
-    server: { fb_name: FBServer1, fileshare: nfs-fs-dst, data_vip: data-vip } 
+    server: { fb_name: FBServer1, fileshare: tools, data_vip: data-vip } 
     client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/tools, opts: rw,noatime }
   mount2:
     server: { fb_name: FBServer1, fileshare: scratch, data_vip: nfs-a04-data1 } 
-    client: { hosts: host2, mount_state: mount, mount_point: /mnt/var/scratch, opts: rw }
+    client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/scratch, opts: rw }
   mount3:
     server: { fb_name: FBServer1, fileshare: database, data_vip: nfs-a04-data1 }
-    client: { hosts: host3, mount_state: mount, mount_point: /mnt/var/database, opts: rw }
+    client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/database, opts: rw }

@@ -1,6 +1,6 @@
-ansible==2.9.10
-purity-fb==1.9.1
-netaddr==0.8.0
-pytz==2020.1
+ansible
+purity-fb
+netaddr
+pytz
 pywinrm>=0.3.0
 pywinrm[credssp]
