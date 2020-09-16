@@ -67,20 +67,20 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer1:
         fb_url: 10.22.222.80                   
         filesystem:
-          - { name: tools, size: 1T, type: nfsv4, nfs_rules: '*(ro,noatime)'  } 
+          - { name: tools, size: 1T, type: nfsv4.1, nfs_rules: '*(ro,noatime)' } 
           - { name: scratch, size: 1T, type: nfsv3, nfs_rules: '*(ro,noatime)' } 
-          - { name: database, size: 1T, type: [nfsv3 , nfsv4], nfs_rules: '*(rw,noatime)' }
+          - { name: database, size: 1T, type: nfsv3, nfs_rules: '*(rw,noatime)' }
 
     linux_client_mount:
       mount1:
         server: { fb_name: FBServer1, fileshare: tools, data_vip: data-vip } 
-        client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/tools, opts: "rw,noatime" }
+        client: { hosts: dc, mount_state: mount, mount_point: /mnt/tools, opts: "rw,noatime" }
       mount2:
         server: { fb_name: FBServer1, fileshare: scratch, data_vip: nfs-a04-data1 } 
-        client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/scratch, opts: "rw" }
+        client: { hosts: dc, mount_state: mount, mount_point: /mnt/scratch, opts: "rw" }
       mount3:
         server: { fb_name: FBServer1, fileshare: database, data_vip: nfs-a04-data1 }
-        client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/database, opts: "rw" }
+        client: { hosts: dc, mount_state: mount, mount_point: /mnt/database, opts: "rw" }
                        
     ```
 
@@ -92,6 +92,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer2:
         api_token: T-0b8ad89c-xxxx-xxxx-85ed-286607dc2cd2 
     ```
+Note: To unmount FIleSystem, User can change `mount_state: umount` variable in fb_details.yml file.
 
 Dependencies
 ------------

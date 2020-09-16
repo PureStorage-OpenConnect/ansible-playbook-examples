@@ -1,5 +1,5 @@
 ---
-############################# FB array filesystem provisioning ##########################
+############################# FB Array filesystem provisioning ##########################
 array_inventory:               
   FBServer1:
     fb_url: 10.22.222.80                   

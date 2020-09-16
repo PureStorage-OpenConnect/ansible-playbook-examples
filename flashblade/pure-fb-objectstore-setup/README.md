@@ -68,11 +68,11 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         fb_url: 10.22.222.151                   
         object_store:
         - account: logaccount
-          state: present
+          state: enabled
           users: 
-            - {name: loguser, create_new_access_key: true, state: present}
+            - {name: loguser, create_new_access_key: true, state: enabled}
           buckets: 
-            - {name: logbucket, state: present, eradication: false, versioning: enabled}                  
+            - {name: logbucket, state: enabled, eradication: false, versioning: enabled}                  
     ```
 
 * fb_secrets.yml
@@ -87,7 +87,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     ```
 
 #### Note
- * To destroy any of the bucket use `state: absent` in "buckets" section of `fb_details.yml` variable file. Destroyed bucket have 24 hours to be recovered. To recover bucket, run the playbook with `state: present` within 24 hours of deletion. Buckets can be eradicated by using `state: absent` and `eradication: true` together.
+ * To destroy any of the bucket use `state: disabled` in "buckets" section of `fb_details.yml` variable file. Destroyed bucket have 24 hours to be recovered. To recover bucket, run the playbook with `state: enabled` within 24 hours of deletion. Buckets can be eradicated by using `state: disabled` and `eradication: true` together.
 
    ##### fb_details.yml for different scenarios  
    
@@ -98,11 +98,11 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         fb_url: 10.22.222.151                 
         object_store:
         - account: logaccount
-          state: present
+          state: enabled
           users: 
-            - {name: loguser, create_new_access_key: true, state: present}
+            - {name: loguser, create_new_access_key: true, state: enabled}
           buckets: 
-            - {name: logbucket, state: present, eradication: false, versioning: enabled}                          
+            - {name: logbucket, state: enabled, eradication: false, versioning: enabled}                          
    ```
    
    **Destroy Bucket**
@@ -113,7 +113,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         object_store:
         - account: logaccount
           buckets: 
-            - { name: logbucket, state: absent }                          
+            - { name: logbucket, state: disabled }                          
    ```
    **Recover Bucket**
    ```
@@ -123,7 +123,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         object_store:
         - account: logaccount
           buckets: 
-            - { name: logbucket, state: present }             
+            - { name: logbucket, state: enabled }             
    ```
    **Eradicate Bucket**
    ```
@@ -133,7 +133,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         object_store:
         - account: logaccount
           buckets: 
-            - { name: logbucket, state: absent, eradicate: true }            
+            - { name: logbucket, state: disabled, eradicate: true }            
    ``` 
    **Create User with key**
    ```
@@ -156,7 +156,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
             - { name: loguser, create_new_access_key: false }     
    ```
  * To extend the Object-store provisioning on the fleet of FlashBlade Arrays, Add multiple "FBServer1...N" blocks under array_inventory in "fb_details.yml" file.
- Example configuration to setup DNS on two FlashBlade servers.
+ Example configuration to setup Object-Store on two FlashBlade servers.
    
    **fb_details.yml**
    ```
@@ -165,20 +165,20 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         fb_url: 10.22.222.151                   
         object_store:
         - account: logaccount
-          state: present
+          state: enabled
           users: 
-            - {name: loguser, create_new_access_key: true, state: present}
+            - {name: loguser, create_new_access_key: true, state: enabled}
           buckets: 
-            - {name: logbucket, state: present, eradication: false, versioning: enabled}
+            - {name: logbucket, state: enabled, eradication: false, versioning: enabled}
       FBServer1:
         fb_url: 10.22.222.152                  
         object_store:
         - account: srcaccount
-          state: present
+          state: enabled
           users: 
-            - {name: srcuser, create_new_access_key: true, state: present}
+            - {name: srcuser, create_new_access_key: true, state: enabled}
           buckets: 
-            - {name: srcbucket, state: present, eradication: false, versioning: enabled}  
+            - {name: srcbucket, state: enabled, eradication: false, versioning: enabled}  
     ```
     **fb_secrets.yml**
     ```

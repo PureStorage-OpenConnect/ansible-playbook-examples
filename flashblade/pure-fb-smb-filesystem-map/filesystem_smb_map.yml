@@ -14,4 +14,4 @@
   - "vars/{{ env }}/fb_details.yml"
   - "vars/{{ env }}/fb_secrets.yml"
   roles:
-    - purefb_smb_mount
+    - purefb_smb_map

@@ -17,11 +17,11 @@
     http: "{{ item.http | default(omit) }}"
     eradicate: "{{ item.eradicate | default('false') }}"
     promote: "{{ item.eradicate | default('true') }}"
-    state: "{{ item.state | default('present') }}"
+    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     policy: "{{ item.policy | default(omit) }}"
     policy_state: "{{ item.policy_state | default(omit) }}"
     fb_url: "{{ fb_vars.fb_url }}"
-    api_token: "{{ fb_vars.token }}"
+    api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.filesystem | default([]) }}"
   when:
     - item is defined and (item|default([])|length > 0)
@@ -40,10 +40,10 @@
   purefb_snap:
     name: "{{ item.filesystem_name }}"
     suffix: "{{ item.suffix }}"
-    state: "{{ item.state if item.state is defined else 'present' }}"
+    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     eradicate: "{{ item.eradicate | default('false') }}"
     fb_url: "{{ fb_vars.fb_url }}"
-    api_token: "{{ fb_vars.token }}"
+    api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.filesystem_snapshot|default([]) }}"
   when:
     - item is defined and (item|default([])|length > 0)
@@ -56,7 +56,7 @@
     state: restore
     eradicate: "{{ item.eradicate | default('false') }}"
     fb_url: "{{ fb_vars.fb_url }}"
-    api_token: "{{ fb_vars.token }}"
+    api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.filesystem_snapshot|default([]) }}"
   when:
     - item is defined and (item|default([])|length > 0)
@@ -70,11 +70,11 @@
     keep_for: "{{ item.keep_for | default(omit)}}"
     every: "{{ item.every | default(omit) }}"
     timezone: "{{ item.timezone | default(omit) }}"
-    state: "{{ item.state | default('present') }}"
+    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     filesystem: "{{ item.filesystem | default(omit) }}"
     replica_link:  "{{ replica_link | default(omit) }}"
     fb_url: "{{ fb_vars.fb_url }}"
-    api_token: "{{ fb_vars.token }}"
+    api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.filesystem_snapshot_policy|default([]) }}"
   when:
     - item is defined and (item|default([])|length > 0)

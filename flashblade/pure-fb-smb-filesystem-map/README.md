@@ -1,7 +1,7 @@
-FlashBlade NFS File System mount
+FlashBlade SMB FileSystem mapping on Windows clients 
 =========
 
-Ansible playbook and role for FlashBlade SMB File System mount on clients.
+Ansible playbook and role for FlashBlade SMB File System mapping on Windows clients.
 
 
 Requirements
@@ -44,7 +44,7 @@ Windows host setup
 
 To setup windows host for Ansible, refer to the Ansible [documentation](https://docs.ansible.com/ansible/latest/user_guide/windows_setup.html).
 
-This example playbook and assume that the `CredSSP` authentication protocol enabled on host/client. 
+For this playbook we assumes that the `CredSSP` authentication protocol enabled on host/client. 
 
 Role Variables
 --------------
@@ -80,8 +80,9 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     windows_client_mount:
       mount1:
         server: { fb_name: FBServer1, fileshare: winbackup, data_vip: NFS-1 } 
-        client: { hosts: win, mount_state: mount, drive_letter: Z }                       
+        client: { hosts: win, mount_state: mapped, drive_letter: Z }                       
     ```
+  Note: To unmap the fileshare, use `mount_state: unmapped` in "fb_details.yml" file.
 
 * fb_secrets.yml
     ```
@@ -125,14 +126,14 @@ Example Playbook
         - "vars/{{ env }}/fb_details.yml"
         - "vars/{{ env }}/fb_secrets.yml"
         roles:
-          - purefb_smb_mount
+          - purefb_smb_map
 
 
 To execute playbook, issue the following command:
 ( Replace `<enviorement_name>` and `<client_pass> `with the correct value )
    ```bash
-   $ ansible-playbook filesystem_smb_mount.yml -e "env=<enviorement_name> ansible_password=<client_pass>" --ask-vault-pass
+   $ ansible-playbook filesystem_smb_map.yml -e "env=<enviorement_name> ansible_password=<client_pass>" --ask-vault-pass
    ```
 Enter Ansible-Vault password when prompted.
 
-To see the mapped drive on interactive session, user need to reboot the system.
+**Note:** To see the mapped drive on interactive session, user need to reboot the system.

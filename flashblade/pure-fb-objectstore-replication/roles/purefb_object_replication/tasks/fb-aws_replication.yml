@@ -205,7 +205,7 @@
       fb_url: "{{ src_fb_url }}"
       api_token: "{{ src_fb_token }}"
   when:
-    - repl_vars.common_params is not defined or repl_vars.common_params.state is not defined or repl_vars.common_params.state == 'present'
+    - repl_vars.common_params is not defined or repl_vars.common_params.state is not defined or repl_vars.common_params.state == 'enabled'
     - src_fb_info.purefb_info.bucket_replication | length == 0 or src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket] is not defined or src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket].remote_bucket != repl_vars.dst.bucket
 
 - name: Delete remote credential and replica link for {{ repl_loop.key }}
@@ -235,5 +235,5 @@
       api_token: "{{ src_fb_token }}"
   when:
     - repl_vars.common_params is defined
-    - repl_vars.common_params.state is defined and repl_vars.common_params.state == 'absent'
+    - repl_vars.common_params.state is defined and repl_vars.common_params.state == 'disabled'
     - src_fb_info.purefb_info.default.targets is defined and src_fb_info.purefb_info.default.targets|bool

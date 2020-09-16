@@ -90,7 +90,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     ```
  
  ##### Filesystem Replication 
-   Filesystem replication required local(src) and remote(dst) FlashBlades should be connected and replica-link will be established between local filesystem and remote filesystem with replication policy. 
+   In Filesystem replication local(src) and remote(dst) FlashBlades should be connected state. Replica-link will be established between local filesystem and remote filesystem with replication policy. 
    **fb_details.yml for replication**
    ```
     # FlashBlade inventory
@@ -109,11 +109,11 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
  
  ##### Filesystem failover 
-   Filesystem failover required target(dst) filesystem to be promoted and all the clients must then be directed to the target array. The local file system is then demoted.
-   **fb_details.yml for failover**
-   Enter Clients detail in `hosts.ini` and use specify `mount_point` under "client_details" section in `fb_details.yml` file.
+   In Filesystem failover target(dst) filesystem to be promoted and all the clients must then be directed to the target array. The local file system is then demoted.
+  
+   Enter Clients inventory detail in `hosts.ini` and specify `mount_point` under "client_details" section in `fb_details.yml` file.
    Data VIP is required to redirect clients from local to remote array.
-
+   **fb_details.yml for failover**
    ```
     # FlashBlade inventory
     array_inventory:               
@@ -134,10 +134,10 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ``` 
  ##### Filesystem failback/reprotect 
    Filesystem failback required to stop writes on the promoted remote file system, promoting source filesystem and redirecting all the clients to local filesystem. The remote file system is then demoted.
-   **fb_details.yml for failover**
+   
    Enter Clients detail in `hosts.ini` and provide details of mount point and "host/group_name" under "client_details" section in `fb_details.yml` file.
    Data VIP is required to redirect clients from local to remote array.
-   
+   **fb_details.yml for failover**
    ```
     # FlashBlade inventory
     array_inventory:               
@@ -230,5 +230,5 @@ To execute playbook, issue the following command:
    ```
    Enter vault password, hosts ssh password and root password.
 
-Note: If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
+**Note:** If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
 The workaround for this limitation is to pass `-c paramiko` flag in ansible-playbook command. Install paramiko using `pip install paramiko`.

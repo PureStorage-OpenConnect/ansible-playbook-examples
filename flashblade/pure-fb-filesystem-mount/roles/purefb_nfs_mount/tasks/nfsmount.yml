@@ -69,4 +69,4 @@
   become: true
   when: 
     - mount_details.client.hosts in group_names or mount_details.client.hosts == inventory_hostname or mount_details.client.hosts == ansible_hostname
-    - mount_details.client.mount_state is defined and mount_details.client.mount_state == 'unmount'
+    - mount_details.client.mount_state is defined and mount_details.client.mount_state == 'umount'
