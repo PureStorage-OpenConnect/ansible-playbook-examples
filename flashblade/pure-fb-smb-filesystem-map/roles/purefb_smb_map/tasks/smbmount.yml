@@ -9,7 +9,7 @@
 - name: facts | Set fb_url and fb_token fact from array_inventory for {{ outer_loop.key }}
   set_fact:
     fb_url: "{{ array_inventory[mount_details.server.fb_name].fb_url }}"
-    fb_token: "{{ array_secrets[mount_details.server.fb_name].token }}"
+    fb_token: "{{ array_secrets[mount_details.server.fb_name].api_token }}"
   no_log: true
   run_once: true
 
@@ -62,11 +62,10 @@
     #   win_command: powershell.exe Stop-Process -ProcessName explorer
     #   when: mount_drive.changed
 
-  when: >
-    ( mount_details.client.mount_state is not defined ) or
-    ( mount_details.client.mount_state == "mount" )
+  when:
+    - mount_details.client.mount_state is not defined or mount_details.client.mount_state == "mapped"
 
-- name: unmount | remove mapped fileshare for {{ outer_loop.key }}
+- name: unmount | Remove mapped fileshare for {{ outer_loop.key }}
   block:
     - name: unmount | Remove mapped fileshare 
       win_mapped_drive:
@@ -83,6 +82,6 @@
     #   win_reboot:
     #   when: unmount_drive.changed
 
-  when: >
-    ( mount_details.client.mount_state is defined ) and
-    ( mount_details.client.mount_state == 'unmount' )
+  when:
+    - mount_details.client.mount_state is defined
+    - mount_details.client.mount_state == 'unmapped'

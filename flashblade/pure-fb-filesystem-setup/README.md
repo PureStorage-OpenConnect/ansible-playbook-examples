@@ -66,8 +66,8 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         FBServer1:
           fb_url: 10.12.231.151                    
           filesystem:
-            - { name: database, count: 5, size: 32G, type: [nfsv3, nfsv4], nfs_rules: '*(rw,no_root_squash)' } 
-            - { name: tools, size: 1G, type: [smb], nfs_rules: '*(rw,no_root_squash)' } 
+            - { name: database, count: 5, size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)' } 
+            - { name: tools, size: 1G, type: smb, nfs_rules: '*(rw,no_root_squash)' } 
           filesystem_snapshot: 
             - { filesystem_name: tools, suffix: ansible } # snap_name : tools.ansible
           filesystem_snapshot_policy:
@@ -82,7 +82,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a
     ```
 #### Note
- * To destroy any of the filesystem use `state: absent` in `fb_details.yml` variable file. Destroyed file systems have 24 hours to be recovered. To recover file system, run the playbook with `state: present` within 24 hours of deletion. Filesyetm can be eradicated by using `state: absent` and `eradication: true` together. Eradicating a file system will also eradicate all of its related snapshots. 
+ * To destroy any of the filesystem use `state: disabled` in `fb_details.yml` variable file. Destroyed file systems have 24 hours to be recovered. To recover file system, run the playbook with `state: enabled` within 24 hours of deletion. Filesyetm can be eradicated by using `state: disabled` and `eradication: true` together. Eradicating a file system will also eradicate all of its related snapshots. 
 
    ##### fb_details.yml for different scenarios  
    
@@ -92,7 +92,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer1:
         fb_url: 10.12.231.151                    
         filesystem:
-          - { name: database, size: 32G, type: [nfsv3, nfsv4], nfs_rules: '*(rw,no_root_squash)' }                         
+          - { name: database, size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)' }                         
    ```
  
    **Create 5 File Systems**
@@ -101,7 +101,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer1:
         fb_url: 10.12.231.151                    
         filesystem:
-          - { name: database, count: 5 size: 32G, type: [nfsv3, nfsv4], nfs_rules: '*(rw,no_root_squash)' } # creates 5 filesystem with name database_01....database_05.              
+          - { name: database, count: 5 size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)' } # creates 5 filesystem with name database_01....database_05.              
    ```    
    **Destroy File System**
    ```
@@ -109,7 +109,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer1:
         fb_url: 10.12.231.151                    
         filesystem:
-          - { name: database, state: absent }           
+          - { name: database, state: disabled }           
    ``` 
    **Recover File System**
    ```
@@ -117,7 +117,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer1:
         fb_url: 10.12.231.151                    
         filesystem:
-          - { name: database, state: present }           
+          - { name: database, state: enabled }           
    ```
    **Eradicate File System**
    ```
@@ -125,7 +125,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer1:
         fb_url: 10.12.231.151                    
         filesystem:
-          - { name: database, state: absent, eradicate: true }           
+          - { name: database, state: disabled, eradicate: true }           
    ``` 
    **Create File System snapshot**
    ```
@@ -141,7 +141,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer1:
         fb_url: 10.12.231.151                    
         filesystem_snapshot: 
-          - { filesystem_name: tools, suffix: ansible, state: absent }
+          - { filesystem_name: tools, suffix: ansible, state: disabled }
    ```
    **Recover File System snapshot**
    ```
@@ -149,7 +149,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer1:
         fb_url: 10.12.231.151                    
         filesystem_snapshot: 
-          - { filesystem_name: tools, suffix: ansible, state: present }
+          - { filesystem_name: tools, suffix: ansible, state: enabled }
    ```
    **Recover File System from latest snapshot**
    ```
@@ -165,7 +165,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer1:
         fb_url: 10.12.231.151                    
         filesystem_snapshot: 
-          - { filesystem_name: tools, suffix: ansible, state: absent, eradicate: true }
+          - { filesystem_name: tools, suffix: ansible, state: disabled, eradicate: true }
    ```
    **Create File System snapshot policy**
    ```
@@ -181,7 +181,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     FBServer1:
       fb_url: 10.12.231.151                    
       filesystem_snapshot_policy:
-        - { name: daily, state: absent } # optional params: timezone
+        - { name: daily, state: disabled } # optional params: timezone
    ```
  * To extend the File System provisioning on the fleet of FlashBlade Arrays, Add multiple "FBServer1...N" blocks under array_inventory in "fb_details.yml" file.
  Example configuration to setup DNS on two FlashBlade servers.
@@ -193,11 +193,11 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer1:
         fb_url: 10.xx.126.80
         filesystem:
-          - { name: database, size: 32G, type: [nfsv3] }   
+          - { name: database, size: 32G, type: nfsv3 }   
       FBServer2:
         fb_url: 10.xx.126.110
         filesystem:
-          - { name: tools, size: 32G, type: [nfsv3, nfsv4] }  
+          - { name: tools, size: 32G, type: nfsv4.1 }  
     ```
     **fb_secrets.yml**
     ```
@@ -227,6 +227,6 @@ Example Playbook
 To execute playbook, issue the following command:
 ( Replace `<enviorement_name>` with the correct value )
    ```bash
-   $ ansible-playbook purefb_filesystem_setup.yml -e "env=<enviorement_name>" --ask-vault-pass
+   $ ansible-playbook filesystem_setup.yml -e "env=<enviorement_name>" --ask-vault-pass
    ```
 Enter Ansible-Vault password which used to encrypt "fb_secrets.yml" file.

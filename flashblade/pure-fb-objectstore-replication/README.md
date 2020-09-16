@@ -50,7 +50,7 @@ Ansible playbooks require API token to connect to FlashBlade servers. API token 
    $ ssh <pureuser>@<pure_fb_mgmt_ip>
    $ pureadmin list <username> --api-token -–expose
    ```
-Enter "fb_url" and "token" obtained from FlashBlade in variable files.
+Enter "fb_url" and "api_token" obtained from FlashBlade in variable files.
 
 Encrypt "fb_secrets.yml" using Ansible-Vault.
 ```
@@ -71,7 +71,6 @@ $ ansible-vault encrypt fb_secrets.yml
     # FB-FB object replication
     S3Replication: 
       replication1:
-        common_params: { state: present }
         src: { server: FBServer1, account: srcaccount, user: srcuser, bucket: srcbucket }
         dst: { server: FBServer2, account: dstaccount, user: dstuser, bucket: dstbucket }
    ```
@@ -96,7 +95,6 @@ $ ansible-vault encrypt fb_secrets.yml
     # FB-AWS object replication
     S3Replication: 
       replication1:
-        common_params: { state: present }
         src: { server: FBServer1, account: srcaccount, user: srcuser, bucket: srcbucket }
         dst: { server: s3.amazonaws.com, credential: aws1, bucket: awsdstbucket }
    ```

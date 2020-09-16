@@ -17,7 +17,7 @@
     http: "{{ item.http | default(omit) }}"
     eradicate: "{{ item.eradicate | default('false') }}"
     promote: "{{ item.eradicate | default('true') }}"
-    state: "{{ item.state | default('present') }}"
+    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     policy: "{{ item.policy | default(omit) }}"
     policy_state: "{{ item.policy_state | default(omit) }}"
     fb_url: "{{ fb_vars.fb_url }}"

@@ -9,4 +9,4 @@ array_inventory:
 windows_client_mount:
   mount1:
     server: { fb_name: FBServer1, fileshare: winbackup, data_vip: NFS-1 } 
-    client: { hosts: win, mount_state: mount, drive_letter: Z }
+    client: { hosts: win, map_state: mapped, drive_letter: Z }

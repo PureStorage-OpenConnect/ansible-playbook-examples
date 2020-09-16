@@ -3,14 +3,14 @@
   purefb_dns:
     domain: "{{ fb_vars.network.dns[0].domain | default(omit) }}"
     nameservers: "{{ fb_vars.network.dns[0].nameservers | default(omit) }}"
-    state: "{{ fb_vars.network.dns[0].state | default('present') }}"
+    state: "{{ 'absent' if fb_vars.network.dns[0].state is defined and fb_vars.network.dns[0].state == 'disabled' else 'present' }}"
     fb_url: "{{ fb_vars.fb_url }}"
     api_token: "{{ fb_vars.api_token }}"
   when: (fb_vars.network.dns is defined) and (fb_vars.network.dns|length > 0) 
 
 - name: ntp | Set new array NTP servers for {{ outer_loop.key }}
   purefb_ntp:
-    state: "{{ fb_vars.network.ntp[0].state | default('present') }}"
+    state: "{{ 'absent' if fb_vars.network.ntp[0].state is defined and fb_vars.network.ntp[0].state == 'disabled' else 'present' }}"
     ntp_servers: "{{ fb_vars.network.ntp[0].servers }}"
     fb_url: "{{ fb_vars.fb_url }}"
     api_token: "{{ fb_vars.api_token }}"
@@ -20,7 +20,7 @@
   purefb_ds:
     dstype: "{{ item.dstype }}"
     enable: "{{ item.enable | default('false') }}"
-    state: "{{ item.state | default('present') }}"
+    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     uri: "{{ item.uri | default(omit) }}"
     base_dn: "{{ item.base_dn | default(omit)}}"
     bind_user: "{{ item.bind_user | default(omit) }}"
@@ -39,7 +39,7 @@
   purefb_ds:
     dstype: "{{ item.dstype }}"
     enable: "{{ item.enable | default('false') }}"
-    state: "{{ item.state | default('present') }}"
+    state: "{{ 'absent' if item.state is defined and item.state== 'disabled' else 'present' }}"
     uri: "{{ item.uri | default(omit) }}"
     base_dn: "{{ item.base_dn | default(omit)}}"
     bind_user: "{{ item.bind_user | default(omit) }}"
@@ -57,7 +57,7 @@
   purefb_ds:
     dstype: "{{ item.dstype }}"
     enable: "{{ item.enable | default('false') }}"
-    state: "{{ item.state | default('present') }}"
+    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     uri: "{{ item.uri }}"
     base_dn: "{{ item.base_dn }}"
     bind_user: "{{ item.bind_user }}"
@@ -78,7 +78,7 @@
     gateway: "{{ item.gateway }}"
     mtu: "{{ item.mtu | default(omit)}}"
     vlan: "{{ item.vlan | default(omit)}}"
-    state: "{{ item.state | default('present') }}"
+    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     fb_url: "{{ fb_vars.fb_url }}"
     api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.network.subnet }}"
@@ -89,7 +89,7 @@
   purefb_network:
     name: "{{ item.name }}"
     address: "{{ item.address }}"
-    state: "{{ item.state | default('present') }}"
+    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     services: "{{ item.services | default('data') }}"
     fb_url: "{{ fb_vars.fb_url }}"
     api_token: "{{ fb_vars.api_token }}"

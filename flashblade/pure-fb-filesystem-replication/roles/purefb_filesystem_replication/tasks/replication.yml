@@ -76,4 +76,4 @@
       fb_url: "{{ src_fb_url }}"
       api_token: "{{ src_fb_token }}"
     when: ( not repl_vars.src.fileshare in src_fb_info.purefb_info.file_replication )
-  when: repl_vars.common_params.state is not defined or repl_vars.common_params.state == 'present'
+  when: repl_vars.common_params.state is not defined or repl_vars.common_params.state == 'enabled'
