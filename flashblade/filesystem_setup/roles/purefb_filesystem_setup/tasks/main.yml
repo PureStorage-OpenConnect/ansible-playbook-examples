@@ -1,7 +1,0 @@
----
-- name: filesystem | Include task to setup filesystem
-  include: filesystem.yml fb_vars={{outer_loop.value}}
-  loop: "{{ array_inventory|combine(array_secrets, recursive=True)|dict2items  }}"
-  loop_control:
-    loop_var: outer_loop
-  no_log: true
