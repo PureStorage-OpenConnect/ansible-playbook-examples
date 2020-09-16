@@ -74,13 +74,13 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     linux_client_mount:
       mount1:
         server: { fb_name: FBServer1, fileshare: tools, data_vip: data-vip } 
-        client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/tools, opts: rw,noatime }
+        client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/tools, opts: "rw,noatime" }
       mount2:
         server: { fb_name: FBServer1, fileshare: scratch, data_vip: nfs-a04-data1 } 
-        client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/scratch, opts: rw }
+        client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/scratch, opts: "rw" }
       mount3:
         server: { fb_name: FBServer1, fileshare: database, data_vip: nfs-a04-data1 }
-        client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/database, opts: rw }
+        client: { hosts: dc, mount_state: mount, mount_point: /mnt/var/database, opts: "rw" }
                        
     ```
 
@@ -132,5 +132,5 @@ To execute playbook with host password( Not Recommended ), issue the following c
    ```
 Enter Ansible-Vault password, hosts/clients ssh password and root password.
 
-Note: If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
+**Note:** If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
 The workaround for this limitation is to pass `-c paramiko` flag in ansible-playbook command. Install paramiko using `pip install paramiko`.
