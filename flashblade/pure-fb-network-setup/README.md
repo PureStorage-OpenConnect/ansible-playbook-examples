@@ -90,6 +90,8 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a
     ```
 #### Note
+ * Default `mtu` value is 1500 in subnet configuration. User can set desired "mtu" value in fb_details.yml file.
+ 
  * To delete any of the network configuration use `state: disabled` in `fb_details.yml` variable file. When playbook executed with below variables in `fb_details.yml`, It will delete data VIP `datavip1-2250` and replication VIP `replvip1-2210`.
      ```
    # FBServer details
