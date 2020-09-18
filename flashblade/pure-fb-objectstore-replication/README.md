@@ -1,7 +1,7 @@
 FlashBlade Object Replication
 =========
 
-Ansible playbook and role for FlashBlade Array to Array and Array to S3 object Replication.
+Ansible playbook and role for FlashBlade Array to Array and Array to S3 target(AWS) object Replication.
 
 Requirements
 ------------
@@ -36,7 +36,7 @@ As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed 
     ```
 * Install Ansible Collection for Pure Storage FlashBlade and AWS
     ```bash
-    $ ansible-galaxy collection install purestorage.flashblade
+    $ ansible-galaxy collection install purestorage.flashblade:1.3.0 --force
     $ ansible-galaxy collection install community.aws
     ```
 
@@ -50,7 +50,7 @@ Ansible playbooks require API token to connect to FlashBlade servers. API token 
    $ ssh <pureuser>@<pure_fb_mgmt_ip>
    $ pureadmin list <username> --api-token -–expose
    ```
-Enter "fb_url" and "api_token" obtained from FlashBlade in variable files.
+Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_url" value with FlashBlade Management VIP in "fb_details.yml" 
 
 Encrypt "fb_secrets.yml" using Ansible-Vault.
 ```
@@ -96,7 +96,7 @@ $ ansible-vault encrypt fb_secrets.yml
     S3Replication: 
       replication1:
         src: { server: FBServer1, account: srcaccount, user: srcuser, bucket: srcbucket }
-        dst: { server: s3.amazonaws.com, credential: aws1, bucket: awsdstbucket }
+        dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket }
    ```
 
 * fb_secrets.yml

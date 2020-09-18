@@ -37,7 +37,7 @@ As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed 
     ```
 * Install Ansible Collection for Pure Storage FlashBlade
     ```bash
-    $ ansible-galaxy collection install purestorage.flashblade
+    $ ansible-galaxy collection install purestorage.flashblade:1.3.0 --force
     ```
 
 Role Variables
@@ -52,7 +52,7 @@ Ansible playbooks require API token to connect to FlashBlade servers. API token 
    $ ssh <pureuser>@<pure_fb_mgmt_ip>
    $ pureadmin list <username> --api-token -–expose
    ```
-Enter "fb_url" and "api_token" obtained from FlashBlade in variable files.
+Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_url" value with FlashBlade Management VIP in "fb_details.yml" 
 
 Encrypt "fb_secrets.yml" using Ansible-Vault and enter password when prompted. This password is required to run playbook. To encrypt s3 secrets file, set `s3_ansible_vault_pass` variable in "fb_secrets.yml".   
 ```
@@ -72,7 +72,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
           users: 
             - {name: loguser, create_new_access_key: true, state: enabled}
           buckets: 
-            - {name: logbucket, state: enabled, eradication: false, versioning: enabled}                  
+            - {name: logbucket, state: enabled, eradicate: false, versioning: enabled}                  
     ```
 
 * fb_secrets.yml
@@ -87,7 +87,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     ```
 
 #### Note
- * To destroy any of the bucket use `state: disabled` in "buckets" section of `fb_details.yml` variable file. Destroyed bucket have 24 hours to be recovered. To recover bucket, run the playbook with `state: enabled` within 24 hours of deletion. Buckets can be eradicated by using `state: disabled` and `eradication: true` together.
+ * To destroy any of the bucket use `state: disabled` in "buckets" section of `fb_details.yml` variable file. Destroyed bucket have 24 hours to be recovered. To recover bucket, run the playbook with `state: enabled` within 24 hours of deletion. Buckets can be eradicated by using `state: disabled` and `eradicate: true` together.
 
    ##### fb_details.yml for different scenarios  
    
@@ -100,9 +100,9 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         - account: logaccount
           state: enabled
           users: 
-            - {name: loguser, create_new_access_key: true, state: enabled}
+            - { name: loguser, create_new_access_key: true, state: enabled }
           buckets: 
-            - {name: logbucket, state: enabled, eradication: false, versioning: enabled}                          
+            - { name: logbucket, state: enabled, eradicate: false, versioning: enabled }                          
    ```
    
    **Destroy Bucket**
@@ -167,18 +167,18 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         - account: logaccount
           state: enabled
           users: 
-            - {name: loguser, create_new_access_key: true, state: enabled}
+            - { name: loguser, create_new_access_key: true, state: enabled }
           buckets: 
-            - {name: logbucket, state: enabled, eradication: false, versioning: enabled}
+            - { name: logbucket, state: enabled, eradicate: false, versioning: enabled }
       FBServer1:
         fb_url: 10.22.222.152                  
         object_store:
         - account: srcaccount
           state: enabled
           users: 
-            - {name: srcuser, create_new_access_key: true, state: enabled}
+            - { name: srcuser, create_new_access_key: true, state: enabled }
           buckets: 
-            - {name: srcbucket, state: enabled, eradication: false, versioning: enabled}  
+            - { name: srcbucket, state: enabled, eradicate: false, versioning: enabled }  
     ```
     **fb_secrets.yml**
     ```
@@ -190,11 +190,12 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     # Required to encrypt s3 secret files 
     s3_ansible_vault_pass: pureansible
     ```
-* If user created with key `create_new_access_key: true`, s3_secrets will be stored in a encypted file with name `<account_name>_<user_name>.yml` at path `vars/<environment_name>/s3_secrets/`  . Use ansible vault to decrypt the s3_secrets files.
+* If user created with key (`create_new_access_key: true`), s3_secrets will be stored in a encypted file with name `<account_name>_<user_name>.yml` at path `vars/<environment_name>/s3_secrets/` . Use ansible vault to decrypt the s3_secrets files.
    ```
    ansible-vault decrypt <s3_secrets_filename> --ask-vault-pass
    ```
    Enter vault password(`s3_ansible_vault_pass`) when prompted.
+* Maximum of 2 access keys are allowed per user, so after running this playbook twice with `create_new_access_key: true` parameter there will be no attempt to create a new access key.
 
 Dependencies
 ------------
