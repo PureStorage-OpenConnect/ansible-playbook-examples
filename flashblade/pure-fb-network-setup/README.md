@@ -33,10 +33,9 @@ As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed 
     ```bash
     $ sudo pip install -r requirements.txt 
     ```
-* Install Ansible Collection for Pure Storage FlashBlade and AWS
+* Install Ansible Collection for Pure Storage FlashBlade
     ```bash
     $ ansible-galaxy collection install purestorage.flashblade
-    $ ansible-galaxy collection install community.aws
     ```
 
 Role Variables
@@ -51,7 +50,7 @@ Ansible playbooks require API token to connect to FlashBlade servers. API token 
    $ ssh <pureuser>@<pure_fb_mgmt_ip>
    $ pureadmin list <username> --api-token -–expose
    ```
-Enter "fb_url" and "api_token" obtained from FlashBlade in variable files.
+Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_url" value with FlashBlade Management VIP in "fb_details.yml".
 
 Encrypt "fb_secrets.yml" using Ansible-Vault and enter password when prompted. This password is required to run playbook.
 ```
@@ -76,7 +75,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
               - { dstype: smb, enable: true, uri: "ldaps://lab.purestorage.com", base_dn: "DC=lab,DC=purestorage,DC=com", bind_user: Administrator, bind_password: password } 
               - { dstype: management, enable: true, uri: "ldaps://lab.purestorage.com", base_dn: "DC=lab,DC=purestorage,DC=com", bind_user: Administrator, bind_password: password }   
             subnet: 
-              - { name: VLAN2250, prefix: "10.21.250.0/24", vlan: 2250, gateway: 10.21.250.1, mtu: 1550 }
+              - { name: VLAN2250, prefix: "10.21.250.0/24", vlan: 2250, gateway: 10.21.250.1, mtu: 1500 }
               - { name: VLAN2210, prefix: "10.21.210.0/24", vlan: 2210, gateway: 10.21.210.1 } # default mtu: 1500
             vip: 
               - { name: datavip1-2250, address: 10.21.250.7 } # deafault services: data
@@ -90,6 +89,8 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a
     ```
 #### Note
+ * Default `mtu` value is 1500 in subnet configuration. User can set desired "mtu" value in fb_details.yml file.
+ * Only one replication interface(VIP) is allowed on FlashBlade server. If user try to create multiple replication VIP through Ansible playbook, There will be an error `Interface creation failed`.
  * To delete any of the network configuration use `state: disabled` in `fb_details.yml` variable file. When playbook executed with below variables in `fb_details.yml`, It will delete data VIP `datavip1-2250` and replication VIP `replvip1-2210`.
      ```
    # FBServer details

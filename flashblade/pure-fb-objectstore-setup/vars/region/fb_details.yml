@@ -3,9 +3,9 @@ array_inventory:
   FBServer1:
     fb_url: 10.22.222.151                   
     object_store:
-    - account: srclogaccount
+    - account: logaccount
       state: enabled
       users:
-        - { name: srcloguser2, create_new_access_key: false, state: enabled }
+        - { name: loguser, create_new_access_key: false, state: enabled }
       buckets: 
-        - { name: srclogbucket, eradication: false, versioning: enabled, state: enabled,}
+        - { name: logbucket, versioning: enabled, state: enabled, eradicate: false }
