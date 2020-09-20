@@ -112,7 +112,20 @@ $ ansible-vault encrypt fb_secrets.yml
     ```
 
 Note: 
-  * To set bucket lifecycle policy, Add `noncurrent_version_expiration_days: 7` parameter with desired value for the buckets created on FlashBlade. For the buckets created on AWS along with `noncurrent_version_expiration_days: 7`, user can set `expiration_days: 6` for the current version of the bucket.
+  * To set bucket lifecycle policy, Add `noncurrent_version_expiration_days: 7` parameter with desired value in "fb_details.yml" for the buckets created on FlashBlade. For the buckets created on AWS along with `noncurrent_version_expiration_days: 7`, user can set `expiration_days: 6` for the current version of the bucket.
+  **Example fb_details.yml with lifecycle policies**
+    ```
+    # FBServer details
+    array_inventory:               
+      FBServer1:
+        fb_url: 10.16.126.80                                  
+
+    # FB-AWS object replication
+    S3Replication: 
+      replication1:
+        src: { server: FBServer1, account: srcaccount, user: srcuser, bucket: srcbucket, noncurrent_version_expiration_days: 7 }
+        dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: pureawsbucket, expiration_days: 6, noncurrent_version_expiration_days: 7  }
+   ```
 
 
 Dependencies
