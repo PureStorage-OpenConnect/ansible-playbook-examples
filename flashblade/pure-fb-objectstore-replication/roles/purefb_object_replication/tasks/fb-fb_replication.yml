@@ -43,6 +43,8 @@
   fail:
     msg: Cannot have multiple replica links on the same local bucket {{ repl_vars.src.bucket }}
   when:
+    - repl_vars.common_params is defined
+    - repl_vars.common_params.state is defined and repl_vars.common_params.state != 'disabled'
     - src_fb_info.purefb_info.bucket_replication | length > 0
     - src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket] is defined
     - src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket].remote_bucket != repl_vars.dst.bucket
@@ -50,15 +52,35 @@
 # Create replication
 - name: Create remote credential and replica link for {{ repl_loop.key }}
   block:
-  - name: validation | Fail if src bucket not available for {{ repl_loop.key }}
-    fail:
-      msg: src bucket {{ repl_vars.src.bucket }} does not exist
+  - name: account | Create src s3 account for {{ repl_loop.key }}
+    purefb_s3acc:
+      name: "{{ repl_vars.src.account }}"
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+
+  - name: bucket | Create src bucket for {{ repl_loop.key }}
+    purefb_bucket:
+      name: "{{ repl_vars.src.bucket }}"
+      account: "{{ repl_vars.src.account }}"
+      versioning: enabled
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
     when:
       - repl_vars.src.bucket not in src_fb_info.purefb_info.buckets
 
-  - name: validation | Fail if dst bucket not available for {{ repl_loop.key }}
-    fail:
-      msg: src bucket {{ repl_vars.dst.bucket }} does not exist
+  - name: account | Create dst s3 account for {{ repl_loop.key }}
+    purefb_s3acc:
+      name: "{{ repl_vars.dst.account }}"
+      fb_url: "{{ dst_fb_url }}"
+      api_token: "{{ dst_fb_token }}"
+
+  - name: bucket | Create bucket for {{ repl_loop.key }}
+    purefb_bucket:
+      name: "{{ repl_vars.dst.bucket }}"
+      account: "{{ repl_vars.dst.account }}"
+      versioning: enabled
+      fb_url: "{{ dst_fb_url }}"
+      api_token: "{{ dst_fb_token }}"
     when:
       - repl_vars.dst.bucket not in dst_fb_info.purefb_info.buckets
 
@@ -90,7 +112,7 @@
         Versioning must me enabled to setup replication. Next task will enable versioning.
     when:
       - repl_vars.dst.bucket in dst_fb_info.purefb_info.buckets
-      - dst_fb_info.purefb_info.buckets[repl_vars.dst.bucket].versioning == 'none' or dst_fb_info.purefb_info.buckets[repl_vars.dst.bucket].versioning == 'suspended'
+      - dst_fb_info.purefb_info.buckets[repl_vars.dst.bucket].versioning == 'none' or  dst_fb_info.purefb_info.buckets[repl_vars.dst.bucket].versioning == 'suspended'
     ignore_errors: yes
  
   - name: versioning | Enable versioning on the dst bucket for {{ repl_loop.key }}
@@ -102,6 +124,7 @@
       api_token: "{{ dst_fb_token }}"
     when:
       - repl_vars.dst.bucket in dst_fb_info.purefb_info.buckets
+      - dst_fb_info.purefb_info.buckets[repl_vars.dst.bucket].versioning is defined
       - dst_fb_info.purefb_info.buckets[repl_vars.dst.bucket].versioning == 'none' or dst_fb_info.purefb_info.buckets[repl_vars.dst.bucket].versioning == 'suspended'
 
   - name: facts | Set src s3 secrets from fb_secrets for {{ repl_loop.key }}
@@ -293,9 +316,8 @@
       - repl_vars.dst.expiration_days is defined or repl_vars.dst.noncurrent_version_expiration_days is defined
   when:
     - repl_vars.common_params is not defined or repl_vars.common_params.state is not defined or repl_vars.common_params.state == 'enabled'
-    - src_fb_info.purefb_info.bucket_replication | length == 0 or src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket] is not defined or src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket].remote_bucket != repl_vars.dst.bucket
+    - src_fb_info.purefb_info.bucket_replication | length > 0 and src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket] is not defined
 
-# Remove replication
 - name: Destroy remote credential, replica link and disconnect FB servers for {{ repl_loop.key }}
   block:
   - name: replication | Delete bucket replica from src to dst for {{ repl_loop.key }}
