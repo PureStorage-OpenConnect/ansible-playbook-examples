@@ -26,6 +26,8 @@
   fail:
     msg: Cannot have multiple replica links on the same local bucket {{ repl_vars.src.bucket }}
   when:
+    - repl_vars.common_params is defined
+    - repl_vars.common_params.state is defined and repl_vars.common_params.state != 'disabled'
     - src_fb_info.purefb_info.bucket_replication | length > 0
     - src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket] is defined
     - src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket].remote_bucket != repl_vars.dst.bucket
@@ -33,6 +35,22 @@
 # src s3 secrets
 - name: Create remote credential and replica link for {{ repl_loop.key }}
   block:
+  - name: account | Create src s3 account for {{ repl_loop.key }}
+    purefb_s3acc:
+      name: "{{ repl_vars.src.account }}"
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+
+  - name: bucket | Create src bucket for {{ repl_loop.key }}
+    purefb_bucket:
+      name: "{{ repl_vars.src.bucket }}"
+      account: "{{ repl_vars.src.account }}"
+      versioning: enabled
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+    when:
+      - repl_vars.src.bucket not in src_fb_info.purefb_info.buckets
+
   - name: facts | Set src s3 secrets from fb_secrets for {{ repl_loop.key }}
     set_fact:
       src_access_key: "{{ s3_secrets[repl_vars.src.account+'_'+repl_vars.src.user].access_id }}" 
@@ -51,12 +69,6 @@
       - s3_secrets[repl_vars.dst.credential] is defined
       - repl_vars.dst.credential is defined
     no_log: true
-
-  - name: validation | Fail if src bucket not available for {{ repl_loop.key }}
-    fail:
-      msg: src bucket {{ repl_vars.src.bucket }} does not exist
-    when:
-      - repl_vars.src.bucket not in src_fb_info.purefb_info.buckets
 
   - name: validation | Warn if src bucket versioning not enabled for {{ repl_loop.key }}
     fail:
@@ -127,7 +139,6 @@
       aws_secret_key: "{{ dst_secret_key }}"
       region: "{{ repl_vars.dst.region | default('us-west-2') }}"
     register: aws_s3_list
-    no_log: true
 
   - name: aws | Create s3 bucket on AWS if not present for {{ repl_loop.key }}
     s3_bucket:
@@ -138,7 +149,7 @@
       region: "{{ repl_vars.dst.region | default('us-west-2') }}"
     register: aws_s3_bucket
     when: repl_vars.dst.bucket not in aws_s3_list
-    no_log: true
+    # no_log: true
 
   - name: aws | Set target(AWS) s3 bucket lifecycle rules for {{ repl_loop.key }}
     s3_lifecycle:
