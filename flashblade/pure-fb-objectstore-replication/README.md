@@ -48,7 +48,7 @@ There are two variable files "fb_details.yml" and "fb_secrets.yml" are holding t
 Ansible playbooks require API token to connect to FlashBlade servers. API token can be obtained by connecting FlashBlade management VIP through ssh for a specific user and running the following purity command.
    ```
    $ ssh <pureuser>@<pure_fb_mgmt_ip>
-   $ pureadmin list <username> --api-token -–expose
+   $ pureadmin list <username> --api-token --expose
    ```
 Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_url" value with FlashBlade Management VIP in "fb_details.yml" 
 
@@ -110,6 +110,10 @@ $ ansible-vault encrypt fb_secrets.yml
         access_id: AKIA2OFGHJ436YHILJ7T
         access_key: WeQHJYJ+xxx+yyyyy/5T4AdvwS1kBQwPA8QIW6
     ```
+
+Note: 
+  * To set bucket lifecycle policy, Add `noncurrent_version_expiration_days: 7` parameter with desired value for the buckets created on FlashBlade. For the buckets created on AWS along with `noncurrent_version_expiration_days: 7`, user can set `expiration_days: 6` for the current version of the bucket.
+
 
 Dependencies
 ------------
