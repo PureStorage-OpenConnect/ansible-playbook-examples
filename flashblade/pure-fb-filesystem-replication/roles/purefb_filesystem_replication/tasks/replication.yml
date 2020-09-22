@@ -17,10 +17,10 @@
 
 - name: facts | Set source and target facts for {{ repl_loop.key }}
   set_fact:
-    src_fb_url: "{{ array_inventory[repl_vars.src.fb_name].fb_url }}"
-    src_fb_token: "{{ array_secrets[repl_vars.src.fb_name].api_token }}"
-    dst_fb_url: "{{ array_inventory[repl_vars.dst.fb_name].fb_url }}"
-    dst_fb_token: "{{ array_secrets[repl_vars.dst.fb_name].api_token }}"
+    src_fb_url: "{{ combined_inventory[repl_vars.src.fb_name].fb_url }}"
+    src_fb_token: "{{ combined_inventory[repl_vars.src.fb_name].api_token }}"
+    dst_fb_url: "{{ combined_inventory[repl_vars.dst.fb_name].fb_url }}"
+    dst_fb_token: "{{ combined_inventory[repl_vars.dst.fb_name].api_token }}"
   no_log: true
 
 - name: facts | Get information from src FB server for {{ repl_loop.key }}
@@ -55,6 +55,24 @@
   run_once: true
   become: false
 
+- name: policy | Create a filesystem snapshot policy on {{ repl_vars.src.fb_name }}
+  purefb_policy:
+    name: "{{ item.name }}"
+    enabled: "{{ item.enabled | default('True') }}"
+    at: "{{ item.at | default(omit)}}"
+    keep_for: "{{ item.keep_for | default(omit)}}"
+    every: "{{ item.every | default(omit) }}"
+    timezone: "{{ item.timezone | default(omit) }}"
+    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
+    filesystem: "{{ item.filesystem | default(omit) }}"
+    replica_link:  "{{ item.replica_link | default(omit) }}"
+    fb_url: "{{ src_fb_url }}"
+    api_token: "{{ src_fb_token }}"
+  loop: "{{ combined_inventory[repl_vars.src.fb_name].filesystem_snapshot_policy|default([]) }}"
+  run_once: true
+  when:
+    - item is defined and (item|default([])|length > 0)
+
 # Create replication
 - name: Create remote credential and replica link for {{ repl_loop.key }}
   block:
@@ -75,5 +93,8 @@
       state: present
       fb_url: "{{ src_fb_url }}"
       api_token: "{{ src_fb_token }}"
-    when: ( not repl_vars.src.fileshare in src_fb_info.purefb_info.file_replication )
+    register: fs_replica_link
+    retries: 3
+    delay: 2
+    until: fs_replica_link is not failed
   when: repl_vars.common_params.state is not defined or repl_vars.common_params.state == 'enabled'

@@ -72,11 +72,11 @@
   set_fact:
     src_fb_name: "{{ src_fb_info.purefb_info.default.flashblade_name }}" 
     dst_fb_name: "{{ dst_fb_info.purefb_info.default.flashblade_name }}" 
-    src_rl_policy: "{{ src_fb_info['purefb_info']['file_replication'][repl_vars.src.fileshare].policies | list }}"
-    dst_rl_policy: "{{ dst_fb_info['purefb_info']['file_replication'][dst_fileshare].policies | list }}"
+    # src_rl_policy: "{{ src_fb_info['purefb_info']['file_replication'][repl_vars.src.fileshare].policies | list }}" # TODO: collection v1.4.0
+    # dst_rl_policy: "{{ dst_fb_info['purefb_info']['file_replication'][dst_fileshare].policies | list }}" # TODO: collection v1.4.0
     src_data_vip: "{{ src_fb_info.purefb_info.network[repl_vars.src.data_vip].address }}" 
     dst_data_vip: "{{ dst_fb_info.purefb_info.network[repl_vars.dst.data_vip].address }}" 
-    src_fs_policies: "{{ src_fb_info.purefb_info.filesystems[repl_vars.src.fileshare].policies | list }}" 
+    # src_fs_policies: "{{ src_fb_info.purefb_info.filesystems[repl_vars.src.fileshare].policies | list }}" 
   delegate_to: localhost
   run_once: true
   become: false
@@ -116,15 +116,14 @@
     state: absent
     fb_url: "{{ src_fb_url }}"
     api_token: "{{ src_fb_token }}"
-  when: >
-    repl_vars.common_params.repl_policy is defined and
-    src_fb_info.purefb_info.file_replication[repl_vars.src.fileshare].direction == "outbound" 
+  when:
+    - repl_vars.common_params.repl_policy is defined
+    - src_fb_info.purefb_info.file_replication[repl_vars.src.fileshare].direction == "outbound" 
   delegate_to: localhost
   become: false
   run_once: true
   ignore_errors: true
 
-#  src_fs_policies
 # remove all snapshots
 - name: filesystem | Demote source file system for {{ repl_loop.key }}
   purefb_fs:

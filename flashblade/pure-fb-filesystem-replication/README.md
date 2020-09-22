@@ -65,9 +65,9 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     # FlashBlade inventory
     array_inventory:               
       FBServer1:
-          fb_url: 10.22.222.80
+          fb_url: 10.22.222.80    #FlashBlade Management IP 
       FBServer2:
-          fb_url: 10.22.222.100
+          fb_url: 10.22.222.100   #FlashBlade Management IP
 
     # Filesystem replication
     FSReplication:       
@@ -96,9 +96,9 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     # FlashBlade inventory
     array_inventory:               
       FBServer1:
-          fb_url: 10.22.222.80
+          fb_url: 10.22.222.80   #FlashBlade Management IP
       FBServer2:
-          fb_url: 10.22.222.100
+          fb_url: 10.22.222.100  #FlashBlade Management IP
 
     # Filesystem replication
     FSReplication:       
@@ -118,9 +118,9 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     # FlashBlade inventory
     array_inventory:               
       FBServer1:
-          fb_url: 10.22.222.80
+          fb_url: 10.22.222.80  #FlashBlade Management IP
       FBServer2:
-          fb_url: 10.22.222.100
+          fb_url: 10.22.222.100  #FlashBlade Management IP
 
     # Filesystem replication
     FSReplication:       
@@ -142,9 +142,9 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     # FlashBlade inventory
     array_inventory:               
       FBServer1:
-          fb_url: 10.22.222.80
+          fb_url: 10.22.222.80  #FlashBlade Management IP
       FBServer2:
-          fb_url: 10.22.222.100
+          fb_url: 10.22.222.100  #FlashBlade Management IP
 
     # Filesystem replication
     FSReplication:       
