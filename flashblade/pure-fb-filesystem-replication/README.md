@@ -91,6 +91,13 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer2:
           api_token: T-79ced0e5-xxxx-xxxx-8741-66482f04c6d1 
     ```
+ `filesystem_snapshot_policy` variables:
+* `name`: name of the policy
+* `enabled`: whether policy is enabled( True/False )
+* `every`: Frequency in which snapshots are created - Range available 300 - 31536000 (equates to 5m to 365d)
+* `at`: The time of day in which snapshots are created - Provide a time in 12-hour AM/PM format, eg. 11AM
+* `timezone`: The timezone in which the snapshot is created( Used by `At` parameter ) - If not provided, the module will attempt to get the current local timezone from the server 
+* `keep_for`: The period in which snapshots are retained until they are eradicated( Must not be set less than `every` ) - Range available 300 - 31536000 (equates to 5m to 365d)
  
  ##### Filesystem Replication 
    In Filesystem replication local(src) and remote(dst) FlashBlades should be connected state. Replica-link will be established between local filesystem and remote filesystem with replication policy. 
@@ -101,7 +108,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
       FBServer1:
           fb_url: 10.22.222.80   #FlashBlade Management IP
           filesystem_snapshot_policy:
-            - { name: daily, at: 12AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone
+            - { name: daily, enabled: true, at: 12AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone
       FBServer2:
           fb_url: 10.22.222.100  #FlashBlade Management IP
 
@@ -112,7 +119,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
           src: { fb_name: FBServer1, fileshare: src-nfs }
           dst: { fb_name: FBServer2 }                      
    ```
- 
+
  ##### Filesystem failover 
    In Filesystem failover target(dst) filesystem to be promoted and all the clients must then be directed to the target array. The local file system is then demoted.
   
