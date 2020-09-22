@@ -1,11 +1,11 @@
 # FlashBlade inventory
 array_inventory:               
   FBServer1:
-    fb_url: 10.22.222.80
+    fb_url: 10.22.222.80   # FlashBlade Management VIP
     filesystem_snapshot_policy:
       - { name: daily, at: 12AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone
   FBServer2:
-    fb_url: 10.22.222.100
+    fb_url: 10.22.222.100  # FlashBlade Management VIP
 
 # Filesystem replication, failover and failback
 FSReplication:       

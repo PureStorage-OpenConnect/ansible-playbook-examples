@@ -66,16 +66,19 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     array_inventory:               
       FBServer1:
           fb_url: 10.22.222.80    #FlashBlade Management IP 
+          filesystem_snapshot_policy:
+            - { name: daily, at: 12AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone
+
       FBServer2:
           fb_url: 10.22.222.100   #FlashBlade Management IP
 
     # Filesystem replication
     FSReplication:       
       replication1:
-          common_params: { repl_policy: hourly }
+          common_params: { repl_policy: daily }
           client_details:
             - hosts: dc
-              mount_point: /mnt/var/src-nfs
+              mount_point: /mnt/src-nfs
           src: { fb_name: FBServer1, data_vip: srcdatavip, fileshare: src-nfs }
           dst: { fb_name: FBServer2, data_vip: dstdatavip }             
     ```
@@ -97,13 +100,15 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     array_inventory:               
       FBServer1:
           fb_url: 10.22.222.80   #FlashBlade Management IP
+          filesystem_snapshot_policy:
+            - { name: daily, at: 12AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone
       FBServer2:
           fb_url: 10.22.222.100  #FlashBlade Management IP
 
     # Filesystem replication
     FSReplication:       
       replication1:
-          common_params: { repl_policy: hourly }
+          common_params: { repl_policy: daily }
           src: { fb_name: FBServer1, fileshare: src-nfs }
           dst: { fb_name: FBServer2 }                      
    ```
@@ -119,13 +124,15 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     array_inventory:               
       FBServer1:
           fb_url: 10.22.222.80  #FlashBlade Management IP
+          filesystem_snapshot_policy:
+            - { name: daily, at: 12AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone
       FBServer2:
           fb_url: 10.22.222.100  #FlashBlade Management IP
 
     # Filesystem replication
     FSReplication:       
       replication1:
-          common_params: { repl_policy: hourly }
+          common_params: { repl_policy: daily }
           client_details:
             - hosts: dc
               mount_point: /mnt/var/src-nfs
