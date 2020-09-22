@@ -1,17 +1,17 @@
-FlashBlade Obect-Store setup
+FlashBlade Object Store Account, User, and Bucket Configuration
 =========
 
-Ansible playbook and role for FlashBlade Object-Store provisioning and configuration.
+Ansible playbook for FlashBlade Object Store account, user, and bucket configuration.
 
 
 Requirements
 ------------
 
-**Requires: Python >=2.7, <=3.6 on Ansible control node.**
+**Requires: Python >=2.7, <=3.6 to be installed on the Ansible control node.**
 
-As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed Python version on Ansible control Node must be >=2.7 and <=3.6.
+The Python version on the Ansible control node must match the version required by the FlashBlade Python SDK (purity_fb): Python >=2.7, <=3.6
 
-* Install python-pip on Ansible control node.
+* Install python-pip on Ansible control node, if it is not already installed.
 
   CentOS:
     ```bash
@@ -31,192 +31,243 @@ As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed 
     ```
   For more details to install Ansible on MacOS, follow this [link](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-with-pip).
   
-* Install dependencies from "requirements.txt"
+* Install dependencies using the "requirements.txt" in the directory of this README file. (This ensures that ansible, purity-fb, netaddr, and pytz are installed):
     ```bash
     $ sudo pip install -r requirements.txt 
     ```
-* Install Ansible Collection for Pure Storage FlashBlade
+* Install the FlashBlade Ansible Collection: 
     ```bash
     $ ansible-galaxy collection install purestorage.flashblade
     ```
 
-Role Variables
+Generating FlashBlade Login Credentials for Ansible Playbooks
 --------------
 
-There are two variable files "fb_details.yml" and "fb_secrets.yml" are holding the Ansible variables for the role at path `vars/<enviorement_name>`. 
+FlashBlade Ansible playbooks require an API token to connect to FlashBlade. An API token can be obtained by using ssh to connect to the FlashBlade management IP for a user that you wish the Ansible playbook to run as, and using the ```pureadmin``` command to retrieve or create an API token.
 
-This role and playbook can be used to setup object-store on FlashBlade servers in different environments. To store role variable files user can create different directories with `vars/<environment_name>`. User must specify `<environment_name>` while running `ansible-playbook` by specifying value in extra vars command line flag `-e "env=<environment_name>"`.
+To create or retrieve an API token, first ssh to a FlashBlade as the user you wish the Ansible playbooks to run as. For example, to create an API token with full admin privileges equivalent to "pureuser", the built-in local administrator account, ssh to FlashBlade's management IP as "pureuser" and specify that user's password:
+   ```
+   ssh pureuser@flashblade.example.com
+   ```
+To see current the logged-in user's API token:
+   ```
+   pureadmin list --api-token --expose
+   ```
+To create an API token expiring in 24 hours with the same permissions as the currently logged in user:
+   ```
+   pureadmin create --api-token --timeout 1d
+   ```
+The above commands generates output like the following:
+   ```
+   Name      API Token                               Created                  Expires
+   pureuser  T-85cc9ce8-643d-4d99-8dbc-656f38cacab0  2020-09-13 23:55:33 PDT  2020-09-14 23:55:33 PDT
+   ```
+For details, see "Creating an API token" in the [FlashBlade User Guide](https://support.purestorage.com/FlashBlade/Purity_FB/FlashBlade_User_Guides).
 
-Ansible playbooks require API token to connect to FlashBlade servers. API token can be obtained by connecting FlashBlade management VIP through ssh for a specific user and running the following purity command.
-   ```
-   $ ssh <pureuser>@<pure_fb_mgmt_ip>
-   $ pureadmin list <username> --api-token -–expose
-   ```
 Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_url" value with FlashBlade Management VIP in "fb_details.yml" 
 
-Encrypt "fb_secrets.yml" using Ansible-Vault and enter password when prompted. This password is required to run playbook. To encrypt s3 secrets file, set `s3_ansible_vault_pass` variable in "fb_secrets.yml".   
-```
-$ ansible-vault encrypt fb_secrets.yml
-```
 
-Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired values.
+Specifying FlashBlade API credentials for this playbook
+--------------
 
-* fb_details.yml
-    ```
-    array_inventory:               
-      FBServer1:
-        fb_url: 10.22.222.151                   
-        object_store:
-        - account: logaccount
-          state: enabled
-          users: 
-            - {name: loguser, create_new_access_key: true, state: enabled}
-          buckets: 
-            - {name: logbucket, state: enabled, eradicate: false, versioning: enabled}                  
-    ```
+This playbook supports organizing your FlashBlade credentials and configuration details into groups of FlashBlade arrays referred to here as "environments".
 
-* fb_secrets.yml
+To specify credentials for this playbook to log into FlashBlade, create a file (relative to this playbook's location) at
+  ```
+  var/<your_env_name>/fb_secrets.yml
+  ```
+where <your_env_name> is a name you assign to a group of one or more FlashBlade arrays.
+
+The fb_secrets.yml file should look like this:
     ```
     ---
-    array_secrets:               
-      FBServer1:
-        api_token: T-0b8ad89c-xxxx-yyyy-85ed-286607dc2cd2  # api_token obtained from fb_server
+    array_secrets:
+      FlashBlade1: # this must match the identifier used for this FlashBlade in fb_details.yml
+        api_token: T-0b8ad89c-xxxx-yyyy-85ed-28660EXAMPLE  # API token obtained from FlashBlade
 
-    # Required to encrypt s3 secret files 
-    s3_ansible_vault_pass: pureansible
+    s3_ansible_vault_pass: somepassword   # Required in order to encrypt s3 secret files 
     ```
+
+For an example of an fb_secrets.yml file, see:
+  ```
+  var/region/fb_secrets.yml
+  ```
+
+Specifying FlashBlade connection details and Object Store configuration
+--------------
+
+To configure your FlashBlade connection details and the Object Store account, user, and bucket names you would like to provision, create a file at:
+  ```
+  var/<your_env_name>/fb_details.yml
+  ```
+
+The fb_details.yml file should look similar to this:
+  ```
+    array_inventory:               
+      FlashBlade1: # this must match the identifier used for this FlashBlade in fb_secrets.yml
+        fb_url: 10.20.30.40
+        object_store:
+        - account: your-account
+          state: enabled
+          users: 
+            - {name: your-object-store-user, create_new_access_key: true, state: enabled}
+          buckets: 
+            - {name: your-bucket-name, state: enabled, eradicate: false, versioning: enabled}                  
+  ```
+
+As an example of an fb_details.yml file, see:
+  ```
+  /var/region/fb_details.yml
+  ```
+
+
+Running this playbook
+--------------
+
+To run this playbook, specify the playbook name and your environment name at the command line:
+   ```bash
+   ansible-playbook object_store_setup.yml -e "env=<your_env_name>"
+   ```
+
+Using Ansible Vault to Encrypt FlashBlade Credentials
+--------------
+
+It is strongly recommended that you avoid storing FlashBlade API credentials in a plain text file.
+
+You can use Ansible Vault to encrypt your FlashBlade API credentials using a password that can be specified later at the command line when running your playbook.
+
+To encrypt the fb_secrets.yml file, first specify a password in the `s3_ansible_vault_pass` variable in "fb_secrets.yml" file (for use by the playbook itself during execution) and then run
+  ```
+  ansible-vault encrypt fb_secrets.yml
+  ```
+Enter the same password when prompted to encrypt the file.
+
+To execute a playbook using an encrypted fb_secrets.yml file:
+   ```bash
+   ansible-playbook object_store_setup.yml -e "env=<your_env_name>" --ask-vault-pass
+   ```
+Enter Ansible Vault password that was used to encrypt "fb_secrets.yml" file.
+
+
+Notes on using this playbook
+--------------
 
 #### Note
  * To destroy any of the bucket use `state: disabled` in "buckets" section of `fb_details.yml` variable file. Destroyed bucket have 24 hours to be recovered. To recover bucket, run the playbook with `state: enabled` within 24 hours of deletion. Buckets can be eradicated by using `state: disabled` and `eradicate: true` together.
 
+
+Examples
+--------------
    ##### fb_details.yml for different scenarios  
    
    **Create Object-store Account, user and bucket**
    ```
     array_inventory:               
-      FBServer1:
+      FlashBlade1:
         fb_url: 10.22.222.151                 
         object_store:
-        - account: logaccount
+        - account: account1
           state: enabled
           users: 
-            - { name: loguser, create_new_access_key: true, state: enabled }
+            - { name: user1, create_new_access_key: true, state: enabled }
           buckets: 
-            - { name: logbucket, state: enabled, eradicate: false, versioning: enabled }                          
+            - { name: bucket1, state: enabled, eradicate: false, versioning: enabled }                          
    ```
    
    **Destroy Bucket**
    ```
     array_inventory:               
-      FBServer1:
+      FlashBlade1:
         fb_url: 10.22.222.151                 
         object_store:
-        - account: logaccount
+        - account: account1
           buckets: 
-            - { name: logbucket, state: disabled }                          
+            - { name: bucket1, state: disabled }                          
    ```
    **Recover Bucket**
    ```
     array_inventory:               
-      FBServer1:
+      FlashBlade1:
         fb_url: 10.22.222.151                 
         object_store:
-        - account: logaccount
+        - account: account1
           buckets: 
-            - { name: logbucket, state: enabled }             
+            - { name: bucket1, state: enabled }             
    ```
    **Eradicate Bucket**
    ```
     array_inventory:               
-      FBServer1:
+      FlashBlade1:
         fb_url: 10.22.222.151                 
         object_store:
-        - account: logaccount
+        - account: account1
           buckets: 
-            - { name: logbucket, state: disabled, eradicate: true }            
+            - { name: bucket1, state: disabled, eradicate: true }            
    ``` 
    **Create User with key**
    ```
     array_inventory:               
-      FBServer1:
+      FlashBlade1:
         fb_url: 10.22.222.151                 
         object_store:
-        - account: logaccount
+        - account: account1
           users: 
-            - { name: loguser, create_new_access_key: true }        
+            - { name: user1, create_new_access_key: true }        
    ```
    **Create User without key**
    ```
     array_inventory:               
-      FBServer1:
+      FlashBlade1:
         fb_url: 10.22.222.151                 
         object_store:
-        - account: logaccount
+        - account: account1
           users: 
-            - { name: loguser, create_new_access_key: false }     
+            - { name: user1, create_new_access_key: false }     
    ```
- * To extend the Object-store provisioning on the fleet of FlashBlade Arrays, Add multiple "FBServer1...N" blocks under array_inventory in "fb_details.yml" file.
+ * To extend the Object-store provisioning on the fleet of FlashBlade Arrays, Add multiple "FlashBlade1...N" blocks under array_inventory in "fb_details.yml" file.
  Example configuration to setup Object-Store on two FlashBlade servers.
    
    **fb_details.yml**
    ```
     array_inventory:               
-      FBServer1:
+      FlashBlade1:
         fb_url: 10.22.222.151                   
         object_store:
-        - account: logaccount
+        - account: account1
           state: enabled
           users: 
-            - { name: loguser, create_new_access_key: true, state: enabled }
+            - { name: user1, create_new_access_key: true, state: enabled }
           buckets: 
-            - { name: logbucket, state: enabled, eradicate: false, versioning: enabled }
-      FBServer1:
+            - { name: bucket1, state: enabled, eradicate: false, versioning: enabled }
+      FlashBlade2:
         fb_url: 10.22.222.152                  
         object_store:
-        - account: srcaccount
+        - account: account2
           state: enabled
           users: 
-            - { name: srcuser, create_new_access_key: true, state: enabled }
+            - { name: user2, create_new_access_key: true, state: enabled }
           buckets: 
-            - { name: srcbucket, state: enabled, eradicate: false, versioning: enabled }  
+            - { name: bucket2, state: enabled, eradicate: false, versioning: enabled }  
     ```
     **fb_secrets.yml**
     ```
     array_secrets:               
-      FBServer1:
+      FlashBlade1:
         api_token: T-0b8ad89c-xxxx-yyyy-85ed-286607dc2cd2
-      FBServer2:
+      FlashBlade2:
         api_token: T-0b8ad822-xxxx-yyyy-85ed-286607dc2cd2
-    # Required to encrypt s3 secret files 
-    s3_ansible_vault_pass: pureansible
+    
+    s3_ansible_vault_pass: pureansible # Required to encrypt s3 secret files 
     ```
-* If user created with key (`create_new_access_key: true`), s3_secrets will be stored in a encypted file with name `<account_name>_<user_name>.yml` at path `vars/<environment_name>/s3_secrets/` . Use ansible vault to decrypt the s3_secrets files.
+
+Other notes
+--------------
+
+* If creating S3 credentials for a user (`create_new_access_key: true`), s3_secrets will be stored in an encypted file with name `<account_name>_<user_name>.yml` at path `vars/<environment_name>/s3_secrets/`. Use ansible vault to decrypt the s3_secrets file(s).
    ```
    ansible-vault decrypt <s3_secrets_filename> --ask-vault-pass
    ```
    Enter vault password(`s3_ansible_vault_pass`) when prompted.
-* Maximum of 2 access keys are allowed per user, so after running this playbook twice with `create_new_access_key: true` parameter there will be no attempt to create a new access key.
+* A maximum of 2 access keys are allowed per user, so after running this playbook twice with `create_new_access_key: true` parameter, there will be no attempt to create a new access key.
 
-Dependencies
-------------
 
-None
-
-Example Playbook
-----------------
-    ---
-    - name: FlashBlade object-store setup
-      hosts: localhost
-      gather_facts: false
-      vars_files:
-      - "vars/{{ env }}/fb_details.yml"
-      - "vars/{{ env }}/fb_secrets.yml"
-      roles:
-        - purefb_object_store_setup
-
-To execute playbook, issue the following command:
-( Replace `<enviorement_name>` with the correct value )
-   ```bash
-   $ ansible-playbook object_store_setup.yml -e "env=<enviorement_name>" --ask-vault-pass
-   ```
-Enter Ansible-Vault password which used to encrypt "fb_secrets.yml" file.

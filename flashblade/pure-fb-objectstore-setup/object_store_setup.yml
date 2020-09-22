@@ -1,5 +1,5 @@
 ---
-- name: FlashBlade object-store setup
+- name: FlashBlade Object Store Account, User, and Bucket Setup
   hosts: localhost
   gather_facts: false
   vars_files:
