@@ -43,14 +43,14 @@ As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed 
 Role Variables
 --------------
 
-There are two variable files "fb_details.yml" and "fb_secrets.yml" are holding the Ansible variables for the role at path `vars/<enviorement_name>`. 
+There are two variable files "fb_details.yml" and "fb_secrets.yml" are holding the Ansible variables for the role at path `vars/<environment_name>`.
 
 This role and playbook can be used to setup object-store on FlashBlade servers in different environments. To store role variable files user can create different directories with `vars/<environment_name>`. User must specify `<environment_name>` while running `ansible-playbook` by specifying value in extra vars command line flag `-e "env=<environment_name>"`.
 
 Ansible playbooks require API token to connect to FlashBlade servers. API token can be obtained by connecting FlashBlade management VIP through ssh for a specific user and running the following purity command.
    ```
    $ ssh <pureuser>@<pure_fb_mgmt_ip>
-   $ pureadmin list <username> --api-token -–expose
+   $ pureadmin list <username> --api-token --expose
    ```
 Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_url" value with FlashBlade Management VIP in "fb_details.yml" 
 
@@ -215,8 +215,8 @@ Example Playbook
         - purefb_object_store_setup
 
 To execute playbook, issue the following command:
-( Replace `<enviorement_name>` with the correct value )
+( Replace `<environment_name>` with the correct value )
    ```bash
-   $ ansible-playbook object_store_setup.yml -e "env=<enviorement_name>" --ask-vault-pass
+   $ ansible-playbook object_store_setup.yml -e "env=<environment_name>" --ask-vault-pass
    ```
 Enter Ansible-Vault password which used to encrypt "fb_secrets.yml" file.
