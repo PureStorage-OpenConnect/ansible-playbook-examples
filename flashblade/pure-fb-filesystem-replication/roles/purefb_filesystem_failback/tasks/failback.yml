@@ -72,8 +72,8 @@
   set_fact:
     src_fb_name: "{{ src_fb_info.purefb_info.default.flashblade_name }}" 
     dst_fb_name: "{{ dst_fb_info.purefb_info.default.flashblade_name }}" 
-    src_rl_policy: "{{ src_fb_info['purefb_info']['file_replication'][repl_vars.src.fileshare].policies | list }}"
-    dst_rl_policy: "{{ dst_fb_info['purefb_info']['file_replication'][dst_fileshare].policies | list }}"
+    # src_rl_policy: "{{ src_fb_info['purefb_info']['file_replication'][repl_vars.src.fileshare].policies | list }}"
+    # dst_rl_policy: "{{ dst_fb_info['purefb_info']['file_replication'][dst_fileshare].policies | list }}"
     src_data_vip: "{{ src_fb_info.purefb_info.network[repl_vars.src.data_vip].address }}" 
     dst_data_vip: "{{ dst_fb_info.purefb_info.network[repl_vars.dst.data_vip].address }}" 
   delegate_to: localhost
