@@ -20,7 +20,7 @@
     state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     policy: "{{ item.policy | default(omit) }}"
     policy_state: "{{ item.policy_state | default(omit) }}"
-    fb_url: "{{ fb_vars.fb_url }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.filesystem | default([]) }}"
   when:
@@ -42,7 +42,7 @@
     suffix: "{{ item.suffix }}"
     state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     eradicate: "{{ item.eradicate | default('false') }}"
-    fb_url: "{{ fb_vars.fb_url }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.filesystem_snapshot|default([]) }}"
   when:
@@ -55,7 +55,7 @@
     suffix: "{{ item.suffix }}"
     state: restore
     eradicate: "{{ item.eradicate | default('false') }}"
-    fb_url: "{{ fb_vars.fb_url }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.filesystem_snapshot|default([]) }}"
   when:
@@ -73,7 +73,7 @@
     state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     filesystem: "{{ item.filesystem | default(omit) }}"
     replica_link:  "{{ replica_link | default(omit) }}"
-    fb_url: "{{ fb_vars.fb_url }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.filesystem_snapshot_policy|default([]) }}"
   when:

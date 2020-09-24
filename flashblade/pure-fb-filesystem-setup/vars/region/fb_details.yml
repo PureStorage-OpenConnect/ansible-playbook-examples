@@ -1,7 +1,7 @@
 ---
 array_inventory:               
   FBServer1:
-    fb_url: 10.12.231.151                    
+    fb_host: 10.12.231.151                    
     filesystem:
       - { name: database, count: 5, size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)' } 
       - { name: tools, size: 1G, type: smb, nfs_rules: '*(rw,no_root_squash)' } 

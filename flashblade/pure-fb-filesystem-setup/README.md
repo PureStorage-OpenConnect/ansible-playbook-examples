@@ -51,7 +51,7 @@ Ansible playbooks require API token to connect to FlashBlade servers. API token 
    $ ssh <pureuser>@<pure_fb_mgmt_ip>
    $ pureadmin list <username> --api-token -–expose
    ```
-Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_url" value with FlashBlade Management VIP in "fb_details.yml".
+Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_host" value with FlashBlade Management VIP in "fb_details.yml".
 
 Encrypt "fb_secrets.yml" using Ansible-Vault and enter password when prompted. This password is required to run playbook.
 ```
@@ -64,7 +64,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     ```
     array_inventory:               
         FBServer1:
-          fb_url: 10.12.231.151                    
+          fb_host: 10.12.231.151                    
           filesystem:
             - { name: database, count: 5, size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)' } 
             - { name: tools, size: 1G, type: smb, nfs_rules: '*(rw,no_root_squash)' } 
@@ -90,7 +90,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
     array_inventory:               
       FBServer1:
-        fb_url: 10.12.231.151                    
+        fb_host: 10.12.231.151                    
         filesystem:
           - { name: database, size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)' }                         
    ```
@@ -99,7 +99,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
     array_inventory:               
       FBServer1:
-        fb_url: 10.12.231.151                    
+        fb_host: 10.12.231.151                    
         filesystem:
           - { name: database, count: 5 size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)' } # creates 5 filesystem with name database_01....database_05.              
    ```    
@@ -107,7 +107,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
     array_inventory:               
       FBServer1:
-        fb_url: 10.12.231.151                    
+        fb_host: 10.12.231.151                    
         filesystem:
           - { name: database, state: disabled }           
    ``` 
@@ -115,7 +115,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
     array_inventory:               
       FBServer1:
-        fb_url: 10.12.231.151                    
+        fb_host: 10.12.231.151                    
         filesystem:
           - { name: database, state: enabled }           
    ```
@@ -123,7 +123,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
     array_inventory:               
       FBServer1:
-        fb_url: 10.12.231.151                    
+        fb_host: 10.12.231.151                    
         filesystem:
           - { name: database, state: disabled, eradicate: true }           
    ``` 
@@ -131,7 +131,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
     array_inventory:               
       FBServer1:
-        fb_url: 10.12.231.151                    
+        fb_host: 10.12.231.151                    
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible } # snap_name : tools.ansible         
    ```
@@ -139,7 +139,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
     array_inventory:               
       FBServer1:
-        fb_url: 10.12.231.151                    
+        fb_host: 10.12.231.151                    
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible, state: disabled }
    ```
@@ -147,7 +147,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
     array_inventory:               
       FBServer1:
-        fb_url: 10.12.231.151                    
+        fb_host: 10.12.231.151                    
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible, state: enabled }
    ```
@@ -155,7 +155,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
     array_inventory:               
       FBServer1:
-        fb_url: 10.12.231.151                    
+        fb_host: 10.12.231.151                    
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible, restore_fs_from_snap: true }
    ```
@@ -163,7 +163,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
     array_inventory:               
       FBServer1:
-        fb_url: 10.12.231.151                    
+        fb_host: 10.12.231.151                    
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible, state: disabled, eradicate: true }
    ```
@@ -171,7 +171,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
     array_inventory:               
     FBServer1:
-      fb_url: 10.12.231.151                    
+      fb_host: 10.12.231.151                    
       filesystem_snapshot_policy:
         - { name: daily, at: 11AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone
    ```
@@ -179,7 +179,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    ```
     array_inventory:               
     FBServer1:
-      fb_url: 10.12.231.151                    
+      fb_host: 10.12.231.151                    
       filesystem_snapshot_policy:
         - { name: daily, state: disabled } # optional params: timezone
    ```
@@ -191,11 +191,11 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    # FBServer details
     array_inventory:               
       FBServer1:
-        fb_url: 10.xx.126.80
+        fb_host: 10.xx.126.80
         filesystem:
           - { name: database, size: 32G, type: nfsv3 }   
       FBServer2:
-        fb_url: 10.xx.126.110
+        fb_host: 10.xx.126.110
         filesystem:
           - { name: tools, size: 32G, type: nfsv4.1 }  
     ```
