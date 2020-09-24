@@ -95,7 +95,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
 * `timezone`: The timezone in which the snapshot is created( Used by `At` parameter ) - If not provided, the module will attempt to get the current local timezone from the server 
 * `keep_for`: The period in which snapshots are retained until they are eradicated( Must not be set less than `every` ) - Range available 300 - 31536000 (equates to 5m to 365d)
  
- ##### Filesystem Replication 
+ #### Filesystem Replication 
    In Filesystem replication local(src) and remote(dst) FlashBlades should be connected state. Replica-link will be established between local filesystem and remote filesystem with replication policy. 
    
    **fb_details.yml for replication**
@@ -118,7 +118,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         dst: { fb_name: FBServer2, replvip: 10.21.236.201 }             
     ```
 
- ##### Filesystem failover 
+ #### Filesystem failover 
    In Filesystem failover target(dst) filesystem to be promoted and all the clients must then be directed to the target array. The local file system is then demoted.
   
    Enter Clients inventory detail in `hosts.ini` and specify `mount_point` under "client_details" section in `fb_details.yml` file.
@@ -144,7 +144,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         src: { fb_name: FBServer1, datavip_name: srcdatavip, fileshare: src-nfs }
         dst: { fb_name: FBServer2, datavip_name: dstdatavip }                        
    ``` 
- ##### Filesystem failback/reprotect 
+ #### Filesystem failback/reprotect 
    Filesystem failback required to stop writes on the promoted remote file system, promoting source filesystem and redirecting all the clients to local filesystem. The remote file system is then demoted.
    
    Enter Clients detail in `hosts.ini` and provide details of mount point and "host/group_name" under "client_details" section in `fb_details.yml` file.
