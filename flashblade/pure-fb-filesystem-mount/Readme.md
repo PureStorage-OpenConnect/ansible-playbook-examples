@@ -37,7 +37,7 @@ As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed 
     ```
 * Install Ansible Collection for Pure Storage FlashBlade
     ```bash
-    $ ansible-galaxy collection install purestorage.flashblade
+    $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/
     ```
 
 Role Variables

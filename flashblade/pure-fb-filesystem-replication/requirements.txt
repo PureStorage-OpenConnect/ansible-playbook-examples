@@ -1,4 +1,4 @@
 ansible>=2.9.13
-purity-fb==1.9.1
+purity-fb==1.9.2
 netaddr
 pytz
