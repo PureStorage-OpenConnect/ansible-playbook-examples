@@ -1,4 +1,15 @@
 ---
+- name: validation | Check connectivity for FBServer
+  shell: ping -q -c 4 -W 1 {{ fb_vars.fb_host }}
+  register: fb_ping_status
+  failed_when: false
+  changed_when: false
+
+- name: validation | Fail if Flashblade server not reachable
+  fail:
+    msg: FB server {{ fb_vars.fb_host }} not reachable
+  when: "'100% packet loss' in fb_ping_status.stdout"
+  
 - name: dns | Set DNS settings for {{ outer_loop.key }}
   purefb_dns:
     domain: "{{ fb_vars.network.dns[0].domain | default(omit) }}"

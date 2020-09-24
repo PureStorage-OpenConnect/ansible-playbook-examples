@@ -149,6 +149,6 @@ Example Playbook
 To execute playbook, issue the following command:
 ( Replace `<enviorement_name>` with the correct value )
    ```bash
-   $ ansible-playbook purefb_network_setup.yml -e "env=<enviorement_name>" --ask-vault-pass
+   $ ansible-playbook network_setup.yml -e "env=<enviorement_name>" --ask-vault-pass
    ```
 Enter Ansible-Vault password which used to encrypt "fb_secrets.yml" file.
