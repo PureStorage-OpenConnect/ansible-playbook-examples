@@ -61,6 +61,7 @@ $ ansible-vault encrypt fb_secrets.yml
 Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired values.
 
 * fb_details.yml
+
     ```
     # FlashBlade inventory
     array_inventory:               
@@ -100,7 +101,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    
    **fb_details.yml for replication**
    
-    ```
+    
     # FlashBlade inventory
     array_inventory:               
       FBServer1:
@@ -116,7 +117,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         common_params: { repl_policy: daily }
         src: { fb_name: FBServer1, replvip: 10.21.152.231, fileshare: src-nfs }
         dst: { fb_name: FBServer2, replvip: 10.21.236.201 }             
-    ```
+    
 
  #### Filesystem failover 
    In Filesystem failover target(dst) filesystem to be promoted and all the clients must then be directed to the target array. The local file system is then demoted.
