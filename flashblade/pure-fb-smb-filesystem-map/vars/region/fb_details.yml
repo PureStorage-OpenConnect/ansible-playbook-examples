@@ -1,7 +1,7 @@
 ############################ FB array object-store provisioning #############################
 array_inventory:               
   FBServer1:
-    fb_url: 10.222.22.60                   
+    fb_host: 10.222.22.60                   
     filesystem:
       - { name: winbackup, size: 32G, type: smb, smb_aclmode: native } 
 

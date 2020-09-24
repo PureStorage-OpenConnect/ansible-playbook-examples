@@ -64,7 +64,7 @@ The above commands generates output like the following:
    ```
 For details, see "Creating an API token" in the [FlashBlade User Guide](https://support.purestorage.com/FlashBlade/Purity_FB/FlashBlade_User_Guides).
 
-Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_url" value with FlashBlade Management VIP in "fb_details.yml" 
+Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_host" value with FlashBlade Management VIP in "fb_details.yml" 
 
 
 Specifying FlashBlade API credentials for this playbook
@@ -79,14 +79,14 @@ To specify credentials for this playbook to log into FlashBlade, create a file (
 where <your_env_name> is a name you assign to a group of one or more FlashBlade arrays.
 
 The fb_secrets.yml file should look like this:
-    ```
+
     ---
     array_secrets:
       FlashBlade1: # this must match the identifier used for this FlashBlade in fb_details.yml
         api_token: T-0b8ad89c-xxxx-yyyy-85ed-28660EXAMPLE  # API token obtained from FlashBlade
 
-    s3_ansible_vault_pass: somepassword   # Required in order to encrypt s3 secret files 
-    ```
+    s3_ansible_vault_pass: somepassword   # Required in order to encrypt s3 secrets files at vars/<environment_name>/s3_secrets/
+
 
 For an example of an fb_secrets.yml file, see:
   ```
@@ -105,14 +105,13 @@ The fb_details.yml file should look similar to this:
   ```
     array_inventory:               
       FlashBlade1: # this must match the identifier used for this FlashBlade in fb_secrets.yml
-        fb_url: 10.20.30.40
+        fb_host: 10.20.30.40
         object_store:
         - account: your-account
-          state: enabled
           users: 
-            - {name: your-object-store-user, create_new_access_key: true, state: enabled}
+            - { name: your-object-store-user, create_new_access_key: true }
           buckets: 
-            - {name: your-bucket-name, state: enabled, eradicate: false, versioning: enabled}                  
+            - { name: your-bucket-name }                  
   ```
 
 As an example of an fb_details.yml file, see:
@@ -136,7 +135,7 @@ It is strongly recommended that you avoid storing FlashBlade API credentials in 
 
 You can use Ansible Vault to encrypt your FlashBlade API credentials using a password that can be specified later at the command line when running your playbook.
 
-To encrypt the fb_secrets.yml file, first specify a password in the `s3_ansible_vault_pass` variable in "fb_secrets.yml" file (for use by the playbook itself during execution) and then run
+To encrypt the fb_secrets.yml file:
   ```
   ansible-vault encrypt fb_secrets.yml
   ```
@@ -153,7 +152,7 @@ Notes on using this playbook
 --------------
 
 #### Note
- * To destroy any of the bucket use `state: disabled` in "buckets" section of `fb_details.yml` variable file. Destroyed bucket have 24 hours to be recovered. To recover bucket, run the playbook with `state: enabled` within 24 hours of deletion. Buckets can be eradicated by using `state: disabled` and `eradicate: true` together.
+ * To destroy any of the bucket use `destroy_bucket: true` in "buckets" section of `fb_details.yml` variable file. Destroyed bucket have 24 hours to be recovered. To recover bucket, run the playbook with `recover_bucket: true` within 24 hours of deletion. Buckets can be eradicated by using `destroy_bucket: true` and `eradicate: true` together.
 
 
 Examples
@@ -164,51 +163,50 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_url: 10.22.222.151                 
+        fb_host: 10.22.222.151                 
         object_store:
         - account: account1
-          state: enabled
           users: 
-            - { name: user1, create_new_access_key: true, state: enabled }
+            - { name: user1, create_new_access_key: true }
           buckets: 
-            - { name: bucket1, state: enabled, eradicate: false, versioning: enabled }                          
+            - { name: bucket1 }                          
    ```
    
    **Destroy Bucket**
    ```
     array_inventory:               
       FlashBlade1:
-        fb_url: 10.22.222.151                 
+        fb_host: 10.22.222.151                 
         object_store:
         - account: account1
           buckets: 
-            - { name: bucket1, state: disabled }                          
+            - { name: bucket1, destroy_bucket: true }                          
    ```
    **Recover Bucket**
    ```
     array_inventory:               
       FlashBlade1:
-        fb_url: 10.22.222.151                 
+        fb_host: 10.22.222.151                 
         object_store:
         - account: account1
           buckets: 
-            - { name: bucket1, state: enabled }             
+            - { name: bucket1, recover_bucket: true }             
    ```
    **Eradicate Bucket**
    ```
     array_inventory:               
       FlashBlade1:
-        fb_url: 10.22.222.151                 
+        fb_host: 10.22.222.151                 
         object_store:
         - account: account1
           buckets: 
-            - { name: bucket1, state: disabled, eradicate: true }            
+            - { name: bucket1, destroy_bucket: true, eradicate: true }            
    ``` 
    **Create User with key**
    ```
     array_inventory:               
       FlashBlade1:
-        fb_url: 10.22.222.151                 
+        fb_host: 10.22.222.151                 
         object_store:
         - account: account1
           users: 
@@ -218,7 +216,7 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_url: 10.22.222.151                 
+        fb_host: 10.22.222.151                 
         object_store:
         - account: account1
           users: 
@@ -231,23 +229,22 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_url: 10.22.222.151                   
+        fb_host: 10.22.222.151                   
         object_store:
         - account: account1
-          state: enabled
           users: 
-            - { name: user1, create_new_access_key: true, state: enabled }
+            - { name: user1 }
           buckets: 
-            - { name: bucket1, state: enabled, eradicate: false, versioning: enabled }
+            - { name: bucket1 }
       FlashBlade2:
-        fb_url: 10.22.222.152                  
+        fb_host: 10.22.222.152                  
         object_store:
         - account: account2
           state: enabled
           users: 
-            - { name: user2, create_new_access_key: true, state: enabled }
+            - { name: user2 }
           buckets: 
-            - { name: bucket2, state: enabled, eradicate: false, versioning: enabled }  
+            - { name: bucket2 }  
     ```
     **fb_secrets.yml**
     ```
@@ -268,6 +265,17 @@ Other notes
    ansible-vault decrypt <s3_secrets_filename> --ask-vault-pass
    ```
    Enter vault password(`s3_ansible_vault_pass`) when prompted.
+
 * A maximum of 2 access keys are allowed per user, so after running this playbook twice with `create_new_access_key: true` parameter, there will be no attempt to create a new access key.
 
-
+* To enable versioning use `versioning: enabled` in fb_details buckets section. Versioning only can be suspended once enabled. Use `versioning: suspended` to suspend versioning.
+Example fb_details with versioning enabled.
+   ```
+    array_inventory:               
+      FlashBlade1:
+        fb_host: 10.22.222.151                 
+        object_store:
+        - account: account1
+          buckets: 
+            - { name: bucket1, versioning: enabled }          
+   ```

@@ -2,9 +2,9 @@
 # FBServer details
 array_inventory:               
   FBServer1:
-    fb_url: 10.xx.106.80
+    fb_host: 10.xx.106.80
   FBServer2:
-    fb_url: 10.yy.112.100                                    
+    fb_host: 10.yy.112.100                                    
 
 # FB-FB or FB-AWS replication
 S3Replication: 

@@ -5,29 +5,52 @@
   run_once: true
   no_log: true
 
-- name: validation | Fail if source Flashblade server not exist for {{ repl_loop.key }}
+- name: validation | Fail if source Flashblade server not exist in replication for {{ repl_loop.key }}
   fail:
-    msg: FB server {{ repl_vars.src.fb_name }} not available
+    msg: FB server {{ repl_vars.src.fb_name }} not available in fb_details
   when: repl_vars.src.fb_name not in array_inventory
 
-- name: validation | Fail if target Flashblade server not exist for {{ repl_loop.key }}
+- name: validation | Fail if target Flashblade server not exist in replication for {{ repl_loop.key }}
   fail:
-    msg: FB server {{ repl_vars.dst.fb_name }} not available
+    msg: FB server {{ repl_vars.dst.fb_name }} not available in fb_details
   when: repl_vars.dst.fb_name not in array_inventory
 
 - name: facts | Set source and target facts for {{ repl_loop.key }}
   set_fact:
-    src_fb_url: "{{ combined_inventory[repl_vars.src.fb_name].fb_url }}"
+    src_fb_url: "{{ combined_inventory[repl_vars.src.fb_name].fb_host }}"
     src_fb_token: "{{ combined_inventory[repl_vars.src.fb_name].api_token }}"
-    dst_fb_url: "{{ combined_inventory[repl_vars.dst.fb_name].fb_url }}"
+    dst_fb_url: "{{ combined_inventory[repl_vars.dst.fb_name].fb_host }}"
     dst_fb_token: "{{ combined_inventory[repl_vars.dst.fb_name].api_token }}"
   no_log: true
+
+- name: validation | Check connectivity for source FBServer
+  shell: ping -q -c 4 -W 1 {{ src_fb_url }}
+  register: src_ping_status
+  failed_when: false
+  changed_when: false
+
+- name: validation | Fail if source Flashblade server not reachable
+  fail:
+    msg: Source FB server {{ src_fb_url }} not reachable
+  when: "'100% packet loss' in src_ping_status.stdout"
+
+- name: validation | Check connectivity for target FBServer
+  shell: ping -q -c 4 -W 1 {{ dst_fb_url }}
+  register: dst_ping_status
+  failed_when: false
+  changed_when: false
+
+- name: validation | Fail if target Flashblade server not reachable
+  fail:
+    msg: Target FB server {{ dst_fb_url }} not reachable
+  when: "'100% packet loss' in dst_ping_status.stdout"
 
 - name: facts | Get information from src FB server for {{ repl_loop.key }}
   purefb_info:
     gather_subset:
       - minimum
       - replication
+      - network
     fb_url: "{{ src_fb_url }}"
     api_token: "{{ src_fb_token }}"
   run_once: true
@@ -38,6 +61,7 @@
     gather_subset:
       - minimum
       - replication
+      - network
     fb_url: "{{ dst_fb_url }}"
     api_token: "{{ dst_fb_token }}"
   run_once: true
@@ -54,6 +78,22 @@
   delegate_to: localhost
   run_once: true
   become: false
+
+- name: replvip | Set fact for replication vip on src FlashBlade server {{ repl_loop.key }}
+  set_fact:
+    src_repl_vip: "{{ item.value.address }}"
+  when: ( item.value.services[0] == "replication" )
+  loop: "{{ src_fb_info.purefb_info.network | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: replvip | Set fact for replication vip on dst FlashBlade server {{ repl_loop.key }}
+  set_fact:
+    dst_repl_vip: "{{ item.value.address }}"
+  when: ( item.value.services[0] == "replication" )
+  loop: "{{ dst_fb_info.purefb_info.network | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
 
 - name: policy | Create a filesystem snapshot policy on {{ repl_vars.src.fb_name }}
   purefb_policy:
@@ -72,6 +112,30 @@
   run_once: true
   when:
     - item is defined and (item|default([])|length > 0)
+
+- name: vip | Create replication interface(VIP) on {{ repl_vars.src.fb_name }}
+  purefb_network:
+    name: "{{ repl_vars.src.replvip_name | default('replvip') }}"
+    address: "{{ repl_vars.src.replvip }}"
+    state: present
+    services: replication
+    fb_url: "{{ src_fb_url }}"
+    api_token: "{{ src_fb_token }}"
+  when:
+    - src_repl_vip is not defined
+    - repl_vars.src.replvip is defined
+
+- name: vip | Create replication interface(VIP) on {{ repl_vars.dst.fb_name }}
+  purefb_network:
+    name: "{{ repl_vars.dst.replvip_name | default('replvip') }}"
+    address: "{{ repl_vars.dst.replvip }}"
+    state: present
+    services: replication
+    fb_url: "{{ dst_fb_url }}"
+    api_token: "{{ dst_fb_token }}"
+  when:
+    - dst_repl_vip is not defined 
+    - repl_vars.dst.replvip is defined
 
 # Create replication
 - name: Create remote credential and replica link for {{ repl_loop.key }}

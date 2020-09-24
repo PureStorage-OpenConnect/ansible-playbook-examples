@@ -8,7 +8,7 @@
 
 - name: facts | Set fb_url and fb_token fact from array_inventory for {{ outer_loop.key }}
   set_fact:
-    fb_url: "{{ array_inventory[mount_details.server.fb_name].fb_url }}"
+    fb_url: "{{ array_inventory[mount_details.server.fb_name].fb_host }}"
     fb_token: "{{ array_secrets[mount_details.server.fb_name].api_token }}"
   no_log: true
   run_once: true

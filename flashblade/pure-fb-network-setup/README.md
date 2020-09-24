@@ -50,7 +50,7 @@ Ansible playbooks require API token to connect to FlashBlade servers. API token 
    $ ssh <pureuser>@<pure_fb_mgmt_ip>
    $ pureadmin list <username> --api-token -–expose
    ```
-Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_url" value with FlashBlade Management VIP in "fb_details.yml".
+Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_host" value with FlashBlade Management VIP in "fb_details.yml".
 
 Encrypt "fb_secrets.yml" using Ansible-Vault and enter password when prompted. This password is required to run playbook.
 ```
@@ -64,7 +64,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    # FBServer details
     array_inventory:               
       FBServer1:
-        fb_url: 10.xx.126.80
+        fb_host: 10.xx.126.80
         network:
             dns: 
               - { domain: "purelab.purestorage.com", nameservers: [10.12.133.15, 10.12.133.16] } 
@@ -96,7 +96,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    # FBServer details
     array_inventory:               
       FBServer1:
-        fb_url: 10.xx.126.80
+        fb_host: 10.xx.126.80
         network:
           vip: 
             - { name: datavip1-2250, state: disabled }
@@ -110,12 +110,12 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    # FBServer details
     array_inventory:               
       FBServer1:
-        fb_url: 10.xx.126.80
+        fb_host: 10.xx.126.80
         network:
           dns: 
             - { domain: "purelab.purestorage.com", nameservers: [10.12.133.15, 10.12.133.16] } 
       FBServer2:
-        fb_url: 10.xx.126.110
+        fb_host: 10.xx.126.110
         network:
           dns: 
             - { domain: "purelab1.purestorage.com", nameservers: [10.12.132.11, 10.12.132.14] } 
@@ -149,6 +149,6 @@ Example Playbook
 To execute playbook, issue the following command:
 ( Replace `<enviorement_name>` with the correct value )
    ```bash
-   $ ansible-playbook purefb_network_setup.yml -e "env=<enviorement_name>" --ask-vault-pass
+   $ ansible-playbook network_setup.yml -e "env=<enviorement_name>" --ask-vault-pass
    ```
 Enter Ansible-Vault password which used to encrypt "fb_secrets.yml" file.
