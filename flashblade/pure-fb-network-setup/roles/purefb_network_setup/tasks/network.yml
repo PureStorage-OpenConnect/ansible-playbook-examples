@@ -4,7 +4,7 @@
     domain: "{{ fb_vars.network.dns[0].domain | default(omit) }}"
     nameservers: "{{ fb_vars.network.dns[0].nameservers | default(omit) }}"
     state: "{{ 'absent' if fb_vars.network.dns[0].state is defined and fb_vars.network.dns[0].state == 'disabled' else 'present' }}"
-    fb_url: "{{ fb_vars.fb_url }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   when: (fb_vars.network.dns is defined) and (fb_vars.network.dns|length > 0) 
 
@@ -12,7 +12,7 @@
   purefb_ntp:
     state: "{{ 'absent' if fb_vars.network.ntp[0].state is defined and fb_vars.network.ntp[0].state == 'disabled' else 'present' }}"
     ntp_servers: "{{ fb_vars.network.ntp[0].servers }}"
-    fb_url: "{{ fb_vars.fb_url }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   when: (fb_vars.network.ntp is defined) and (fb_vars.network.ntp|length > 0)
 
@@ -28,7 +28,7 @@
     nis_servers: "{{ item.nis_servers | default(omit) }}"
     nis_domain: "{{ item.nis_domain | default(omit) }}"
     join_ou: "{{ item.join_ou | default(omit)  }}"    
-    fb_url: "{{ fb_vars.fb_url }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.network.ds }}"
   when: 
@@ -45,7 +45,7 @@
     bind_user: "{{ item.bind_user | default(omit) }}"
     bind_password: "{{ item.bind_password | default(omit)  }}"
     join_ou: "{{ item.join_ou | default(omit)  }}"       
-    fb_url: "{{ fb_vars.fb_url }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   no_log: true
   loop: "{{ fb_vars.network.ds }}"
@@ -63,7 +63,7 @@
     bind_user: "{{ item.bind_user }}"
     bind_password: "{{ item.bind_password }}"
     join_ou: "{{ item.join_ou | default(omit)  }}"       
-    fb_url: "{{ fb_vars.fb_url }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   no_log: true
   loop: "{{ fb_vars.network.ds }}"
@@ -79,7 +79,7 @@
     mtu: "{{ item.mtu | default(omit)}}"
     vlan: "{{ item.vlan | default(omit)}}"
     state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
-    fb_url: "{{ fb_vars.fb_url }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.network.subnet }}"
   when:
@@ -91,7 +91,7 @@
     address: "{{ item.address }}"
     state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     services: "{{ item.services | default('data') }}"
-    fb_url: "{{ fb_vars.fb_url }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.network.vip }}"
   when: 

@@ -58,7 +58,7 @@ Ansible playbooks require API token to connect to FlashBlade servers. API token 
    $ ssh <pureuser>@<pure_fb_mgmt_ip>
    $ pureadmin list <username> --api-token -–expose
    ```
-Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_url" value with FlashBlade Management VIP in "fb_details.yml" 
+Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_host" value with FlashBlade Management VIP in "fb_details.yml" 
 
 Encrypt "fb_secrets.yml" using Ansible-Vault and enter password when prompted. This password is required to run playbook.
 ```
@@ -72,7 +72,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     ############################ FB array object-store provisioning #############################
     array_inventory:               
       FBServer1:
-        fb_url: 10.222.22.60                   
+        fb_host: 10.222.22.60                   
         filesystem:
           - { name: winbackup, size: 32G, type: smb, smb_aclmode: native } 
 

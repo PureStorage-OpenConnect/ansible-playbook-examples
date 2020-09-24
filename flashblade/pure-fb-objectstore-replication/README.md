@@ -50,7 +50,7 @@ Ansible playbooks require API token to connect to FlashBlade servers. API token 
    $ ssh <pureuser>@<pure_fb_mgmt_ip>
    $ pureadmin list <username> --api-token --expose
    ```
-Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_url" value with FlashBlade Management VIP in "fb_details.yml" 
+Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_host" value with FlashBlade Management VIP in "fb_details.yml" 
 
 Encrypt "fb_secrets.yml" using Ansible-Vault.
 ```
@@ -64,9 +64,9 @@ $ ansible-vault encrypt fb_secrets.yml
    # FBServer details
     array_inventory:               
       FBServer1:
-        fb_url: 10.xx.126.80
+        fb_host: 10.xx.126.80
       FBServer2:
-        fb_url: 10.yy.120.100                                    
+        fb_host: 10.yy.120.100                                    
 
     # FB-FB object replication
     S3Replication: 
@@ -90,7 +90,7 @@ $ ansible-vault encrypt fb_secrets.yml
     # FBServer details
     array_inventory:               
       FBServer1:
-        fb_url: 10.16.126.80                                  
+        fb_host: 10.16.126.80                                  
 
     # FB-AWS object replication
     S3Replication: 
@@ -112,13 +112,13 @@ $ ansible-vault encrypt fb_secrets.yml
     ```
 
 Note: 
-  * To set bucket lifecycle policy, Add `noncurrent_version_expiration_days: 7` parameter with desired value in "fb_details.yml" for the buckets created on FlashBlade. For the buckets created on AWS along with `noncurrent_version_expiration_days: 7`, user can set `expiration_days: 6` for the current version of the bucket.
+  * To set bucket lifecycle policy, Add `noncurrent_version_expiration_days: 7` parameter with desired value in "fb_details.yml" for the buckets created on FlashBlade. For the buckets created on AWS along with parameter `noncurrent_version_expiration_days: 7`, user can set `expiration_days: 6` for the current version of the bucket.
   **Example fb_details.yml with lifecycle policies**
    ```
     # FBServer details
     array_inventory:               
       FBServer1:
-        fb_url: 10.16.126.80                                  
+        fb_host: 10.16.126.80                                  
 
     # FB-AWS object replication
     S3Replication: 
@@ -150,4 +150,4 @@ To execute the playbook, issue the following command:
    ```bash
    $ ansible-playbook object_replication.yml -e "env=<enviorement_name>" --ask-vault-pass
    ```
-Enter Ansible-Vault password which used to encrypt "fb_secrets.yml" file.
+Enter Ansible-Vault password when prompted.

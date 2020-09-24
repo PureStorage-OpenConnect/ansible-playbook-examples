@@ -6,11 +6,33 @@
 
 - name: facts | Set fb_url and fb_token facts from array_inventory for {{ repl_loop.key }}
   set_fact:
-    src_fb_url: "{{ combined_inventory[repl_vars.src.server].fb_url }}"
+    src_fb_url: "{{ combined_inventory[repl_vars.src.server].fb_host }}"
     src_fb_token: "{{ combined_inventory[repl_vars.src.server].api_token }}"
-    dst_fb_url: "{{ combined_inventory[repl_vars.dst.server].fb_url }}"
+    dst_fb_url: "{{ combined_inventory[repl_vars.dst.server].fb_host }}"
     dst_fb_token: "{{ combined_inventory[repl_vars.dst.server].api_token }}"
   no_log: true
+
+- name: validation | Check connectivity for source FBServer
+  shell: ping -q -c 4 -W 1 {{ src_fb_url }}
+  register: src_ping_status
+  failed_when: false
+  changed_when: false
+
+- name: validation | Fail if source Flashblade server not reachable
+  fail:
+    msg: Source FB server {{ src_fb_url }} not reachable
+  when: "'100% packet loss' in src_ping_status.stdout"
+
+- name: validation | Check connectivity for target FBServer
+  shell: ping -q -c 4 -W 1 {{ dst_fb_url }}
+  register: dst_ping_status
+  failed_when: false
+  changed_when: false
+
+- name: validation | Fail if target Flashblade server not reachable
+  fail:
+    msg: Target FB server {{ dst_fb_url }} not reachable
+  when: "'100% packet loss' in dst_ping_status.stdout"
 
 - name: facts | Get information from src FB server for {{ repl_loop.key }}
   purefb_info:
@@ -316,7 +338,7 @@
       - repl_vars.dst.expiration_days is defined or repl_vars.dst.noncurrent_version_expiration_days is defined
   when:
     - repl_vars.common_params is not defined or repl_vars.common_params.state is not defined or repl_vars.common_params.state == 'enabled'
-    - src_fb_info.purefb_info.bucket_replication | length > 0 and src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket] is not defined
+    - src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket] is not defined
 
 - name: Destroy remote credential, replica link and disconnect FB servers for {{ repl_loop.key }}
   block:

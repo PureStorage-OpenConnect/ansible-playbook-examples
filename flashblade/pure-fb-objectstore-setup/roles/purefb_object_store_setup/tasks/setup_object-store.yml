@@ -2,8 +2,8 @@
 - name: account | Create s3 account on {{ outer_loop.key }}
   purefb_s3acc:
     name: "{{ s3_var.account }}"
-    state: "{{ 'absent' if s3_var.state is defined and s3_var.state == 'disabled' else 'present' }}"
-    fb_url: "{{ fb_vars.fb_url }}"
+    state: "{{ 'absent' if s3_var.delete_account is defined and s3_var.delete_account|bool else 'present' }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
 
 - name: user | Create s3 user on {{ outer_loop.key }}
@@ -11,12 +11,20 @@
     name: "{{ item.name }}"
     account: "{{ s3_var.account }}"
     access_key: "{{ item.create_new_access_key|default(omit) }}"
-    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
-    fb_url: "{{ fb_vars.fb_url }}"
+    state: "{{ 'absent' if item.delete_user is defined and item.delete_user|bool else 'present' }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   register: user_info
   loop: "{{ s3_var.users | default([]) }}"
   when: item is defined
+
+- debug: msg="{{ user_info }}"
+
+- name: facts | Set s3_user_info fact {{ outer_loop.key }}
+  set_fact:
+    s3_user_info: "{{ item.s3user_info }}"
+  loop: "{{ user_info.results }}"
+  when: item.s3user_info is defined and item.s3user_info|length > 0 
 
 - name: Store s3 secrets in a file
   block:
@@ -34,7 +42,7 @@
     when: item.s3user_info is defined and item.s3user_info | length > 0
     delegate_to: localhost
     no_log: true
-  
+
   - name: encrypt | Block to encrypt s3 secrets file
     block:  
     - name: secrets | Create tmp file to hold ansible vault password
@@ -70,17 +78,16 @@
         dest: "/tmp/ansible_pass"
         state: absent
   when:
-    - user_info.results[0].s3user_info is defined 
-    - user_info.results[0].s3user_info | length > 0
+    - s3_user_info is defined 
 
 - name: bucket | Create bucket on {{ outer_loop.key }}
   purefb_bucket:
     name: "{{ item.name }}"
     account: "{{ s3_var.account }}"
     versioning: "{{ item.versioning|default(omit) }}"
-    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
+    state: "{{ 'absent' if item.destroy_bucket is defined and item.destroy_bucket|bool else 'present' }}"
     eradicate: "{{ item.eradicate|default(omit) }}"
-    fb_url: "{{ fb_vars.fb_url }}"
+    fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   loop: "{{ s3_var.buckets | default([]) }}"
   when: item is defined
