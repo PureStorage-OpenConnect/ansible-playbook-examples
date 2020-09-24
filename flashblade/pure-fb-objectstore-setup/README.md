@@ -79,14 +79,14 @@ To specify credentials for this playbook to log into FlashBlade, create a file (
 where <your_env_name> is a name you assign to a group of one or more FlashBlade arrays.
 
 The fb_secrets.yml file should look like this:
-    ```
+
     ---
     array_secrets:
       FlashBlade1: # this must match the identifier used for this FlashBlade in fb_details.yml
         api_token: T-0b8ad89c-xxxx-yyyy-85ed-28660EXAMPLE  # API token obtained from FlashBlade
 
-    s3_ansible_vault_pass: somepassword   # Required in order to encrypt s3 secrets files 
-    ```
+    s3_ansible_vault_pass: somepassword   # Required in order to encrypt s3 secrets files at vars/<environment_name>/s3_secrets/
+
 
 For an example of an fb_secrets.yml file, see:
   ```
