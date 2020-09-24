@@ -25,11 +25,38 @@
 
 - name: facts | Set source and target facts for {{ repl_loop.key }}
   set_fact:
-    src_fb_url: "{{ array_inventory[repl_vars.src.fb_name].fb_url }}"
+    src_fb_url: "{{ array_inventory[repl_vars.src.fb_name].fb_host }}"
     src_fb_token: "{{ array_secrets[repl_vars.src.fb_name].api_token }}"
-    dst_fb_url: "{{ array_inventory[repl_vars.dst.fb_name].fb_url }}"
+    dst_fb_url: "{{ array_inventory[repl_vars.dst.fb_name].fb_host }}"
     dst_fb_token: "{{ array_secrets[repl_vars.dst.fb_name].api_token }}"
   no_log: true
+  delegate_to: localhost
+  run_once: true
+  become: false
+
+- name: Check FlashBlade server reachability
+  block:
+  - name: validation | Check connectivity for source FBServer
+    shell: ping -q -c 4 -W 1 {{ src_fb_url }}
+    register: src_ping_status
+    failed_when: false
+    changed_when: false
+
+  - name: validation | Fail if source Flashblade server not reachable
+    fail:
+      msg: Source FB server {{ src_fb_url }} not reachable
+    when: "'100% packet loss' in src_ping_status.stdout"
+
+  - name: validation | Check connectivity for target FBServer
+    shell: ping -q -c 4 -W 1 {{ dst_fb_url }}
+    register: dst_ping_status
+    failed_when: false
+    changed_when: false
+
+  - name: validation | Fail if target Flashblade server not reachable
+    fail:
+      msg: Target FB server {{ dst_fb_url }} not reachable
+    when: "'100% packet loss' in dst_ping_status.stdout"
   delegate_to: localhost
   run_once: true
   become: false
@@ -74,8 +101,8 @@
     dst_fb_name: "{{ dst_fb_info.purefb_info.default.flashblade_name }}" 
     # src_rl_policy: "{{ src_fb_info['purefb_info']['file_replication'][repl_vars.src.fileshare].policies | list }}"
     # dst_rl_policy: "{{ dst_fb_info['purefb_info']['file_replication'][dst_fileshare].policies | list }}"
-    src_data_vip: "{{ src_fb_info.purefb_info.network[repl_vars.src.data_vip].address }}" 
-    dst_data_vip: "{{ dst_fb_info.purefb_info.network[repl_vars.dst.data_vip].address }}" 
+    src_data_vip: "{{ src_fb_info.purefb_info.network[repl_vars.src.datavip_name].address }}" 
+    dst_data_vip: "{{ dst_fb_info.purefb_info.network[repl_vars.dst.datavip_name].address }}" 
   delegate_to: localhost
   run_once: true
   become: false
@@ -112,19 +139,20 @@
   become: false
   run_once: true
 
-- name: replica | Remove replica link policy for {{ repl_loop.key }}
-  purefb_fs_replica:
-    name: "{{ dst_fileshare }}"
-    policy: "{{ dst_rl_policy[0] }}"
-    state: absent
-    fb_url: "{{ dst_fb_url }}"
-    api_token: "{{ dst_fb_token }}"
-  when: >
-    (dst_rl_policy is defined and dst_rl_policy | length > 0) and
-    (dst_fb_info.purefb_info.file_replication[dst_fileshare].direction == "outbound")
-  delegate_to: localhost
-  become: false
-  run_once: true
+# TODO: Feature will be Released in PureFB collection v1.4.0
+# - name: replica | Remove replica link policy for {{ repl_loop.key }}
+#   purefb_fs_replica:
+#     name: "{{ dst_fileshare }}"
+#     policy: "{{ dst_rl_policy[0] }}"
+#     state: absent
+#     fb_url: "{{ dst_fb_url }}"
+#     api_token: "{{ dst_fb_token }}"
+#   when:
+#     - dst_rl_policy is defined and dst_rl_policy | length > 0
+#     - dst_fb_info.purefb_info.file_replication[dst_fileshare].direction == "outbound"
+#   delegate_to: localhost
+#   become: false
+#   run_once: true
 
 - name: mount | Unmout all the clients from remote(dst) and mount back to local(src) filesystem
   include: mount.yml

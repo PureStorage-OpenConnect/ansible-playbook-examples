@@ -11,7 +11,4 @@
       fstype: nfs
       src: "{{ src_data_vip }}:/{{ repl_vars.src.fileshare  }}"
     become: true
-  when: > 
-    ( mount.hosts in group_names ) or
-    ( mount.hosts == inventory_hostname ) or
-    ( mount.hosts == ansible_hostname )
+  when: mount.hosts in group_names or mount.hosts == inventory_hostname or mount.hosts == ansible_hostname
