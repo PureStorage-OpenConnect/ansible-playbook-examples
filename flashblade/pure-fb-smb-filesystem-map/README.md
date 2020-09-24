@@ -88,7 +88,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     ```
     array_secrets:               
       FBServer1:
-        token: T-154d4220-xxxx-xxxx-8d64-fe7ea4f93499
+        api_token: T-154d4220-xxxx-xxxx-8d64-fe7ea4f93499
     ```
 * hosts.ini 
     ```
