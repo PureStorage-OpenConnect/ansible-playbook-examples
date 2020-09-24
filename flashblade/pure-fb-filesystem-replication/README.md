@@ -97,7 +97,9 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
  
  ##### Filesystem Replication 
    In Filesystem replication local(src) and remote(dst) FlashBlades should be connected state. Replica-link will be established between local filesystem and remote filesystem with replication policy. 
+   
    **fb_details.yml for replication**
+   
     ```
     # FlashBlade inventory
     array_inventory:               
@@ -121,7 +123,9 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
   
    Enter Clients inventory detail in `hosts.ini` and specify `mount_point` under "client_details" section in `fb_details.yml` file.
    Data VIP is required to redirect clients from local to remote array.
-   **fb_details.yml for failover**
+  
+  **fb_details.yml for failover**
+   
    ```
     # FlashBlade inventory
     array_inventory:               
@@ -145,7 +149,9 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
    
    Enter Clients detail in `hosts.ini` and provide details of mount point and "host/group_name" under "client_details" section in `fb_details.yml` file.
    Data VIP is required to redirect clients from local to remote array.
+   
    **fb_details.yml for failover**
+   
    ```
     # FlashBlade inventory
     array_inventory:               
@@ -240,13 +246,17 @@ To execute playbook, issue the following command:
 
 **Note:** If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
 The workaround for this limitation is to pass `-c paramiko` flag in ansible-playbook command. Install paramiko using `pip install paramiko`.
+
   **failover**
+  
    ```bash
    $ sudo pip install paramiko
    $ ansible-playbook filesystem_failover.yml -i hosts -e "env=region" --ask-vault-pass --ask-pass --ask-become-pass -c paramiko
    ```
    Enter remote hosts ssh password, root password and ansible vault password.
+   
   **failback**
+  
    ```bash
    $ sudo pip install paramiko
    $ ansible-playbook filesystem_failback.yml -i hosts -e "env=region" --ask-vault-pass --ask-pass --ask-become-pass -c paramiko
