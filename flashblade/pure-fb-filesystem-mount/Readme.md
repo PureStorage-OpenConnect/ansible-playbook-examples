@@ -52,7 +52,7 @@ Ansible playbooks require API token to connect to FlashBlade servers. API token 
    $ ssh <pureuser>@<pure_fb_mgmt_ip>
    $ pureadmin list <username> --api-token -–expose
    ```
-Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_url" value with FlashBlade Management VIP in "fb_details.yml".
+Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_host" value with FlashBlade Management VIP in "fb_details.yml".
 
 Encrypt "fb_secrets.yml" using Ansible-Vault and enter password when prompted. This password is required to run playbook.
 ```
@@ -65,7 +65,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     ```
     array_inventory:               
       FBServer1:
-        fb_url: 10.22.222.80                   
+        fb_host: 10.22.222.80                   
         filesystem:
           - { name: tools, size: 1T, type: nfsv4.1, nfs_rules: '*(ro,noatime)' } 
           - { name: scratch, size: 1T, type: nfsv3, nfs_rules: '*(ro,noatime)' } 
@@ -135,3 +135,7 @@ Enter Ansible-Vault password, hosts/clients ssh password and root password.
 
 **Note:** If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
 The workaround for this limitation is to pass `-c paramiko` flag in ansible-playbook command. Install paramiko using `pip install paramiko`.
+   ```bash
+   $ sudo pip install paramiko
+   $ ansible-playbook filesystem_mount.yml -e "env=region" -i hosts.ini --ask-vault-pass --ask-pass --ask-become-pass -c paramiko
+   ```
