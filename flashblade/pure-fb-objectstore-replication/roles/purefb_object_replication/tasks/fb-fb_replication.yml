@@ -34,26 +34,60 @@
     msg: Target FB server {{ dst_fb_url }} not reachable
   when: "'100% packet loss' in dst_ping_status.stdout"
 
+- name: validation | Check if reachable fb_host is FB server or not to fail fast
+  uri:
+    url: https://{{ src_fb_url }}/api/api_version
+    method: GET
+    validate_certs: no
+    return_content: yes
+    timeout: 10
+  register: api_version
+  failed_when: false
+
+- name: validation | Fail if Flashblade server mentioned in "fb_host" is not a valid FlashBlade
+  fail:
+    msg: fb_host {{ src_fb_url }} is not valid FlashBlade server
+  when: (api_version.status != 200 )
+
+- name: validation | Check if reachable fb_host is FB server or not to fail fast
+  uri:
+    url: https://{{ dst_fb_url }}/api/api_version
+    method: GET
+    validate_certs: no
+    return_content: yes
+    timeout: 10
+  register: api_version
+  failed_when: false
+
+- name: validation | Fail if Flashblade server mentioned in "fb_host" is not a valid FlashBlade server
+  fail:
+    msg: fb_host {{ dst_fb_url }} is not valid FlashBlade server
+  when: (api_version.status != 200 )
+
 - name: facts | Get information from src FB server for {{ repl_loop.key }}
   purefb_info:
-    gather_subset:
+    gather_subset: 
       - minimum
       - buckets
       - network
       - replication
+      - config
     fb_url: "{{ src_fb_url }}"
     api_token: "{{ src_fb_token }}"
+  no_log: true
   register: src_fb_info
 
 - name: facts | Get information from dst FB server for {{ repl_loop.key }}
   purefb_info:
-    gather_subset:
+    gather_subset: 
       - minimum
       - buckets
       - network
       - replication
+      - config
     fb_url: "{{ dst_fb_url }}"
     api_token: "{{ dst_fb_token }}"
+  no_log: true
   register: dst_fb_info
 
 - name: facts | Set src fb name and dst fb name for {{ repl_loop.key }}
@@ -233,10 +267,43 @@
       - dst_secret_key
     when: vars[item] is not defined
 
-  - name: replication | Create a connection to remote FlashBlade for {{ repl_loop.key }}
+  - name: certificate | Create a SSL certifcate on src FlashBlade for {{ repl_loop.key }}
+    purefb_certs:
+      name: dst_repl_cert
+      contents: "{{ dst_fb_info.purefb_info.config.ssl_certs.certificate }}"
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+    no_log: true
+
+  - name: certificate | Create a SSL certifcate on dst FlashBlade for {{ repl_loop.key }}
+    purefb_certs:
+      name: src_repl_cert
+      contents: "{{ src_fb_info.purefb_info.config.ssl_certs.certificate }}"
+      fb_url: "{{ dst_fb_url }}"
+      api_token: "{{ dst_fb_token }}"
+    no_log: true
+
+  - name: certificate | Add existing certificates to the default certificate group on src FlashBlade for {{ repl_loop.key }}
+    purefb_certgrp:
+      name: "_default_replication_certs"
+      certificates: dst_repl_cert
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+    no_log: true
+
+  - name: certificate | Add existing certificates to the default certificate group on dst FlashBlade for {{ repl_loop.key }}
+    purefb_certgrp:
+      name: "_default_replication_certs"
+      certificates: src_repl_cert
+      fb_url: "{{ dst_fb_url }}"
+      api_token: "{{ dst_fb_token }}"
+    no_log: true
+
+  - name: replication | Enable encyption on replication connection for {{ repl_loop.key }}
     purefb_connect:
       target_url: "{{ dst_fb_url }}"
       target_api: "{{ dst_fb_token }}"
+      encrypted: true
       state: present
       fb_url: "{{ src_fb_url }}"
       api_token: "{{ src_fb_token }}"

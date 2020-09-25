@@ -22,6 +22,21 @@
     msg: Source FB server {{ src_fb_url }} not reachable
   when: "'100% packet loss' in src_ping_status.stdout"
 
+- name: validation | Check if reachable fb_host is FB server or not to fail fast
+  uri:
+    url: https://{{ fb_vars.fb_host }}/api/api_version
+    method: GET
+    validate_certs: no
+    return_content: yes
+    timeout: 10
+  register: api_version
+  failed_when: false
+
+- name: validation | Fail if FlashBlade server mentioned in "fb_host" is not FlashBlade server
+  fail:
+    msg: FB server {{ fb_vars.fb_host }} is not valid FlashBlade server
+  when: (api_version.status != 200 )
+
 - name: facts | Get information from src FB server for {{ repl_loop.key }}
   purefb_info:
     gather_subset:
