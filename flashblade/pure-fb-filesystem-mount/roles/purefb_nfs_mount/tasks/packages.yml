@@ -1,18 +1,18 @@
 ---
 - name: Update and install nfs-utils
   block:
-  - name: install updates using yum
+  - name: packages | Install updates using yum
     yum:
       name: "*"
       state: latest
       skip_broken: yes
     ignore_errors: true
 
-  - name: packages | Install nfs packages on CentOS
+  - name: packages | Install nfs packages on CentOS/RHEL
     yum:
       name: 
         - nfs-utils
-        #- nfs4-acl-tools
+        - nfs4-acl-tools
       state: latest
   become: yes
   when: ansible_os_family == "RedHat"
@@ -29,7 +29,7 @@
     apt:
       name: 
         - nfs-common
-        #- nfs4-acl-tools
+        - nfs4-acl-tools
       state: latest
   become: yes
   when: ansible_os_family == "Debian"

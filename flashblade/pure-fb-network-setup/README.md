@@ -11,7 +11,7 @@ As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed 
 
 * Install python-pip on Ansible control node.
 
-  CentOS:
+  CentOS/RHEL:
     ```bash
     $ sudo yum install epel-release
     $ sudo yum install python-pip
@@ -35,7 +35,7 @@ As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed 
     ```
 * Install Ansible Collection for Pure Storage FlashBlade
     ```bash
-    $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/
+    $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
 
 Role Variables
