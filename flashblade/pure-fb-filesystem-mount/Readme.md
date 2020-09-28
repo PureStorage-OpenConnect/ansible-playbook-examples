@@ -1,17 +1,15 @@
 FlashBlade NFS File System mount
 =========
 
-Ansible playbook and role for FlashBlade NFS File System mount on clients.
-
+Ansible playbook and role for FlashBlade NFS File System mount on linux clients.
 
 Requirements
 ------------
+**Requires: Python >=2.7, <=3.6 to be installed on the Ansible control node.**
 
-**Requires: Python >=2.7, <=3.6 on Ansible control node.**
+The Python version on the Ansible control node must match the version required by the FlashBlade Python SDK (purity_fb): Python >=2.7, <=3.6
 
-As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed Python version on Ansible control Node must be >=2.7 and <=3.6.
-
-* Install python-pip on Ansible control node.
+* Install python-pip on Ansible control node, if it is not already installed.
 
   CentOS/RHEL:
     ```bash
@@ -30,39 +28,77 @@ As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed 
     $ python get-pip.py --user
     ```
   For more details to install Ansible on MacOS, follow this [link](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-with-pip).
-
-* Install dependencies from "requirements.txt"
+  
+* Install dependencies using the "requirements.txt" in the directory of this README file. (This ensures that ansible, purity-fb, netaddr, and pytz are installed):
     ```bash
-    $ sudo pip install -r requirements.txt
+    $ sudo pip install -r requirements.txt 
     ```
-* Install Ansible Collection for Pure Storage FlashBlade
+* Install the FlashBlade Ansible Collection:
     ```bash
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
 
-Role Variables
+Generating FlashBlade Login Credentials for Ansible Playbooks
 --------------
 
-There are two variable files "fb_details.yml" and "fb_secrets.yml" are holding the Ansible variables for the role at path `vars/<enviorement_name>`. 
+FlashBlade Ansible playbooks require an API token to connect to FlashBlade. An API token can be obtained by using ssh to connect to the FlashBlade management IP for a user that you wish the Ansible playbook to run as, and using the ```pureadmin``` command to retrieve or create an API token.
 
-This role and playbook can be used to setup File System on FlashBlade servers and mount on clients in different environments. To store role variable files user can create different directories with `vars/<environment_name>`. User must specify `<environment_name>` while running `ansible-playbook` by specifying value in extra vars command line flag `-e "env=<environment_name>"`.
-
-Ansible playbooks require API token to connect to FlashBlade servers. API token can be obtained by connecting FlashBlade management VIP through ssh for a specific user and running the following purity command.
+To create or retrieve an API token, first ssh to a FlashBlade as the user you wish the Ansible playbooks to run as. For example, to create an API token with full admin privileges equivalent to "pureuser", the built-in local administrator account, ssh to FlashBlade's management IP as "pureuser" and specify that user's password:
    ```
-   $ ssh <pureuser>@<pure_fb_mgmt_ip>
-   $ pureadmin list <username> --api-token -–expose
+   ssh pureuser@flashblade.example.com
    ```
-Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_host" value with FlashBlade Management VIP in "fb_details.yml".
+To see current the logged-in user's API token:
+   ```
+   pureadmin list --api-token --expose
+   ```
+To create an API token expiring in 24 hours with the same permissions as the currently logged in user:
+   ```
+   pureadmin create --api-token --timeout 1d
+   ```
+The above commands generates output like the following:
+   ```
+   Name      API Token                               Created                  Expires
+   pureuser  T-85cc9ce8-643d-4d99-8dbc-656f38cacab0  2020-09-13 23:55:33 PDT  2020-09-14 23:55:33 PDT
+   ```
+For details, see "Creating an API token" in the [FlashBlade User Guide](https://support.purestorage.com/FlashBlade/Purity_FB/FlashBlade_User_Guides).
 
-Encrypt "fb_secrets.yml" using Ansible-Vault and enter password when prompted. This password is required to run playbook.
-```
-$ ansible-vault encrypt fb_secrets.yml
-```
+Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_host" value with FlashBlade Management VIP in "fb_details.yml"
 
-Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired values.
+Specifying FlashBlade API credentials for this playbook
+--------------
 
-* fb_details.yml
-    ```
+This playbook supports organizing your FlashBlade credentials and configuration details into groups of FlashBlade arrays referred to here as "environments".
+
+To specify credentials for this playbook to log into FlashBlade, create a file (relative to this playbook's location) at
+  ```
+  vars/<your_env_name>/fb_secrets.yml
+  ```
+where <your_env_name> is a name you assign to a group of one or more FlashBlade arrays.
+
+The fb_secrets.yml file should look like this:
+
+    ---
+    array_secrets:               
+      FBServer1: # this must match the identifier used for this FlashBlade in fb_details.yml
+        api_token: T-79ced0e5-xxxx-xxxx-8741-66482f04c6d1 # API token obtained from FlashBlade
+      FBServer2:
+        api_token: T-0b8ad89c-xxxx-xxxx-85ed-286607dc2cd2 # API token obtained from another FlashBlade
+
+For an example of an fb_secrets.yml file, see:
+  ```
+  vars/region/fb_secrets.yml
+  ```
+
+Specifying FlashBlade connection details and NFS File System mount configuration
+--------------
+
+To configure your FlashBlade connection details and the File System mount details, create a file at:
+  ```
+  vars/<your_env_name>/fb_details.yml
+  ```
+
+The fb_details.yml file should look similar to this:
+  ```
     array_inventory:               
       FBServer1:
         fb_host: 10.22.222.80                   
@@ -73,63 +109,68 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
 
     linux_client_mount:
       mount1:
-        server: { fb_name: FBServer1, fileshare: tools, data_vip: data-vip } 
+        server: { fb_name: FBServer1, fileshare: tools, datavip_name: data-vip } 
         client: { hosts: dc, mount_state: mount, mount_point: /mnt/tools, opts: "rw,noatime" }
       mount2:
-        server: { fb_name: FBServer1, fileshare: scratch, data_vip: nfs-a04-data1 } 
+        server: { fb_name: FBServer1, fileshare: scratch, datavip_name: nfs-a04-data1 } 
         client: { hosts: dc, mount_state: mount, mount_point: /mnt/scratch, opts: "rw" }
       mount3:
-        server: { fb_name: FBServer1, fileshare: database, data_vip: nfs-a04-data1 }
-        client: { hosts: dc, mount_state: mount, mount_point: /mnt/database, opts: "rw" }
-                       
-    ```
+        server: { fb_name: FBServer1, fileshare: database, datavip_name: nfs-a04-data1 }
+        client: { hosts: dc, mount_state: mount, mount_point: /mnt/database, opts: "rw" }      
+  ```
 
-* fb_secrets.yml
-    ```
-    array_secrets:               
+As an example of an fb_details.yml file, see:
+  ```
+  /vars/region/fb_details.yml
+  ```
+
+To eradicate and unmount File System, change `mount_state` to `umount` and add `destroy: true, eradicate: true` in fb_details.yml.
+
+Example `fb_details.yml` to eradicate and unmount filesystem.
+
+  ```
+    array_inventory:               
       FBServer1:
-        api_token: T-79ced0e5-xxxx-xxxx-8741-66482f04c6d1
-      FBServer2:
-        api_token: T-0b8ad89c-xxxx-xxxx-85ed-286607dc2cd2 
-    ```
-Note: To unmount FIleSystem, User can change `mount_state: umount` variable in fb_details.yml file.
+        fb_host: 10.22.222.80                   
+        filesystem:
+          - { name: tools, destroy: true, eradicate: true, size: 1T, type: nfsv4.1, nfs_rules: '*(ro,noatime)' } 
+          - { name: scratch, destroy: true, eradicate: true, size: 1T, type: nfsv3, nfs_rules: '*(ro,noatime)' } 
+          - { name: database, destroy: true, eradicate: true, size: 1T, type: nfsv3, nfs_rules: '*(rw,noatime)' }
 
-Dependencies
-------------
+    linux_client_mount:
+      mount1:
+        server: { fb_name: FBServer1, fileshare: tools, datavip_name: data-vip } 
+        client: { hosts: dc, mount_state: umount, mount_point: /mnt/tools, opts: "rw,noatime" }
+      mount2:
+        server: { fb_name: FBServer1, fileshare: scratch, datavip_name: nfs-a04-data1 } 
+        client: { hosts: dc, mount_state: umount, mount_point: /mnt/scratch, opts: "rw" }
+      mount3:
+        server: { fb_name: FBServer1, fileshare: database, datavip_name: nfs-a04-data1 }
+        client: { hosts: dc, mount_state: umount, mount_point: /mnt/database, opts: "rw" }      
+  ```
+File System configuration options:
+* name: Filesystem Name
+* destroy: Destroy File System ( default false )
+* eradicate: Define whether to eradicate the filesystem on delete or leave in trash. ( default false)
+* size: Volume size in M, G, T or P units( default size unlimited)
+* type: Which protocol to enable ( nfsv3, nfsv4.1, smb )
+* snapshot: Define whether a snapshot directory is enabled for the filesystem. ( default false )
+* fastremove: Define whether the fast remove directory is enabled for the filesystem. ( default false)
+* hard_limit: Define whether the capacity for a filesystem is a hard limit. ( default false )
 
-None
+Running this playbook
+--------------
 
-Example Playbook
-----------------
-
-      - name: FlashBlade filesystem setup
-        hosts: localhost
-        gather_facts: false
-        vars_files:
-        - "vars/{{ env }}/fb_details.yml"
-        - "vars/{{ env }}/fb_secrets.yml"
-        roles:
-          - purefb_filesystem_setup
-
-      - name: Mount file share on hosts
-        hosts: all
-        gather_facts: true
-        vars_files:
-        - "vars/{{ env }}/fb_details.yml"
-        - "vars/{{ env }}/fb_secrets.yml"
-        roles:
-          - purefb_nfs_mount
-
-To execute playbook with host ssh key, issue the following command:
+To run playbook with host ssh key, issue the following command:
 ( Replace `<ssh_user>` with host ssh user name and `<key_file_path>` with host private key file path )
    ```bash
-   $ ansible-playbook filesystem_mount.yml -e "env=<enviorement_name>" -i hosts.ini --user=<ssh_user> --key-file=<key_file_path> --ask-vault-pass 
+   $ ansible-playbook filesystem_mount.yml -e "env=<your_env_name>" -i hosts.ini --key-file=<key_file_path> --ask-vault-pass 
    ```
 
-To execute playbook with host password( Not Recommended ), issue the following command:
-( Replace `<enviorement_name>` with the correct value )
+To run playbook with host password( Not Recommended ), issue the following command:
+
    ```bash
-   $ ansible-playbook filesystem_mount.yml -e "env=<enviorement_name>" -i hosts.ini --ask-vault-pass --ask-pass --ask-become-pass
+   $ ansible-playbook filesystem_mount.yml -e "env=<your_env_name>" -i hosts.ini --ask-vault-pass --ask-pass --ask-become-pass
    ```
 Enter Ansible-Vault password, hosts/clients ssh password and root password.
 

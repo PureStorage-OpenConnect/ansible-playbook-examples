@@ -16,10 +16,7 @@
 - name: facts | Get information from {{ mount_details.server.fb_name }} for {{ outer_loop.key }}
   purefb_info:
     gather_subset: 
-      - config
       - network
-      - subnets
-      - filesystems
     fb_url: "{{ fb_url }}"
     api_token: "{{ fb_token }}"
   delegate_to: "localhost"
@@ -27,28 +24,10 @@
   become: false
   register: blade_info
 
-- name: fileshare_validation | Fail if fileshare not exist on {{ mount_details.server.fb_name }}
-  fail:
-    msg: Fileshare {{ mount_details.server.fileshare }} not available on FB server
-  when: mount_details.server.fileshare not in blade_info['purefb_info']['filesystems']
-  delegate_to: "localhost"
-  become: false
-  run_once: true
-
-- name: fileshare_validation | Fail if fileshare is in destroyed state on {{ mount_details.server.fb_name }}
-  fail:
-    msg: Fileshare {{ mount_details.server.fileshare }} is in destroyed state on FB server
-  when:
-    - mount_details.server.fileshare in blade_info['purefb_info']['filesystems']
-    - blade_info['purefb_info']['filesystems'][mount_details.server.fileshare]['destroyed']|bool
-  delegate_to: "localhost"
-  become: false
-  run_once: true
-
 - name: VIP_validation | Fail if data VIP not exist on {{ mount_details.server.fb_name }}
   fail:
-    msg: data VIP {{ mount_details.server.data_vip }} not available on FB server
-  when: mount_details.server.data_vip not in blade_info['purefb_info']['network']
+    msg: data VIP {{ mount_details.server.datavip_name }} not available on FB server
+  when: mount_details.server.datavip_name not in blade_info['purefb_info']['network']
 
 - name: mount | Mount filesystem for {{ outer_loop.key }}
   mount:
@@ -56,7 +35,7 @@
     state: mounted
     fstype: nfs
     opts: "{{ mount_details['client']['opts'] }}"
-    src: "{{ blade_info['purefb_info']['network'][mount_details.server.data_vip]['address'] }}:/{{ mount_details.server.fileshare }}"
+    src: "{{ blade_info['purefb_info']['network'][mount_details.server.datavip_name]['address'] }}:/{{ mount_details.server.fileshare }}"
   become: true
   when: 
     - mount_details.client.hosts in group_names or mount_details.client.hosts == inventory_hostname or mount_details.client.hosts == ansible_hostname
