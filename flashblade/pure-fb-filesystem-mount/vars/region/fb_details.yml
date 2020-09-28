@@ -17,11 +17,11 @@ array_inventory:
 ######################## Mount/Unmount Filesystem on client/host ########################
 linux_client_mount:
   mount1:
-    server: { fb_name: FBServer1, fileshare: tools, data_vip: data-vip1 } 
+    server: { fb_name: FBServer1, fileshare: tools, datavip_name: data-vip1 } 
     client: { hosts: dc, mount_state: mount, mount_point: /mnt/tools, opts: "hard,rw,bg,tcp,timeo=600" }
   mount2:
-    server: { fb_name: FBServer1, fileshare: scratch, data_vip: data-vip2 } 
+    server: { fb_name: FBServer1, fileshare: scratch, datavip_name: data-vip2 } 
     client: { hosts: dc, mount_state: mount, mount_point: /mnt/scratch, opts: "rw" }
   mount3:
-    server: { fb_name: FBServer1, fileshare: database, data_vip: data-vip3 }
+    server: { fb_name: FBServer1, fileshare: database, datavip_name: data-vip3 }
     client: { hosts: dc, mount_state: mount, mount_point: /mnt/database, opts: "rw" }

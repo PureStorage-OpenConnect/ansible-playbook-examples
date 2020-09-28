@@ -13,7 +13,7 @@ The Python version on the Ansible control node must match the version required b
 
 * Install python-pip on Ansible control node, if it is not already installed.
 
-  CentOS:
+  CentOS/RHEL:
     ```bash
     $ sudo yum install epel-release
     $ sudo yum install python-pip
@@ -37,7 +37,7 @@ The Python version on the Ansible control node must match the version required b
     ```
 * Install the FlashBlade Ansible Collection: 
     ```bash
-    $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/
+    $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
 
 Generating FlashBlade Login Credentials for Ansible Playbooks
