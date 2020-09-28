@@ -4,3 +4,5 @@
   loop: "{{ array_inventory | combine(array_secrets, recursive=True) | dict2items }}"
   loop_control:
     loop_var: outer_loop
+  when: outer_loop.value.fb_host is defined and outer_loop.value.api_token is defined
+  no_log: true
