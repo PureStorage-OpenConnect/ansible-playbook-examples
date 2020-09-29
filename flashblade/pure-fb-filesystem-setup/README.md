@@ -10,9 +10,9 @@ Requirements
 
 The Python version on the Ansible control node must match the version required by the FlashBlade Python SDK (purity_fb): Python >=2.7, <=3.6
 
-Configure Ansible control node - MacOS:
+Configure Ansible control node - MacOS
 --------------
-* Setup pyenv and install Pyhton v3.6.9.
+* Setup pyenv and install Python v3.6.9.
    ```bash
     $ brew install pyenv
     $ echo 'eval "$(pyenv init -)"' >> ~/.bash_profile
@@ -43,7 +43,7 @@ Configure Ansible control node - MacOS:
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
 
-Configure Ansible control node - Linux(CentOS/Ubuntu):
+Configure Ansible control node - Linux(CentOS/Ubuntu)
 --------------
 
 * Install python-pip on Ansible control node, if it is not already installed.
