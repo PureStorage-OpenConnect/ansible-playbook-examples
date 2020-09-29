@@ -1,5 +1,5 @@
 ---
-- name: filesystem | Include task to setup filesystem
+- name: filesystem | Include task to setup File System on FlashBlade
   include: filesystem.yml fb_vars={{outer_loop.value}}
   loop: "{{ array_inventory|combine(array_secrets, recursive=True)|dict2items  }}"
   loop_control:

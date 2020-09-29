@@ -1,5 +1,5 @@
 ---
-- name: filesystem | Provision multiple file system on {{ outer_loop.key }}
+- name: filesystem | Provision multiple File System on {{ outer_loop.key }}
   purefb_fs:
     name: "{{ item }}"
     size: "{{ fs_loop.size | default(omit) }}"

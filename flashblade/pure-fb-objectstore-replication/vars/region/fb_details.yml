@@ -2,15 +2,15 @@
 # FBServer details
 array_inventory:               
   FBServer1:
-    fb_host: 10.xx.106.80
+    fb_host: 10.xx.106.80       #FlashBlade Management IP
   FBServer2:
-    fb_host: 10.yy.112.100                                    
+    fb_host: 10.yy.112.100      #FlashBlade Management IP     
 
 # FB-FB or FB-AWS replication
 S3Replication: 
-  replication1:
+  replication1: # FB-AWS Replication
     src: { server: FBServer1, account: srcaccount, user: srcuser, bucket: srcbucket }
-    dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket }
-  replication2:
+    dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket } # aws1 is defined in fb_secrets.yml
+  replication2: # FB-FB Replication
     src: { server: FBServer1, account: srcaccount, user: srcuser, bucket: srcbucket }
     dst: { server: FBServer2, account: dstaccount, user: dstuser, bucket: dstbucket }

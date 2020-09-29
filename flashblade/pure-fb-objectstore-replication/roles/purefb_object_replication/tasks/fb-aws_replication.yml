@@ -35,7 +35,7 @@
 - name: validation | Fail if FlashBlade server mentioned in "fb_host" is not FlashBlade server
   fail:
     msg: FB server {{ fb_vars.fb_host }} is not valid FlashBlade server
-  when: (api_version.status != 200 )
+  when: ( api_version.status != 200 )
 
 - name: facts | Get information from src FB server for {{ repl_loop.key }}
   purefb_info:
@@ -84,7 +84,7 @@
     when:
       - s3_secrets is defined and s3_secrets | length > 0
       - s3_secrets[repl_vars.src.account+'_'+repl_vars.src.user] is defined
-    # no_log: true
+    no_log: true
 
   - name: facts | Set dst s3 secrets from fb_secrets for {{ repl_loop.key }}
     set_fact:
