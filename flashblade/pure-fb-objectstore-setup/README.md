@@ -6,10 +6,45 @@ Ansible playbook for FlashBlade Object Store account, user, and bucket configura
 
 Requirements
 ------------
-
 **Requires: Python >=2.7, <=3.6 to be installed on the Ansible control node.**
 
 The Python version on the Ansible control node must match the version required by the FlashBlade Python SDK (purity_fb): Python >=2.7, <=3.6
+
+Configure Ansible control node - MacOS:
+--------------
+* Setup pyenv and install Pyhton v3.6.9.
+   ```bash
+    $ brew install pyenv
+    $ echo 'eval "$(pyenv init -)"' >> ~/.bash_profile
+    $ source ~/.bash_profile
+    $ pyenv install 3.6.9
+    $ pyenv global 3.6.9
+   ```
+* Check installed Python version, Output should be `Python 3.6.9`.
+   ```bash
+    $ python3 --version
+   ```
+* Clone Ansible Example Git Repository 
+   ```bash
+    $ git clone https://github.com/PureStorage-OpenConnect/ansible-playbook-examples.git
+   ```
+* Install dependencies using the “requirements.txt” in the directory of this README file. (This ensures that ansible, purity-fb, netaddr, and pytz are installed):
+   ```bash
+    $ cd ansible-playbook-examples/flashblade/pure-fb-filesystem-setup/
+    $ pip3 install -r requirements.txt
+   ```
+    **Note:** Upgrading directly from ansible-2.9 or less to ansible-2.10 or greater with pip is not supported, Uninstall ansible-2.9 or less before installing ansible-2.10 or greater.
+    ```bash
+    $ pip uninstall ansible
+    $ pip install ansible
+    ```
+* Install the FlashBlade Ansible Collection: ( Requires Ansible-2.10 or greater)
+    ```bash
+    $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
+    ```
+
+Configure Ansible control node - Linux(CentOS/Ubuntu):
+--------------
 
 * Install python-pip on Ansible control node, if it is not already installed.
 
@@ -24,18 +59,17 @@ The Python version on the Ansible control node must match the version required b
     $ sudo apt install python-pip
     $ sudo pip install --upgrade pip
     ```
-  MacOS
-    ```bash
-    $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-    $ python get-pip.py --user
-    ```
-  For more details to install Ansible on MacOS, follow this [link](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-with-pip).
   
 * Install dependencies using the "requirements.txt" in the directory of this README file. (This ensures that ansible, purity-fb, netaddr, and pytz are installed):
     ```bash
     $ sudo pip install -r requirements.txt 
     ```
-* Install the FlashBlade Ansible Collection: 
+    **Note:** Upgrading directly from ansible-2.9 or less to ansible-2.10 or greater with pip is not supported, Uninstall ansible-2.9 or less before installing ansible-2.10 or greater.
+    ```bash
+    $ pip uninstall ansible
+    $ pip install ansible
+    ```
+* Install the FlashBlade Ansible Collection: ( Requires Ansible-2.10 or greater)
     ```bash
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```

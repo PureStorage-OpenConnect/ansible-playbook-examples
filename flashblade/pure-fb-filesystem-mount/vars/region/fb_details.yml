@@ -4,13 +4,13 @@ array_inventory:
   FBServer1:
     fb_host: 10.22.222.80     # FlashBlade Management IP              
     filesystem:
-      - { name: tools, size: 1T, type: nfsv4.1, nfs_rules: '*(rw,noatime)' } 
+      - { name: tools, size: 1T, type: nfsv4.1, nfs_rules: '10.21.152.0/24(ro)' } 
       - { name: scratch, size: 1T, type: nfsv3, nfs_rules: '*(rw,noatime)' } 
       - { name: database, size: 1T, type: nfsv3, nfs_rules: '*(rw,noatime)' }
   FBServer2:
     fb_host: 10.22.222.100    # FlashBlade Management IP
     filesystem:
-      - { name: tools, size: 1T, type: nfsv4.1, nfs_rules: '*(rw,noatime)' } 
+      - { name: tools, size: 1T, type: nfsv4.1, nfs_rules: '10.21.152.0/24(ro)' } 
       - { name: scratch, size: 1T, type: nfsv3, nfs_rules: '*(rw,noatime)' } 
       - { name: database, size: 1T, type: nfsv3, nfs_rules: '*(rw,noatime)' }
 
