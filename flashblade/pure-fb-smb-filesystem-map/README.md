@@ -220,7 +220,7 @@ Running this playbook
 To execute playbook, issue the following command:
 ( Replace `<enviorement_name>` and `<client_pass> `with the correct value )
    ```bash
-   $ ansible-playbook filesystem_smb_map.yml -e "env=<enviorement_name> ansible_password=<client_pass>" --ask-vault-pass
+   $ ansible-playbook filesystem_smb_map.yml -e "env=<enviorement_name> ansible_password=<client_pass>" -i hosts.ini --ask-vault-pass
    ```
 Enter Ansible-Vault password when prompted.
 
