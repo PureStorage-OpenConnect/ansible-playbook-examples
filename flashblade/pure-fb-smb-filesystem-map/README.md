@@ -183,7 +183,8 @@ As an example of an fb_details.yml file, see:
   ```
 
 Update `hosts.ini` with windows host IP and username. 
-    ```
+
+   ```
     [win]
     windows-host1 ansible_host=10.xx.xxx.96
 
@@ -192,7 +193,7 @@ Update `hosts.ini` with windows host IP and username.
     ansible_connection=winrm
     ansible_winrm_transport=credssp
     ansible_winrm_server_cert_validation=ignore
-    ```
+   ```
 
 To eradicate and unmap File System, change `mount_state` to `unmapped` and add `destroy: true, eradicate: true` in fb_details.yml.
 
