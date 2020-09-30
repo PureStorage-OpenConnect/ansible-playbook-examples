@@ -126,7 +126,7 @@ To configure your FlashBlade connection details and the Object Store account, us
     # FB-FB Replication
     S3Replication: 
       replication1: # FB-FB Replication
-        common_params: { state: enabled, repl_type: oneway, src_dst_repl_pause: false, dst_src_repl_pause: false }
+        common_params: { delete: false, repl_type: oneway, src_dst_repl_pause: false, dst_src_repl_pause: false }
         src: { server: FBServer1, replvip: 10.21.152.231, account: srcaccount, user: srcuser, bucket: srcbucket }
         dst: { server: FBServer2, replvip: 10.21.236.204, account: dstaccount, user: dstuser, bucket: dstbucket }
    ```
@@ -139,6 +139,27 @@ To configure your FlashBlade connection details and the Object Store account, us
       FBServer2:
         api_token: T-79ced0e5-1d36-yyyy-8741-66482f04c6d1 # API Token obtained from FlashBlade
     ```
+
+To delete Object Replication, use `delete: true` in fb_details.yml.
+Example fb_details.yml to delete FB-FB Object replication:
+   ```
+    ---
+    # FBServer details
+    array_inventory:               
+      FBServer1:
+        fb_host: 10.21.241.151     #FlashBlade Management IP
+      FBServer2:
+        fb_host: 10.21.241.11      #FlashBlade Management IP     
+
+    # FB-FB Replication
+    S3Replication: 
+      replication1: # FB-FB Replication
+        common_params: { delete: true, repl_type: oneway, src_dst_repl_pause: false, dst_src_repl_pause: false }
+        src: { server: FBServer1, replvip: 10.21.152.231, account: srcaccount, user: srcuser, bucket: srcbucket }
+        dst: { server: FBServer2, replvip: 10.21.236.204, account: dstaccount, user: dstuser, bucket: dstbucket }
+   ```
+
+
 ##### Case: 2 - Array to S3(AWS) Object Replication
 
 * fb_details.yml
@@ -154,7 +175,7 @@ To configure your FlashBlade connection details and the Object Store account, us
     # FB-FB or FB-AWS replication
     S3Replication: 
       replication1: # FB-AWS Replication
-        common_params: { state: enabled, pause_repl: false }
+        common_params: { delete: false, pause_repl: false }
         src: { server: FBServer1, replvip: 10.xx.xxx.231, account: awssrcaccount, user: srcuser36, bucket: srcbucketaws }
         dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket } # aws1 is defined in fb_secrets.yml
      ```
@@ -170,6 +191,24 @@ To configure your FlashBlade connection details and the Object Store account, us
         access_id: AKIA2OFGHJ436YHILJ7T
         access_key: WeQHJYJ+xxx+yyyyy/5T4AdvwS1kBQwPA8QIW6
     ```
+To delete Object Replication, use `delete: true` in fb_details.yml.
+Example fb_details.yml to delete FB-AWS Object replication:
+    ```
+    ---
+    # FBServer details
+    array_inventory:               
+      FBServer1:
+        fb_host: 10.xx.xxx.151     #FlashBlade Management IP
+      FBServer2:
+        fb_host: 10.xx.xxx.11      #FlashBlade Management IP     
+
+    # FB-FB or FB-AWS replication
+    S3Replication: 
+      replication1: # FB-AWS Replication
+        common_params: { delete: false, pause_repl: false }
+        src: { server: FBServer1, replvip: 10.xx.xxx.231, account: awssrcaccount, user: srcuser36, bucket: srcbucketaws }
+        dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket } # aws1 is defined in fb_secrets.yml
+     ```
 
 Note: 
   * To set bucket lifecycle policy, Add `noncurrent_version_expiration_days: 7` parameter with desired value in "fb_details.yml" for the buckets created on FlashBlade. For the buckets created on AWS along with parameter `noncurrent_version_expiration_days: 7`, user can set `expiration_days: 6` for the current version of the bucket.
