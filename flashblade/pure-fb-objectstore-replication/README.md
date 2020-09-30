@@ -142,6 +142,7 @@ To configure your FlashBlade connection details and the Object Store account, us
 
 To delete Object Replication, use `delete: true` in fb_details.yml.
 Example fb_details.yml to delete FB-FB Object replication:
+   
    ```
     ---
     # FBServer details
@@ -191,9 +192,11 @@ Example fb_details.yml to delete FB-FB Object replication:
         access_id: AKIA2OFGHJ436YHILJ7T
         access_key: WeQHJYJ+xxx+yyyyy/5T4AdvwS1kBQwPA8QIW6
     ```
+
 To delete Object Replication, use `delete: true` in fb_details.yml.
 Example fb_details.yml to delete FB-AWS Object replication:
-    ```
+
+   ```
     ---
     # FBServer details
     array_inventory:               
@@ -208,10 +211,11 @@ Example fb_details.yml to delete FB-AWS Object replication:
         common_params: { delete: false, pause_repl: false }
         src: { server: FBServer1, replvip: 10.xx.xxx.231, account: awssrcaccount, user: srcuser36, bucket: srcbucketaws }
         dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket } # aws1 is defined in fb_secrets.yml
-     ```
+   ```
 
 Note: 
   * To set bucket lifecycle policy, Add `noncurrent_version_expiration_days: 7` parameter with desired value in "fb_details.yml" for the buckets created on FlashBlade. For the buckets created on AWS along with parameter `noncurrent_version_expiration_days: 7`, user can set `expiration_days: 6` for the current version of the bucket.
+  
   **Example fb_details.yml with lifecycle policies**
    ```
     # FBServer details
@@ -225,6 +229,26 @@ Note:
         src: { server: FBServer1, account: srcaccount, user: srcuser, bucket: srcbucket, noncurrent_version_expiration_days: 7 }
         dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: pureawsbucket, expiration_days: 6, noncurrent_version_expiration_days: 7  }
    ```
+
+Using Ansible Vault to Encrypt FlashBlade Credentials
+--------------
+
+It is strongly recommended that you avoid storing FlashBlade API credentials in a plain text file.
+
+You can use Ansible Vault to encrypt your FlashBlade API credentials using a password that can be specified later at the command line when running your playbook.
+
+To encrypt the fb_secrets.yml file:
+  ```
+  ansible-vault encrypt fb_secrets.yml
+  ```
+Enter the same password when prompted to encrypt the file.
+
+To execute a playbook using an encrypted fb_secrets.yml file:
+   ```bash
+   ansible-playbook object_replication.yml -e "env=<your_env_name>" --ask-vault-pass
+   ```
+Enter Ansible Vault password that was used to encrypt "fb_secrets.yml" file.
+
 
 Running this playbook
 --------
