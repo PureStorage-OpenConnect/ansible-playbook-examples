@@ -134,25 +134,13 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
 * `timezone`: The timezone in which the snapshot is created( Used by `At` parameter ) - If not provided, the module will attempt to get the current local timezone from the server 
 * `keep_for`: The period in which snapshots are retained until they are eradicated( Must not be set less than `every` ) - Range available 300 - 31536000 (equates to 5m to 365d)
  
-Snapshot Policy Example: 
+Snapshot Policy Examples: 
 
-* Daily:
-  name: daily
-  at: 11AM
-  every: 86400
-  keep_for: 86400 # Retention period must not be less thean `every`
+* Daily: { name: daily, at: 11AM, every: 86400, keep_for: 86400  }
 
-* Weekly:
-  name: weekly
-  at: 11AM
-  every: 604800
-  keep_for: 604800 # Retention period must not be less thean `every`
+* Weekly: { name: weekly, at: 11AM, every: 604800, keep_for: 604800 }
 
-* Daily:
-  name: hourly
-  every: 3600
-  keep_for: 3600 # Retention period must not be less thean `every`
-
+* Hourly: { name: hourly, every: 3600, keep_for: 3600 }
 
  #### Filesystem Replication 
    In Filesystem replication local(src) and remote(dst) FlashBlades should be connected state. Replica-link will be established between local filesystem and remote filesystem with replication policy. 
@@ -230,47 +218,9 @@ Snapshot Policy Example:
         dst: { fb_name: FBServer2, datavip_name: dstdatavip }                        
    ``` 
 
-Dependencies
-------------
+Running this playbook
+--------------
 
-None
-
-Example Playbook
-----------------
-
-* Filesystem Replication
-     
-     ```
-      - name: FlashBlade filesystem setup
-        hosts: "localhost"
-        gather_facts: false
-        vars_files:
-        - "vars/{{ env }}/fb_details.yml"
-        - "vars/{{ env }}/fb_secrets.yml"
-        roles:
-          - purefb_filesystem_setup
-     ```
-
-* Filesystem failover
-     ```
-      - name: FlashBlade filesystem failover
-        hosts: all
-        vars_files:
-        - "vars/{{ env }}/fb_details.yml"
-        - "vars/{{ env }}/fb_secrets.yml"
-        roles:
-          - purefb_filesystem_failover
-     ```
-* Filesystem failback
-     ```
-      - name: FlashBlade filesystem failback/Reprotect
-        hosts: all
-        vars_files:
-        - "vars/{{ env }}/fb_details.yml"
-        - "vars/{{ env }}/fb_secrets.yml"
-        roles:
-          - purefb_filesystem_failback
-     ```
 To execute playbook, issue the following command:
 ( Replace `<enviorement_name>` with the correct value )
 * Replication
@@ -306,6 +256,11 @@ To execute playbook, issue the following command:
 **Note:** 
 * If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
 The workaround for this limitation is to pass `-c paramiko` flag in ansible-playbook command. Install paramiko using `pip install paramiko`.
+
+  **Replication**
+   ```bash
+   $ ansible-playbook filesystem_replication.yml -e "env=region" --ask-vault-pass
+   ```
 
   **failover**
   

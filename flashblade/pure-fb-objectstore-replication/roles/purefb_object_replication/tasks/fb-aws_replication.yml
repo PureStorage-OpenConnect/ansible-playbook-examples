@@ -148,8 +148,7 @@
         - src_access_key
         - src_secret_key
       when: vars[item] is not defined
-    when: 
-      - repl_vars.src.expiration_days is defined or repl_vars.src.noncurrent_version_expiration_days is defined
+    when: repl_vars.src.expiration_days is defined or repl_vars.src.noncurrent_version_expiration_days is defined
 
   # secret validation
   - name: validation | Fail if dst s3 secrets not available for {{ repl_loop.key }}
@@ -249,6 +248,12 @@
       state: absent
       fb_url: "{{ src_fb_url }}"
       api_token: "{{ src_fb_token }}"
+    when: repl_vars.src.bucket in src_fb_info.purefb_info.bucket_replication 
+    ignore_errors: true
+
+  - name: fact | Set remote_credential name on src FB
+    set_fact:
+      remote_credential_name: "{{ repl_vars.common_params.remote_connection_name | default('aws_target') ~ '/' ~ repl_vars.common_params.remote_cred_name | default('aws_cred') }}"
 
   - name: replication | Delete remote credential for {{ repl_loop.key }}
     purefb_remote_cred:
@@ -257,6 +262,67 @@
       state: absent
       fb_url: "{{ src_fb_url }}"
       api_token: "{{ src_fb_token }}"
+    when: remote_credential_name in src_fb_info.purefb_info.remote_credentials
+    ignore_errors: true
+
+  - name: bucket | Delete src bucket for {{ repl_loop.key }}
+    purefb_bucket:
+      name: "{{ repl_vars.src.bucket }}"
+      account: "{{ repl_vars.src.account }}"
+      state: absent
+      eradicate: true
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+    when: repl_vars.src.bucket in src_fb_info.purefb_info.buckets
+    ignore_errors: true
+
+  - name: user | Delete src s3 user on {{ repl_vars.src.server }} for {{ repl_loop.key }}
+    purefb_s3user:
+      name: "{{ repl_vars.src.user }}"
+      account: "{{ repl_vars.src.account }}"
+      state: absent
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+    loop: "{{ src_fb_info.purefb_info.buckets | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+    when: repl_vars.src.account == item.value.account_name
+    ignore_errors: true
+
+  - name: account | Delete src s3 account for {{ repl_loop.key }}
+    purefb_s3acc:
+      name: "{{ repl_vars.src.account }}"
+      state: absent
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+    loop: "{{ src_fb_info.purefb_info.buckets | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+    when: repl_vars.src.account == item.value.account_name
+    ignore_errors: true
+  
+  - name: facts | Set dst s3 secrets from fb_secrets for {{ repl_loop.key }}
+    set_fact:
+      dst_access_key: "{{ s3_secrets[repl_vars.dst.credential].access_id }}" 
+      dst_secret_key: "{{ s3_secrets[repl_vars.dst.credential].access_key }}"
+    when:
+      - s3_secrets is defined and s3_secrets | length > 0
+      - s3_secrets[repl_vars.dst.credential] is defined
+      - repl_vars.dst.credential is defined
+    no_log: true
+
+  - name: aws | Delete s3 bucket on AWS if not present for {{ repl_loop.key }}
+    s3_bucket:
+      name: "{{ repl_vars.dst.bucket }}"
+      state: absent
+      force: yes
+      aws_access_key: "{{ dst_access_key }}"
+      aws_secret_key: "{{ dst_secret_key }}"
+      region: "{{ repl_vars.dst.region | default('us-west-2') }}"
+    when:
+      -  dst_access_key is defined and dst_secret_key is defined 
+      - repl_vars.common_params.delete_aws_bucket is defined and repl_vars.common_params.delete_aws_bucket | bool
+    ignore_errors: true
 
   - name: replication | Delete connection to remote S3-capable target for {{ repl_loop.key }}
     purefb_target:
@@ -264,7 +330,30 @@
       state: absent
       fb_url: "{{ src_fb_url }}"
       api_token: "{{ src_fb_token }}"
+    ignore_errors: true
+    when: 
+      - repl_vars.common_params.delete_connection is defined and repl_vars.common_params.delete_connection | bool
+      - src_fb_info.purefb_info.default.targets is defined and src_fb_info.purefb_info.default.targets|bool
+
+  - name: replvip | Set fact for replication vip on src FlashBlade server {{ repl_loop.key }}
+    set_fact:
+      src_repl_vip_name: "{{ item.key }}"
+      src_repl_vip: "{{ item.value.address }}"
+    when: ( item.value.services[0] == "replication" )
+    loop: "{{ src_fb_info.purefb_info.network | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+
+  - name: replvip | Delete replication interface(VIP) on {{ repl_loop.key }}
+    purefb_network:
+      name: "{{ repl_vars.src.replvip_name | default('replvip') }}"
+      address: "{{ repl_vars.src.replvip | default(omit) }}"
+      state: absent
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+    ignore_errors: true
+    when: src_repl_vip_name is defined and src_repl_vip is defined
+
   when:
     - repl_vars.common_params is defined
     - repl_vars.common_params.delete is defined and repl_vars.common_params.delete | bool
-    - src_fb_info.purefb_info.default.targets is defined and src_fb_info.purefb_info.default.targets|bool

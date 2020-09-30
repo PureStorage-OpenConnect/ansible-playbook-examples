@@ -100,7 +100,7 @@
     msg: Cannot have multiple replica links on the same local bucket {{ repl_vars.src.bucket }}
   when:
     - repl_vars.common_params is defined
-    - repl_vars.common_params.state is defined and repl_vars.common_params.state != 'disabled'
+    - repl_vars.common_params.delete is defined and not repl_vars.common_params.delete | bool
     - src_fb_info.purefb_info.bucket_replication | length > 0
     - src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket] is defined
     - src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket].remote_bucket != repl_vars.dst.bucket
@@ -192,12 +192,28 @@
       api_token: "{{ src_fb_token }}"
     no_log: true
 
+  - name: certificate | Create a SSL certifcate on dst FlashBlade for {{ repl_loop.key }}
+    purefb_certs:
+      name: repl_cert
+      contents: "{{ src_fb_info.purefb_info.config.ssl_certs.certificate }}"
+      fb_url: "{{ dst_fb_url }}"
+      api_token: "{{ dst_fb_token }}"
+    no_log: true
+
   - name: certificate | Add existing certificates to the default certificate group on src FlashBlade for {{ repl_loop.key }}
     purefb_certgrp:
       name: "_default_replication_certs"
       certificates: repl_cert
       fb_url: "{{ src_fb_url }}"
       api_token: "{{ src_fb_token }}"
+    no_log: true
+
+  - name: certificate | Add existing certificates to the default certificate group on dst FlashBlade for {{ repl_loop.key }}
+    purefb_certgrp:
+      name: "_default_replication_certs"
+      certificates: repl_cert
+      fb_url: "{{ dst_fb_url }}"
+      api_token: "{{ dst_fb_token }}"
     no_log: true
 
   - name: replication | Enable encyption on replication connection for {{ repl_loop.key }}
@@ -260,8 +276,8 @@
         fb_url: "{{ src_fb_url }}"
         api_token: "{{ src_fb_token }}"
     when: 
-      - src_fb_info.purefb_info.remote_credentials is defined and src_fb_info.purefb_info.remote_credentials[src_remote_credential_name] is not defined
-      - repl_vars.dst.expiration_days is defined or repl_vars.dst.noncurrent_version_expiration_days is defined
+      - ( src_fb_info.purefb_info.remote_credentials is defined and src_fb_info.purefb_info.remote_credentials[src_remote_credential_name] is not defined ) or
+        ( repl_vars.dst.expiration_days is defined or repl_vars.dst.noncurrent_version_expiration_days is defined )
 
   - name: block | Create src user when required for dst FB
     block:
@@ -313,8 +329,8 @@
       - repl_vars.common_params is defined and repl_vars.common_params | length > 0
       - repl_vars.common_params.repl_type is defined
       - repl_vars.common_params.repl_type == 'twoway'
-      - dst_fb_info.purefb_info.remote_credentials is defined and dst_fb_info.purefb_info.remote_credentials[dst_remote_credential_name] is not defined
-      - repl_vars.src.expiration_days is defined or repl_vars.src.noncurrent_version_expiration_days is defined
+      - ( dst_fb_info.purefb_info.remote_credentials is defined and dst_fb_info.purefb_info.remote_credentials[dst_remote_credential_name] is not defined ) or
+        ( repl_vars.src.expiration_days is defined or repl_vars.src.noncurrent_version_expiration_days is defined )
 
   - name: replication | Create bucket replica link from src to dst for {{ repl_loop.key }}
     purefb_bucket_replica:
@@ -401,16 +417,26 @@
       credential: "{{ repl_vars.common_params.remote_cred_name | default('cred') }}"
       state: absent
       fb_url: "{{ src_fb_url }}"
-      api_token: "{{ src_fb_token }}"  
+      api_token: "{{ src_fb_token }}"
+    when: repl_vars.src.bucket in src_fb_info.purefb_info.bucket_replication  
     ignore_errors: true
+
+  - name: fact | Set remote_credential name on src FB
+    set_fact:
+      src_remote_credential_name: "{{ dst_fb_name ~ '/' ~ repl_vars.common_params.remote_cred_name | default('cred') }}"
+
+  - name: fact | Set remote_credential name on dst FB
+    set_fact:
+      dst_remote_credential_name: "{{ dst_fb_name  ~ '/' ~ repl_vars.common_params.rev_remote_cred_name | default('rev_cred') }}"
 
   - name: replication | Delete remote cred from src to dst for {{ repl_loop.key }}
     purefb_remote_cred:
       name: "{{ repl_vars.common_params.remote_cred_name | default('cred') }}"
-      target: "{{dst_fb_name}}" 
+      target: "{{ dst_fb_name }}" 
       state: absent
       fb_url: "{{ src_fb_url }}"
       api_token: "{{ src_fb_token }}"
+    when: src_remote_credential_name in src_fb_info.purefb_info.remote_credentials
     ignore_errors: true
 
   - name: replication | Delete bucket replica link from dst to src for {{ repl_loop.key }}
@@ -425,6 +451,7 @@
       - repl_vars.common_params is defined and repl_vars.common_params | length > 0
       - repl_vars.common_params.repl_type is defined
       - repl_vars.common_params.repl_type == 'twoway'
+      - repl_vars.src.bucket in src_fb_info.purefb_info.bucket_replication 
 
   - name: replication | Delete remote credential dst to src for {{ repl_loop.key }}
     purefb_remote_cred:
@@ -437,6 +464,79 @@
       - repl_vars.common_params is defined and repl_vars.common_params | length > 0
       - repl_vars.common_params.repl_type is defined
       - repl_vars.common_params.repl_type == 'twoway'
+      - dst_remote_credential_name in dst_fb_info.purefb_info.remote_credentials
+
+  - name: bucket | Delete src bucket for {{ repl_loop.key }}
+    purefb_bucket:
+      name: "{{ repl_vars.src.bucket }}"
+      account: "{{ repl_vars.src.account }}"
+      state: absent
+      eradicate: true
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+    when: repl_vars.src.bucket in src_fb_info.purefb_info.buckets
+    ignore_errors: true
+
+  - name: user | Delete src s3 user on {{ repl_vars.src.server }} for {{ repl_loop.key }}
+    purefb_s3user:
+      name: "{{ repl_vars.src.user }}"
+      account: "{{ repl_vars.src.account }}"
+      state: absent
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+    loop: "{{ src_fb_info.purefb_info.buckets | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+    when: repl_vars.src.account == item.value.account_name
+    ignore_errors: true
+
+  - name: account | Delete src s3 account for {{ repl_loop.key }}
+    purefb_s3acc:
+      name: "{{ repl_vars.src.account }}"
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+      state: absent
+    loop: "{{ src_fb_info.purefb_info.buckets | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+    when: repl_vars.src.account == item.value.account_name
+    ignore_errors: true
+
+  - name: bucket | Delete dst bucket for {{ repl_loop.key }}
+    purefb_bucket:
+      name: "{{ repl_vars.dst.bucket }}"
+      account: "{{ repl_vars.dst.account }}"
+      state: absent
+      eradicate: true
+      fb_url: "{{ dst_fb_url }}"
+      api_token: "{{ dst_fb_token }}"
+    when: repl_vars.dst.bucket in dst_fb_info.purefb_info.buckets
+    ignore_errors: true
+
+  - name: user | Delete dst s3 user on {{ repl_vars.dst.server }} for {{ repl_loop.key }}
+    purefb_s3user:
+      name: "{{ repl_vars.dst.user }}"
+      account: "{{ repl_vars.dst.account }}"
+      state: absent
+      fb_url: "{{ dst_fb_url }}"
+      api_token: "{{ dst_fb_token }}"
+    loop: "{{ dst_fb_info.purefb_info.buckets | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+    when: repl_vars.dst.account == item.value.account_name
+    ignore_errors: true
+
+  - name: account | Delete dst s3 account for {{ repl_loop.key }}
+    purefb_s3acc:
+      name: "{{ repl_vars.dst.account }}"
+      state: absent
+      fb_url: "{{ dst_fb_url }}"
+      api_token: "{{ dst_fb_token }}"
+    loop: "{{ dst_fb_info.purefb_info.buckets | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+    when: repl_vars.dst.account == item.value.account_name
+    ignore_errors: true
 
   - name: replication | Delete connection to remote FlashBlade for {{ repl_loop.key }}
     purefb_connect:
@@ -445,7 +545,47 @@
       state: absent
       fb_url: "{{ src_fb_url }}"
       api_token: "{{ src_fb_token }}"
+    when: 
+      - repl_vars.common_params.delete_connection is defined and repl_vars.common_params.delete_connection | bool
+      - src_fb_info.purefb_info.default.connected_arrays is defined and src_fb_info.purefb_info.default.connected_arrays | bool
+
+  - name: replvip | Set fact for replication vip on src FlashBlade server {{ repl_loop.key }}
+    set_fact:
+      src_repl_vip_name: "{{ item.key }}"
+      src_repl_vip: "{{ item.value.address }}"
+    when: ( item.value.services[0] == "replication" )
+    loop: "{{ src_fb_info.purefb_info.network | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+
+  - name: replvip | Set fact for replication vip on dst FlashBlade server {{ repl_loop.key }}
+    set_fact:
+      dst_repl_vip_name: "{{ item.key }}"
+      dst_repl_vip: "{{ item.value.address }}"
+    when: ( item.value.services[0] == "replication" )
+    loop: "{{ dst_fb_info.purefb_info.network | dict2items }}"
+    loop_control:
+      label: "{{ item.key }}"
+
+  - name: replvip | Delete src replication interface(VIP) on {{ repl_loop.key }}
+    purefb_network:
+      name: "{{ src_repl_vip_name }}"
+      address: "{{ src_repl_vip }}"
+      state: absent
+      fb_url: "{{ src_fb_url }}"
+      api_token: "{{ src_fb_token }}"
+    ignore_errors: true 
+    when: src_repl_vip_name is defined and src_repl_vip is defined
+
+  - name: replvip | Delete dst replication interface(VIP) on {{ repl_loop.key }}
+    purefb_network:
+      name: "{{ repl_vars.dst.replvip_name | default('replvip') }}"
+      address: "{{ repl_vars.dst.replvip | default(omit) }}"
+      state: absent
+      fb_url: "{{ dst_fb_url }}"
+      api_token: "{{ dst_fb_token }}"
+    ignore_errors: true
+    when: dst_repl_vip_name is defined and dst_repl_vip is defined
   when:
     - repl_vars.common_params is defined and repl_vars.common_params | length > 0
     - repl_vars.common_params.delete is defined and repl_vars.common_params.delete | bool
-    - src_fb_info.purefb_info.default.connected_arrays is defined and src_fb_info.purefb_info.default.connected_arrays|bool

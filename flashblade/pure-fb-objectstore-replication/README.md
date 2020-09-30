@@ -140,7 +140,7 @@ To configure your FlashBlade connection details and the Object Store account, us
         api_token: T-79ced0e5-1d36-yyyy-8741-66482f04c6d1 # API Token obtained from FlashBlade
     ```
 
-To delete Object Replication, use `delete: true` in fb_details.yml.
+To delete account, bucket, user, replica-link use `delete: true` in fb_details.yml.
 Example fb_details.yml to delete FB-FB Object replication:
    
    ```
@@ -160,6 +160,7 @@ Example fb_details.yml to delete FB-FB Object replication:
         dst: { server: FBServer2, replvip: 10.21.236.204, account: dstaccount, user: dstuser, bucket: dstbucket }
    ```
 
+Note: To delete account, bucket, user, replica-link, Replication network and Array connection use `delete: true, delete_connection: true` in fb_details.yml.
 
 ##### Case: 2 - Array to S3(AWS) Object Replication
 
@@ -193,7 +194,7 @@ Example fb_details.yml to delete FB-FB Object replication:
         access_key: WeQHJYJ+xxx+yyyyy/5T4AdvwS1kBQwPA8QIW6
     ```
 
-To delete Object Replication, use `delete: true` in fb_details.yml.
+To delete Account, user, src bucket and Replica-link, use `delete: true` in fb_details.yml.
 Example fb_details.yml to delete FB-AWS Object replication:
 
    ```
@@ -208,10 +209,11 @@ Example fb_details.yml to delete FB-AWS Object replication:
     # FB-FB or FB-AWS replication
     S3Replication: 
       replication1: # FB-AWS Replication
-        common_params: { delete: false, pause_repl: false }
+        common_params: { delete: true, pause_repl: false }
         src: { server: FBServer1, replvip: 10.xx.xxx.231, account: awssrcaccount, user: srcuser36, bucket: srcbucketaws }
         dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket } # aws1 is defined in fb_secrets.yml
    ```
+To delete Account, user, src bucket, dst(AWS) bucket, Replica-link, Replication Network and Array connection, use `delete: true, delete_aws_bucket: true, delete_connection: true`
 
 Note: 
   * To set bucket lifecycle policy, Add `noncurrent_version_expiration_days: 7` parameter with desired value in "fb_details.yml" for the buckets created on FlashBlade. For the buckets created on AWS along with parameter `noncurrent_version_expiration_days: 7`, user can set `expiration_days: 6` for the current version of the bucket.
