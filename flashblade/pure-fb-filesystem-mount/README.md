@@ -41,6 +41,11 @@ Configure Ansible control node - MacOS
     ```bash
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
+* Set environment variable to allow Ansible to use fork before running any playbook.
+    ```bash
+    $ echo 'export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES' >> ~/.bash_profile
+    $ source ~/.bash_profile
+    ```
 
 Configure Ansible control node - Linux(CentOS/Ubuntu)
 --------------
@@ -136,9 +141,9 @@ The fb_details.yml file should look similar to this:
   ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.22.222.80                   
+        fb_host: 10.22.222.80  # FlashBlade Management IP                 
         filesystem:
-          - { name: tools, size: 1T, type: nfsv4.1, nfs_rules: '10.21.152.0/24(ro,noatime)' } 
+          - { name: tools, size: 1T, type: nfsv4.1, nfs_rules: '10.21.152.0/24(ro)' } 
           - { name: scratch, size: 1T, type: nfsv3, nfs_rules: '*(ro,noatime)' } 
           - { name: database, size: 1T, type: nfsv3, nfs_rules: '*(rw)' }
 
@@ -154,7 +159,7 @@ The fb_details.yml file should look similar to this:
         client: { hosts: dc, mount_state: mount, mount_point: /mnt/database, opts: "rw" }      
   ```
 
-Note: To set nfs_rules, Provide NF rules in format `IP/subnet(opts)`.
+Note: To set nfs_rules, Provide NFS rules in format `IP/subnet(opts)`.
 Example: '10.21.152.0/24(ro,noatime)'
 
 As an example of an fb_details.yml file, see:
@@ -169,9 +174,9 @@ Example `fb_details.yml` to eradicate and unmount filesystem.
   ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.22.222.80                   
+        fb_host: 10.22.222.80   # FlashBlade Management IP              
         filesystem:
-          - { name: tools, destroy: true, eradicate: true, size: 1T, type: nfsv4.1, nfs_rules: '*(ro,noatime)' } 
+          - { name: tools, destroy: true, eradicate: true, size: 1T, type: nfsv4.1, nfs_rules: '10.21.152.0/24(ro)' } 
           - { name: scratch, destroy: true, eradicate: true, size: 1T, type: nfsv3, nfs_rules: '*(ro,noatime)' } 
           - { name: database, destroy: true, eradicate: true, size: 1T, type: nfsv3, nfs_rules: '*(rw,noatime)' }
 
@@ -212,9 +217,11 @@ To run playbook with host password( Not Recommended ), issue the following comma
    ```
 Enter Ansible-Vault password, hosts/clients ssh password and root password.
 
-**Note:** If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
+**Note:** 
+* If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
 The workaround for this limitation is to pass `-c paramiko` flag in ansible-playbook command. Install paramiko using `pip install paramiko`.
    ```bash
    $ sudo pip install paramiko
    $ ansible-playbook filesystem_mount.yml -e "env=region" -i hosts.ini --ask-vault-pass --ask-pass --ask-become-pass -c paramiko
    ```
+* To configure hosts in parallel, User can set `forks` value in `ansible.cfg` file to the required value. 

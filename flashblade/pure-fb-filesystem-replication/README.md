@@ -41,7 +41,11 @@ Configure Ansible control node - MacOS
     ```bash
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
-
+* Set environment variable to allow Ansible to use fork before running any playbook.
+    ```bash
+    $ echo 'export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES' >> ~/.bash_profile
+    $ source ~/.bash_profile
+    ```
 Configure Ansible control node - Linux(CentOS/Ubuntu)
 --------------
 
@@ -279,7 +283,8 @@ To execute playbook, issue the following command:
    ```
    Enter vault password, hosts ssh password and root password.
 
-**Note:** If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
+**Note:** 
+* If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
 The workaround for this limitation is to pass `-c paramiko` flag in ansible-playbook command. Install paramiko using `pip install paramiko`.
 
   **failover**
@@ -297,3 +302,5 @@ The workaround for this limitation is to pass `-c paramiko` flag in ansible-play
    $ ansible-playbook filesystem_failback.yml -i hosts -e "env=region" --ask-vault-pass --ask-pass --ask-become-pass -c paramiko
    ```
    Enter remote hosts ssh password, root password and ansible vault password.
+
+* To configure hosts in parallel, User can set `forks` value in `ansible.cfg` file to the required value. 

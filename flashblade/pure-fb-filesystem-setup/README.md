@@ -42,7 +42,11 @@ Configure Ansible control node - MacOS
     ```bash
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
-
+* Set environment variable to allow Ansible to use fork before running any playbook.
+    ```bash
+    $ echo 'export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES' >> ~/.bash_profile
+    $ source ~/.bash_profile
+    ```
 Configure Ansible control node - Linux(CentOS/Ubuntu)
 --------------
 
@@ -152,9 +156,6 @@ As an example of an fb_details.yml file, see:
   ```
   /vars/region/fb_details.yml
   ```
-filesystem available parameters:
-
-
 
 Running this playbook
 --------------

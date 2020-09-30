@@ -42,7 +42,11 @@ Configure Ansible control node - MacOS
     ```bash
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
-
+* Set environment variable to allow Ansible to use fork before running any playbook.
+    ```bash
+    $ echo 'export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES' >> ~/.bash_profile
+    $ source ~/.bash_profile
+    ```
 Configure Ansible control node - Linux(CentOS/Ubuntu)
 --------------
 
@@ -263,7 +267,7 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                   
+        fb_host: 10.22.222.151     # FlsahBlade Management VIP              
         object_store:
         - account: account1
           users: 
@@ -284,9 +288,9 @@ Examples
     ```
     array_secrets:               
       FlashBlade1:
-        api_token: T-0b8ad89c-xxxx-yyyy-85ed-286607dc2cd2
+        api_token: T-0b8ad89c-xxxx-yyyy-85ed-286607dc2cd2 # API Token obtained from FlashBlade
       FlashBlade2:
-        api_token: T-0b8ad822-xxxx-yyyy-85ed-286607dc2cd2
+        api_token: T-0b8ad822-xxxx-yyyy-85ed-286607dc2cd2 # API Token obtained from FlashBlade
     
     s3_ansible_vault_pass: pureansible # Required to encrypt s3 secret files 
     ```
@@ -307,7 +311,7 @@ Example fb_details with versioning enabled.
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151  # FlashBlade Management IP                
         object_store:
         - account: account1
           buckets: 

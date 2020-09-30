@@ -1,7 +1,7 @@
 FlashBlade Object Replication
 =========
 
-Ansible playbook and role for FlashBlade Array to Array and Array to S3 target(AWS) object Replication.
+Ansible playbook and role for FlashBlade Array to Array and Array to S3 target(AWS) Object Replication.
 
 Requirements
 ------------
@@ -41,7 +41,11 @@ Configure Ansible control node - MacOS
     ```bash
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
-
+* Set environment variable to allow Ansible to use fork before running any playbook.
+    ```bash
+    $ echo 'export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES' >> ~/.bash_profile
+    $ source ~/.bash_profile
+    ```
 Configure Ansible control node - Linux(CentOS/Ubuntu)
 --------------
 
@@ -73,70 +77,93 @@ Configure Ansible control node - Linux(CentOS/Ubuntu)
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
 
-Role Variables
+Generating FlashBlade Login Credentials for Ansible Playbooks
 --------------
 
-There are two variable files "fb_details.yml" and "fb_secrets.yml" are holding the Ansible variables for the role at path `vars/<enviorement_name>`. 
+FlashBlade Ansible playbooks require an API token to connect to FlashBlade. An API token can be obtained by using ssh to connect to the FlashBlade management IP for a user that you wish the Ansible playbook to run as, and using the ```pureadmin``` command to retrieve or create an API token.
 
-Ansible playbooks require API token to connect to FlashBlade servers. API token can be obtained by connecting FlashBlade management VIP through ssh for a specific user and running the following purity command.
+To create or retrieve an API token, first ssh to a FlashBlade as the user you wish the Ansible playbooks to run as. For example, to create an API token with full admin privileges equivalent to "pureuser", the built-in local administrator account, ssh to FlashBlade's management IP as "pureuser" and specify that user's password:
    ```
-   $ ssh <pureuser>@<pure_fb_mgmt_ip>
-   $ pureadmin list <username> --api-token --expose
+   ssh pureuser@flashblade.example.com
    ```
+To see current the logged-in user's API token:
+   ```
+   pureadmin list --api-token --expose
+   ```
+To create an API token expiring in 24 hours with the same permissions as the currently logged in user:
+   ```
+   pureadmin create --api-token --timeout 1d
+   ```
+The above commands generates output like the following:
+   ```
+   Name      API Token                               Created                  Expires
+   pureuser  T-85cc9ce8-643d-4d99-8dbc-656f38cacab0  2020-09-13 23:55:33 PDT  2020-09-14 23:55:33 PDT
+   ```
+For details, see "Creating an API token" in the [FlashBlade User Guide](https://support.purestorage.com/FlashBlade/Purity_FB/FlashBlade_User_Guides).
+
 Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_host" value with FlashBlade Management VIP in "fb_details.yml" 
 
-Encrypt "fb_secrets.yml" using Ansible-Vault.
-```
-$ ansible-vault encrypt fb_secrets.yml
-```
 
+Specifying FlashBlade connection details and Object Store configuration
+--------------
+
+To configure your FlashBlade connection details and the Object Store account, user, and bucket names you would like to provision, create a file at:
+  ```
+  var/<your_env_name>/fb_details.yml
+  ```
 ##### Case: 1 - Array to Array Object Replication
 
 * fb_details.yml
    ```
-   # FBServer details
+    ---
+    # FBServer details
     array_inventory:               
       FBServer1:
-        fb_host: 10.xx.126.80
+        fb_host: 10.21.241.151     #FlashBlade Management IP
       FBServer2:
-        fb_host: 10.yy.120.100                                    
+        fb_host: 10.21.241.11      #FlashBlade Management IP     
 
-    # FB-FB object replication
+    # FB-FB Replication
     S3Replication: 
-      replication1:
-        src: { server: FBServer1, account: srcaccount, user: srcuser, bucket: srcbucket }
-        dst: { server: FBServer2, account: dstaccount, user: dstuser, bucket: dstbucket }
+      replication1: # FB-FB Replication
+        common_params: { state: enabled, repl_type: oneway, src_dst_repl_pause: false, dst_src_repl_pause: false }
+        src: { server: FBServer1, replvip: 10.21.152.231, account: srcaccount, user: srcuser, bucket: srcbucket }
+        dst: { server: FBServer2, replvip: 10.21.236.204, account: dstaccount, user: dstuser, bucket: dstbucket }
    ```
 
 * fb_secrets.yml
     ```
     array_secrets:               
       FBServer1:
-        api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a
+        api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a # API Token obtained from FlashBlade
       FBServer2:
-        api_token: T-79ced0e5-1d36-yyyy-8741-66482f04c6d1 
+        api_token: T-79ced0e5-1d36-yyyy-8741-66482f04c6d1 # API Token obtained from FlashBlade
     ```
 ##### Case: 2 - Array to S3(AWS) Object Replication
 
 * fb_details.yml
     ```
+    ---
     # FBServer details
     array_inventory:               
       FBServer1:
-        fb_host: 10.16.126.80                                  
+        fb_host: 10.xx.xxx.151     #FlashBlade Management IP
+      FBServer2:
+        fb_host: 10.xx.xxx.11      #FlashBlade Management IP     
 
-    # FB-AWS object replication
+    # FB-FB or FB-AWS replication
     S3Replication: 
-      replication1:
-        src: { server: FBServer1, account: srcaccount, user: srcuser, bucket: srcbucket }
-        dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket }
-   ```
+      replication1: # FB-AWS Replication
+        common_params: { state: enabled, pause_repl: false }
+        src: { server: FBServer1, replvip: 10.xx.xxx.231, account: awssrcaccount, user: srcuser36, bucket: srcbucketaws }
+        dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket } # aws1 is defined in fb_secrets.yml
+     ```
 
 * fb_secrets.yml
     ```
     array_secrets:               
       FBServer1:
-        api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a
+        api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a # API Token obtained from FlashBlade
 
     s3_secrets:
       aws1:
@@ -151,7 +178,7 @@ Note:
     # FBServer details
     array_inventory:               
       FBServer1:
-        fb_host: 10.16.126.80                                  
+        fb_host: 10.16.126.80   # FlashBlade Management IP                            
 
     # FB-AWS object replication
     S3Replication: 
@@ -160,27 +187,11 @@ Note:
         dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: pureawsbucket, expiration_days: 6, noncurrent_version_expiration_days: 7  }
    ```
 
-
-Dependencies
-------------
-
-None
-
-Example Playbook
-----------------
-
-    - name: FlashBlade object-store replication
-      hosts: localhost
-      gather_facts: false
-      vars_files:
-      - "vars/{{ env }}/fb_details.yml"
-      - "vars/{{ env }}/fb_secrets.yml"
-      roles:
-        - purefb_object_replication
+Running this playbook
+--------
 
 To execute the playbook, issue the following command:
-( Replace `<enviorement_name>` with the correct value )
    ```bash
-   $ ansible-playbook object_replication.yml -e "env=<enviorement_name>" --ask-vault-pass
+   $ ansible-playbook object_replication.yml -e "env=<your_env_name>" --ask-vault-pass
    ```
 Enter Ansible-Vault password when prompted.
