@@ -221,7 +221,7 @@ Enter Ansible-Vault password, hosts/clients ssh password and root password.
 * If you are using MacOS as Ansible control node and using password to connect to remote hosts, SSH connection with password not supported.
 The workaround for this limitation is to pass `-c paramiko` flag in ansible-playbook command. Install paramiko using `pip install paramiko`.
    ```bash
-   $ sudo pip install paramiko
+   $ pip install paramiko
    $ ansible-playbook filesystem_mount.yml -e "env=region" -i hosts.ini --ask-vault-pass --ask-pass --ask-become-pass -c paramiko
    ```
 * To configure hosts in parallel, User can set `forks` value in `ansible.cfg` file to the required value. 

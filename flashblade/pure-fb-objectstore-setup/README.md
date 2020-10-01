@@ -143,7 +143,7 @@ The fb_details.yml file should look similar to this:
   ```
     array_inventory:               
       FlashBlade1: # this must match the identifier used for this FlashBlade in fb_secrets.yml
-        fb_host: 10.20.30.40
+        fb_host: 10.20.30.40   # FlashBlade Management VIP
         object_store:
         - account: your-account
           users: 
@@ -201,7 +201,7 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151     # FlashBlade Management VIP             
         object_store:
         - account: account1
           users: 
@@ -214,17 +214,17 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151     # FlashBlade Management VIP             
         object_store:
         - account: account1
           buckets: 
             - { name: bucket1, destroy_bucket: true }                          
    ```
-   **Recover Bucket**
+   **Recover/Create Bucket**
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151     # FlashBlade Management VIP             
         object_store:
         - account: account1
           buckets: 
@@ -234,7 +234,7 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151    # FlashBlade Management VIP              
         object_store:
         - account: account1
           buckets: 
@@ -244,7 +244,7 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151    # FlashBlade Management VIP              
         object_store:
         - account: account1
           users: 
@@ -254,12 +254,32 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151   # FlashBlade Management VIP               
         object_store:
         - account: account1
           users: 
             - { name: user1, create_new_access_key: false }     
    ```
+   **Delete User**
+   ```
+    array_inventory:               
+      FlashBlade1:
+        fb_host: 10.22.222.151  # FlashBlade Management VIP       
+        object_store:
+        - account: account1
+          users: 
+            - { name: user1, delete_user: true }     
+   ```
+   **Delete Account**
+   ```
+    array_inventory:               
+      FlashBlade1:
+        fb_host: 10.22.222.151   # FlashBlade Management VIP        
+        object_store:
+        - account: account1
+          delete_account: true    
+   ```
+
  * To extend the Object-store provisioning on the fleet of FlashBlade Arrays, Add multiple "FlashBlade1...N" blocks under array_inventory in "fb_details.yml" file.
  Example configuration to setup Object-Store on two FlashBlade servers.
    
@@ -267,7 +287,7 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151     # FlsahBlade Management VIP              
+        fb_host: 10.22.222.151     # FlashBlade Management VIP              
         object_store:
         - account: account1
           users: 
@@ -275,7 +295,7 @@ Examples
           buckets: 
             - { name: bucket1 }
       FlashBlade2:
-        fb_host: 10.22.222.152                  
+        fb_host: 10.22.222.152      # FlashBlade Management VIP          
         object_store:
         - account: account2
           state: enabled

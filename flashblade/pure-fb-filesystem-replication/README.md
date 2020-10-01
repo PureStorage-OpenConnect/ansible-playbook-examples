@@ -133,7 +133,7 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
 * `at`: The time of day in which snapshots are created - Provide a time in 12-hour AM/PM format, eg. 11AM
 * `timezone`: The timezone in which the snapshot is created( Used by `At` parameter ) - If not provided, the module will attempt to get the current local timezone from the server 
 * `keep_for`: The period in which snapshots are retained until they are eradicated( Must not be set less than `every` ) - Range available 300 - 31536000 (equates to 5m to 365d)
- 
+
 Snapshot Policy Examples: 
 
 * Daily: { name: daily, at: 11AM, every: 86400, keep_for: 86400  }
@@ -141,6 +141,7 @@ Snapshot Policy Examples:
 * Weekly: { name: weekly, at: 11AM, every: 604800, keep_for: 604800 }
 
 * Hourly: { name: hourly, every: 3600, keep_for: 3600 }
+
 
  #### Filesystem Replication 
    In Filesystem replication local(src) and remote(dst) FlashBlades should be connected state. Replica-link will be established between local filesystem and remote filesystem with replication policy. 
@@ -228,6 +229,7 @@ To execute playbook, issue the following command:
    $ ansible-playbook filesystem_replication.yml -e "env=<enviorement_name>" --ask-vault-pass
    ```
 * Failover
+
   Using Remote host SSH key(Replace `<ssh-key-path>` with ssh private key path)
      ```bash
    $ ansible-playbook filesystem_failover.yml -i hosts -e "env=<enviorement_name>" --ask-vault-pass --key-file=<ssh-key-path>
@@ -241,6 +243,7 @@ To execute playbook, issue the following command:
    Enter vault password, hosts ssh password and root password.
 
 * Failback
+
   Using Remote host SSH key(Replace `<ssh-key-path>` with ssh private key path)
      ```bash
    $ ansible-playbook filesystem_failback.yml -i hosts -e "env=<enviorement_name>" --ask-vault-pass --key-file=<ssh-key-path>

@@ -140,7 +140,7 @@ The fb_details.yml file should look similar to this:
     ---
     array_inventory:
       FBServer1:
-        fb_host: 10.12.231.151   # FlashBlade Maganement IP
+        fb_host: 10.12.231.151   # FlashBlade Management IP
         filesystem:
           - { name: database, count: 5, size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)', policy: daily }
           - { name: tools, size: 1G, type: nfsv3, nfs_rules: '10.21.152.0/24(ro)', policy: weekly }
@@ -196,7 +196,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151   # FlashBlade Management IP                 
         filesystem:
           - { name: database, size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)' }                         
    ```
@@ -205,7 +205,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151    # FlashBlade Management IP          
         filesystem:
           - { name: database, count: 5 size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)' } # creates 5 filesystem with name database_01....database_05.              
    ```    
@@ -213,7 +213,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151     # FlashBlade Management IP           
         filesystem:
           - { name: database, state: disabled }           
    ``` 
@@ -221,7 +221,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151      # FlashBlade Management IP         
         filesystem:
           - { name: database, state: enabled }           
    ```
@@ -229,7 +229,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151     # FlashBlade Management IP               
         filesystem:
           - { name: database, state: disabled, eradicate: true }           
    ``` 
@@ -237,7 +237,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151      # FlashBlade Management IP            
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible } # snap_name : tools.ansible         
    ```
@@ -245,7 +245,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151       # FlashBlade Management IP            
         filesystem_snapshot: 
           - { filesystem_name: database, count: 5, suffix: ansible }            
    ```   
@@ -253,7 +253,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151        # FlashBlade Management IP        
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible, state: disabled }
    ```
@@ -261,7 +261,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151         # FlashBlade Management IP             
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible, state: enabled }
    ```
@@ -269,7 +269,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151         # FlashBlade Management IP      
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible, restore_fs_from_snap: true }
    ```
@@ -277,7 +277,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151          # FlashBlade Management IP        
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible, state: disabled, eradicate: true }
    ```
@@ -285,7 +285,7 @@ Notes on using this playbook
    ```
     array_inventory:               
     FBServer1:
-      fb_host: 10.12.231.151                    
+      fb_host: 10.12.231.151            # FlashBlade Management IP
       filesystem_snapshot_policy:
         - { name: daily, at: 11AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone
    ```
@@ -293,7 +293,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151           # FlashBlade Management IP    
         filesystem:
           - { name: database, policy: daily }                         
    ```
@@ -301,7 +301,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151           # FlashBlade Management IP 
         filesystem:
           - { name: database, policy: daily, policy_state: absent }        
    ```
@@ -309,7 +309,7 @@ Notes on using this playbook
    ```
     array_inventory:               
     FBServer1:
-      fb_host: 10.12.231.151                    
+      fb_host: 10.12.231.151              # FlashBlade Management IP    
       filesystem_snapshot_policy:
         - { name: daily, state: disabled } # optional params: timezone
    ```
@@ -321,11 +321,11 @@ Notes on using this playbook
    # FBServer details
     array_inventory:               
       FBServer1:
-        fb_host: 10.xx.126.80
+        fb_host: 10.xx.126.80  # FlashBlade Management IP
         filesystem:
           - { name: database, size: 32G, type: nfsv3 }   
       FBServer2:
-        fb_host: 10.xx.126.110
+        fb_host: 10.xx.126.110  # FlashBlade Management IP
         filesystem:
           - { name: tools, size: 32G, type: nfsv4.1 }  
     ```
@@ -333,7 +333,7 @@ Notes on using this playbook
     ```
     array_secrets:               
       FBServer1:
-        api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a
+        api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a  # API Token obtained from FlashBlade
       FBServer2:
-        api_token: T-d88e4dec-xxxx-4222-87g3-315264d9e77a
+        api_token: T-d88e4dec-xxxx-4222-87g3-315264d9e77a  # API Token obtained from FlashBlade
     ```

@@ -168,8 +168,8 @@ The fb_details.yml file should look similar to this:
         fb_host: 10.xx.126.80  # FlashBlade Management IP
         network:
           vip: 
-            - { name: datavip1-2250, state: disabled }
-            - { name: replvip1-2210, state: disabled }                               
+            - { name: datavip1-2250, address: 10.21.250.7, state: disabled }
+            - { name: replvip1-2210, address: 10.21.210.22, state: disabled }                               
     ```
  * To extend the network setup configuration on the fleet of FlashBlade Arrays, add multiple "FBServer1...N" blocks under array_inventory in "fb_details.yml" file.
  Example configuration to setup DNS on two FlashBlade servers.

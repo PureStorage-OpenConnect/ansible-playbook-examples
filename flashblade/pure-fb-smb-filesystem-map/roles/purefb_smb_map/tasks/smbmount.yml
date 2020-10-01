@@ -16,29 +16,12 @@
 - name: facts | Get information from {{ mount_details.server.fb_name }} for {{ outer_loop.key }}
   purefb_info:
     gather_subset: 
-      - config
       - network
-      - subnets
-      - filesystems
     fb_url: "{{ fb_url }}"
     api_token: "{{ fb_token }}"
   delegate_to: "localhost"
   run_once: true
   register: blade_info
-
-- name: validation | Fail if fileshare not exist on {{ mount_details.server.fb_name }}
-  fail:
-    msg: Fileshare {{ mount_details.server.fileshare }} not available on FB server
-  when: mount_details.server.fileshare not in blade_info['purefb_info']['filesystems']
-  delegate_to: "localhost"
-  run_once: true
-
-- name: validation | Fail if fileshare is in destroyed state on {{ mount_details.server.fb_name }}
-  fail:
-    msg: Fileshare {{ mount_details.server.fileshare }} is in destroyed state on FB server
-  when: mount_details.server.fileshare in blade_info['purefb_info']['filesystems'] and blade_info['purefb_info']['filesystems'][mount_details.server.fileshare]['destroyed']|bool
-  delegate_to: "localhost"
-  run_once: true
 
 - name: validation | Fail if data VIP not exist on {{ mount_details.server.fb_name }}
   fail:
@@ -49,7 +32,7 @@
   set_fact:
     vip: "{{ blade_info['purefb_info']['network'][mount_details.server.data_vip]['address'] }}"
 
-- name: mount | mount fileshare for {{ outer_loop.key }}
+- name: map | Map fileshare for {{ outer_loop.key }}
   block:
     - name: mount | Create mapped drive for {{ outer_loop.key }}
       win_mapped_drive:
@@ -58,30 +41,27 @@
         state: present
       register: mount_drive
 
-    # - name: mount | Restart explorer process 
-    #   win_command: powershell.exe Stop-Process -ProcessName explorer
-    #   when: mount_drive.changed
+    - name: mount | Restart explorer process 
+      win_command: powershell.exe Stop-Process -ProcessName explorer
+      when: mount_drive.changed
 
   when:
-    - mount_details.client.mount_state is not defined or mount_details.client.mount_state == "mapped"
+    - mount_details.client.map_state is not defined or mount_details.client.map_state == "mapped"
 
-- name: unmount | Remove mapped fileshare for {{ outer_loop.key }}
+- name: unmap | Remove mapped fileshare for {{ outer_loop.key }}
   block:
-    - name: unmount | Remove mapped fileshare 
+    - name: unmap | Remove mapped fileshare 
       win_mapped_drive:
         letter: "{{ mount_details.client.drive_letter }}"
         path: \\{{vip}}\{{mount_details.server.fileshare}}
         state: absent
       register: unmount_drive
-
-    # - name: unmount | Restart explorer process 
-    #   win_command: powershell.exe Stop-Process -ProcessName explorer
-    #   when: unmount_drive.changed
     
-    # - name: Reboot the machine with all defaults
-    #   win_reboot:
-    #   when: unmount_drive.changed
-
+    - name: Reboot the machine with all defaults
+      win_reboot:
+      when: 
+        - unmount_drive.changed
+        - mount_details.client.reboot is defined and mount_details.client.reboot | bool
   when:
-    - mount_details.client.mount_state is defined
-    - mount_details.client.mount_state == 'unmapped'
+    - mount_details.client.map_state is defined
+    - mount_details.client.map_state == 'unmapped'

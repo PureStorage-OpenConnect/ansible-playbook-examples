@@ -42,7 +42,7 @@
     writable: "{{ item.writable | default(omit) }}"
     http: "{{ item.http | default(omit) }}"
     eradicate: "{{ item.eradicate | default('false') }}"
-    promote: "{{ item.eradicate | default('true') }}"
+    promote: "{{ item.promote | default(omit) }}"
     state: "{{ 'absent' if item.destroy is defined and item.destroy|bool else 'present' }}"
     policy: "{{ item.policy | default(omit) }}"
     policy_state: "{{ item.policy_state | default(omit) }}"

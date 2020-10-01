@@ -126,7 +126,7 @@ To configure your FlashBlade connection details and the Object Store account, us
     # FB-FB Replication
     S3Replication: 
       replication1: # FB-FB Replication
-        common_params: { delete: false, repl_type: oneway, src_dst_repl_pause: false, dst_src_repl_pause: false }
+        common_params: { del_repl_link: false, repl_type: oneway, src_dst_repl_pause: false, dst_src_repl_pause: false }
         src: { server: FBServer1, replvip: 10.21.152.231, account: srcaccount, user: srcuser, bucket: srcbucket }
         dst: { server: FBServer2, replvip: 10.21.236.204, account: dstaccount, user: dstuser, bucket: dstbucket }
    ```
@@ -140,8 +140,8 @@ To configure your FlashBlade connection details and the Object Store account, us
         api_token: T-79ced0e5-1d36-yyyy-8741-66482f04c6d1 # API Token obtained from FlashBlade
     ```
 
-To delete account, bucket, user, replica-link use `delete: true` in fb_details.yml.
-Example fb_details.yml to delete FB-FB Object replication:
+To delete Replica-link and remote credentials, use `del_repl_link: false` in fb_details.yml.
+Example fb_details.yml:
    
    ```
     ---
@@ -155,12 +155,10 @@ Example fb_details.yml to delete FB-FB Object replication:
     # FB-FB Replication
     S3Replication: 
       replication1: # FB-FB Replication
-        common_params: { delete: true, repl_type: oneway, src_dst_repl_pause: false, dst_src_repl_pause: false }
+        common_params: { del_repl_link: true, repl_type: oneway, src_dst_repl_pause: false, dst_src_repl_pause: false }
         src: { server: FBServer1, replvip: 10.21.152.231, account: srcaccount, user: srcuser, bucket: srcbucket }
         dst: { server: FBServer2, replvip: 10.21.236.204, account: dstaccount, user: dstuser, bucket: dstbucket }
    ```
-
-Note: To delete account, bucket, user, replica-link, Replication network and Array connection use `delete: true, delete_connection: true` in fb_details.yml.
 
 ##### Case: 2 - Array to S3(AWS) Object Replication
 
@@ -177,7 +175,7 @@ Note: To delete account, bucket, user, replica-link, Replication network and Arr
     # FB-FB or FB-AWS replication
     S3Replication: 
       replication1: # FB-AWS Replication
-        common_params: { delete: false, pause_repl: false }
+        common_params: { del_repl_link: false, pause_repl: false }
         src: { server: FBServer1, replvip: 10.xx.xxx.231, account: awssrcaccount, user: srcuser36, bucket: srcbucketaws }
         dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket } # aws1 is defined in fb_secrets.yml
      ```
@@ -194,8 +192,8 @@ Note: To delete account, bucket, user, replica-link, Replication network and Arr
         access_key: WeQHJYJ+xxx+yyyyy/5T4AdvwS1kBQwPA8QIW6
     ```
 
-To delete Account, user, src bucket and Replica-link, use `delete: true` in fb_details.yml.
-Example fb_details.yml to delete FB-AWS Object replication:
+To delete Replica-link and remote credentials, use `del_repl_link: true` in fb_details.yml.
+Example fb_details.yml:
 
    ```
     ---
@@ -209,11 +207,10 @@ Example fb_details.yml to delete FB-AWS Object replication:
     # FB-FB or FB-AWS replication
     S3Replication: 
       replication1: # FB-AWS Replication
-        common_params: { delete: true, pause_repl: false }
+        common_params: { del_repl_link: true, pause_repl: false }
         src: { server: FBServer1, replvip: 10.xx.xxx.231, account: awssrcaccount, user: srcuser36, bucket: srcbucketaws }
         dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket } # aws1 is defined in fb_secrets.yml
    ```
-To delete Account, user, src bucket, dst(AWS) bucket, Replica-link, Replication Network and Array connection, use `delete: true, delete_aws_bucket: true, delete_connection: true`
 
 Note: 
   * To set bucket lifecycle policy, Add `noncurrent_version_expiration_days: 7` parameter with desired value in "fb_details.yml" for the buckets created on FlashBlade. For the buckets created on AWS along with parameter `noncurrent_version_expiration_days: 7`, user can set `expiration_days: 6` for the current version of the bucket.

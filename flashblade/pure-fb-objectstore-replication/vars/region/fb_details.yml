@@ -6,13 +6,13 @@ array_inventory:
   FBServer2:
     fb_host: 10.21.xxx.11      #FlashBlade Management IP     
 
-# FB-FB or FB-AWS replication
+# FB-FB and FB-AWS replication
 S3Replication: 
   replication1: # FB-AWS Replication
-    common_params: { delete: false, pause_repl: false }
+    common_params: { del_repl_link: false, pause_repl: false }
     src: { server: FBServer1, replvip: 10.21.152.231, account: srcaccount1, user: srcuser1, bucket: srcbucket1 }
     dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: awsdstbucket } # aws1 is defined in fb_secrets.yml
   replication2: # FB-FB Replication
-    common_params: { delete: false, repl_type: oneway, src_dst_repl_pause: false, dst_src_repl_pause: false }
+    common_params: { del_repl_link: false, repl_type: oneway, src_dst_repl_pause: false, dst_src_repl_pause: false }
     src: { server: FBServer1, replvip: 10.21.152.231, account: srcaccount, user: srcuser, bucket: srcbucket }
     dst: { server: FBServer2, replvip: 10.21.236.204, account: dstaccount, user: dstuser, bucket: dstbucket }

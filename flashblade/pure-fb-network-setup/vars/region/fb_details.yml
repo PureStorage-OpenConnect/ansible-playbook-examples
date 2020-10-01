@@ -1,7 +1,7 @@
 ---
 array_inventory:               
   FBServer1:
-    fb_host: 10.33.345.151
+    fb_host: 10.33.345.151   # FlashBlade Management IP
     network:
       dns: 
         - { domain: "purelab.purestorage.com", nameservers: [10.12.133.15, 10.12.133.16] } 
