@@ -41,10 +41,12 @@
         state: present
       register: mount_drive
 
-    - name: mount | Restart explorer process 
-      win_command: powershell.exe Stop-Process -ProcessName explorer
-      when: mount_drive.changed
-
+    - name: Reboot the machine with all defaults
+      win_reboot:
+      run_once: true
+      when: 
+        - mount_drive.changed
+        - mount_details.client.reboot is defined and mount_details.client.reboot | bool
   when:
     - mount_details.client.map_state is not defined or mount_details.client.map_state == "mapped"
 
@@ -56,9 +58,11 @@
         path: \\{{vip}}\{{mount_details.server.fileshare}}
         state: absent
       register: unmount_drive
+
     
     - name: Reboot the machine with all defaults
       win_reboot:
+      run_once: true
       when: 
         - unmount_drive.changed
         - mount_details.client.reboot is defined and mount_details.client.reboot | bool
