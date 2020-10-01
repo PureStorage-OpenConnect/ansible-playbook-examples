@@ -1,0 +1,9 @@
+---
+- name: filesystem | Restore multiple File System from latest snapshots on {{ outer_loop.key }}
+  purefb_snap:
+    name: "{{ item }}"
+    suffix: "{{ restore_loop.suffix }}"
+    state: restore
+    fb_url: "{{ fb_vars.fb_host }}"
+    api_token: "{{ fb_vars.api_token }}"
+  with_sequence: start=1 end="{{ restore_loop.count }}" format="{{ restore_loop.filesystem_name }}_%02d"

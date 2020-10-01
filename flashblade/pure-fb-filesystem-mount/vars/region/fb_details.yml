@@ -2,15 +2,15 @@
 ############################# FB Array filesystem provisioning ##########################
 array_inventory:               
   FBServer1:
-    fb_host: 10.22.222.80                   
+    fb_host: 10.22.222.80     # FlashBlade Management IP              
     filesystem:
-      - { name: tools, size: 1T, type: nfsv4.1, nfs_rules: '*(rw,noatime)' } 
+      - { name: tools, size: 1T, type: nfsv4.1, nfs_rules: '10.21.152.0/24(ro)' } 
       - { name: scratch, size: 1T, type: nfsv3, nfs_rules: '*(rw,noatime)' } 
       - { name: database, size: 1T, type: nfsv3, nfs_rules: '*(rw,noatime)' }
   FBServer2:
-    fb_host: 10.22.222.100                   
+    fb_host: 10.22.222.100    # FlashBlade Management IP
     filesystem:
-      - { name: tools, size: 1T, type: nfsv4.1, nfs_rules: '*(rw,noatime)' } 
+      - { name: tools, size: 1T, type: nfsv4.1, nfs_rules: '10.21.152.0/24(ro)' } 
       - { name: scratch, size: 1T, type: nfsv3, nfs_rules: '*(rw,noatime)' } 
       - { name: database, size: 1T, type: nfsv3, nfs_rules: '*(rw,noatime)' }
 
@@ -18,7 +18,7 @@ array_inventory:
 linux_client_mount:
   mount1:
     server: { fb_name: FBServer1, fileshare: tools, datavip_name: data-vip1 } 
-    client: { hosts: dc, mount_state: mount, mount_point: /mnt/tools, opts: "hard,rw,bg,tcp,timeo=600" }
+    client: { hosts: dc, mount_state: mount, mount_point: /mnt/tools, opts: "hard,ro,bg,tcp,timeo=600" }
   mount2:
     server: { fb_name: FBServer1, fileshare: scratch, datavip_name: data-vip2 } 
     client: { hosts: dc, mount_state: mount, mount_point: /mnt/scratch, opts: "rw" }

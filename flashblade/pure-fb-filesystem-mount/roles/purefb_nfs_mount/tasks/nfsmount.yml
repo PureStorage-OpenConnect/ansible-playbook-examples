@@ -29,7 +29,7 @@
     msg: data VIP {{ mount_details.server.datavip_name }} not available on FB server
   when: mount_details.server.datavip_name not in blade_info['purefb_info']['network']
 
-- name: mount | Mount filesystem for {{ outer_loop.key }}
+- name: mount | Mount File System for {{ outer_loop.key }}
   mount:
     path: "{{ mount_details['client']['mount_point'] }}"
     state: mounted
@@ -41,7 +41,7 @@
     - mount_details.client.hosts in group_names or mount_details.client.hosts == inventory_hostname or mount_details.client.hosts == ansible_hostname
     - mount_details.client.mount_state is not defined or mount_details.client.mount_state == 'mount'
 
-- name: unmount | Unmount filesystem for {{ outer_loop.key }}
+- name: unmount | Unmount File System for {{ outer_loop.key }}
   mount:
     path: "{{ mount_details['client']['mount_point'] }}"
     state: absent

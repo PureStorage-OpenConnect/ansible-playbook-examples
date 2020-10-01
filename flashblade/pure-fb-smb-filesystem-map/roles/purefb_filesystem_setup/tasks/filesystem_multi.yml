@@ -1,10 +1,10 @@
 ---
-- name: filesystem | Provision multiple file system on {{ outer_loop.key }}
+- name: filesystem | Provision multiple File System on {{ outer_loop.key }}
   purefb_fs:
     name: "{{ item }}"
     size: "{{ fs_loop.size | default(omit) }}"
     nfsv3: "{{ 'nfsv3' in fs_loop.type | default(omit)}}"
-    nfsv4: "{{ 'nfsv4' in fs_loop.type | default(omit) }}"
+    nfsv4: "{{ 'nfsv4.1' in fs_loop.type | default(omit) }}"
     user_quota: "{{ fs_loop.user_quota | default(omit) }}"
     group_quota: "{{ fs_loop.group_quota | default(omit) }}"
     nfs_rules: "{{ fs_loop.nfs_rules | default(omit) }}"
@@ -19,7 +19,7 @@
     policy_state: "{{ fs_loop.policy_state | default(omit) }}"
     eradicate: "{{ fs_loop.eradicate | default('false') }}"
     promote: "{{ fs_loop.eradicate | default('true') }}"
-    state: "{{ 'absent' if fs_loop.state is defined and fs_loop.state == 'disabled' else 'present' }}"
+    state: "{{ 'absent' if fs_loop.destroy is defined and fs_loop.destroy | bool else 'present' }}"
     fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   with_sequence: start=1 end="{{ fs_loop.count }}" format="{{ fs_loop.name }}_%02d"

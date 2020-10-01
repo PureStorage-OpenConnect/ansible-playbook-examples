@@ -10,6 +10,46 @@ Requirements
 
 The Python version on the Ansible control node must match the version required by the FlashBlade Python SDK (purity_fb): Python >=2.7, <=3.6
 
+Configure Ansible control node - MacOS
+--------------
+* Setup pyenv and install Python v3.6.9.
+   ```bash
+    $ brew install pyenv
+    $ echo 'eval "$(pyenv init -)"' >> ~/.bash_profile
+    $ source ~/.bash_profile
+    $ pyenv install 3.6.9
+    $ pyenv global 3.6.9
+   ```
+* Check installed Python version, Output should be `Python 3.6.9`.
+   ```bash
+    $ python3 --version
+   ```
+* Clone Ansible Example Git Repository 
+   ```bash
+    $ git clone https://github.com/PureStorage-OpenConnect/ansible-playbook-examples.git
+   ```
+* Install dependencies using the “requirements.txt” in the directory of this README file. (This ensures that ansible, purity-fb, netaddr, and pytz are installed):
+   ```bash
+    $ cd ansible-playbook-examples/flashblade/pure-fb-filesystem-setup/
+    $ pip3 install -r requirements.txt
+   ```
+    **Note:** Upgrading directly from ansible-2.9 or less to ansible-2.10 or greater with pip is not supported, Uninstall ansible-2.9 or less before installing ansible-2.10 or greater.
+    ```bash
+    $ pip uninstall ansible
+    $ pip install ansible
+    ```
+* Install the FlashBlade Ansible Collection: ( Requires Ansible-2.10 or greater)
+    ```bash
+    $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
+    ```
+* Set environment variable to allow Ansible to use fork before running any playbook.
+    ```bash
+    $ echo 'export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES' >> ~/.bash_profile
+    $ source ~/.bash_profile
+    ```
+Configure Ansible control node - Linux(CentOS/Ubuntu)
+--------------
+
 * Install python-pip on Ansible control node, if it is not already installed.
 
   CentOS/RHEL:
@@ -23,18 +63,17 @@ The Python version on the Ansible control node must match the version required b
     $ sudo apt install python-pip
     $ sudo pip install --upgrade pip
     ```
-  MacOS
-    ```bash
-    $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-    $ python get-pip.py --user
-    ```
-  For more details to install Ansible on MacOS, follow this [link](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-with-pip).
   
 * Install dependencies using the "requirements.txt" in the directory of this README file. (This ensures that ansible, purity-fb, netaddr, and pytz are installed):
     ```bash
     $ sudo pip install -r requirements.txt 
     ```
-* Install the FlashBlade Ansible Collection: 
+    **Note:** Upgrading directly from ansible-2.9 or less to ansible-2.10 or greater with pip is not supported, Uninstall ansible-2.9 or less before installing ansible-2.10 or greater.
+    ```bash
+    $ pip uninstall ansible
+    $ pip install ansible
+    ```
+* Install the FlashBlade Ansible Collection: ( Requires Ansible-2.10 or greater)
     ```bash
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
@@ -97,18 +136,21 @@ To configure your FlashBlade connection details and the File System details, sna
   ```
 
 The fb_details.yml file should look similar to this:
-  ```
-    array_inventory:               
-      FlashBlade1: # this must match the identifier used for this FlashBlade in fb_secrets.yml
-        fb_host: 10.20.30.40
+   ```
+    ---
+    array_inventory:
+      FBServer1:
+        fb_host: 10.12.231.151   # FlashBlade Management IP
         filesystem:
-          - { name: database, count: 5, size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)' }    # Creates 5 File Systems with naming database_01, database_02...database_05
-          - { name: tools, size: 1G, type: smb, nfs_rules: '*(rw,no_root_squash)' } 
-        filesystem_snapshot: 
-          - { filesystem_name: tools, suffix: ansible } # snap_name : tools.ansible
+          - { name: database, count: 5, size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)', policy: daily }
+          - { name: tools, size: 1G, type: nfsv3, nfs_rules: '10.21.152.0/24(ro)', policy: weekly }
+        filesystem_snapshot:
+          - { filesystem_name: database, count: 5, suffix: ansible }
+          - { filesystem_name: tools, suffix: ansible }  # snap_name : tools.ansible
         filesystem_snapshot_policy:
-          - { name: daily, at: 11AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone               
-  ```
+          - { name: daily, at: 11AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone
+          - { name: weekly, at: 10AM, keep_for: 604800, every: 604800, timezone: America/Los_Angeles }         
+   ```
 
 As an example of an fb_details.yml file, see:
   ```
@@ -154,7 +196,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151   # FlashBlade Management IP                 
         filesystem:
           - { name: database, size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)' }                         
    ```
@@ -163,7 +205,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151    # FlashBlade Management IP          
         filesystem:
           - { name: database, count: 5 size: 32G, type: nfsv4.1, nfs_rules: '*(rw,no_root_squash)' } # creates 5 filesystem with name database_01....database_05.              
    ```    
@@ -171,7 +213,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151     # FlashBlade Management IP           
         filesystem:
           - { name: database, state: disabled }           
    ``` 
@@ -179,7 +221,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151      # FlashBlade Management IP         
         filesystem:
           - { name: database, state: enabled }           
    ```
@@ -187,7 +229,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151     # FlashBlade Management IP               
         filesystem:
           - { name: database, state: disabled, eradicate: true }           
    ``` 
@@ -195,15 +237,23 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151      # FlashBlade Management IP            
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible } # snap_name : tools.ansible         
    ```
+   **Create snapshot of the 5 File Systems created using count parameter**
+   ```
+    array_inventory:               
+      FBServer1:
+        fb_host: 10.12.231.151       # FlashBlade Management IP            
+        filesystem_snapshot: 
+          - { filesystem_name: database, count: 5, suffix: ansible }            
+   ```   
    **Destroy File System snapshot**
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151        # FlashBlade Management IP        
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible, state: disabled }
    ```
@@ -211,7 +261,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151         # FlashBlade Management IP             
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible, state: enabled }
    ```
@@ -219,7 +269,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151         # FlashBlade Management IP      
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible, restore_fs_from_snap: true }
    ```
@@ -227,7 +277,7 @@ Notes on using this playbook
    ```
     array_inventory:               
       FBServer1:
-        fb_host: 10.12.231.151                    
+        fb_host: 10.12.231.151          # FlashBlade Management IP        
         filesystem_snapshot: 
           - { filesystem_name: tools, suffix: ansible, state: disabled, eradicate: true }
    ```
@@ -235,15 +285,31 @@ Notes on using this playbook
    ```
     array_inventory:               
     FBServer1:
-      fb_host: 10.12.231.151                    
+      fb_host: 10.12.231.151            # FlashBlade Management IP
       filesystem_snapshot_policy:
         - { name: daily, at: 11AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone
+   ```
+   **Attach File System snapshot policy to the File System**
+   ```
+    array_inventory:               
+      FBServer1:
+        fb_host: 10.12.231.151           # FlashBlade Management IP    
+        filesystem:
+          - { name: database, policy: daily }                         
+   ```
+   **Detach File System snapshot policy to the File System**
+   ```
+    array_inventory:               
+      FBServer1:
+        fb_host: 10.12.231.151           # FlashBlade Management IP 
+        filesystem:
+          - { name: database, policy: daily, policy_state: absent }        
    ```
    **Delete File System snapshot policy**
    ```
     array_inventory:               
     FBServer1:
-      fb_host: 10.12.231.151                    
+      fb_host: 10.12.231.151              # FlashBlade Management IP    
       filesystem_snapshot_policy:
         - { name: daily, state: disabled } # optional params: timezone
    ```
@@ -255,11 +321,11 @@ Notes on using this playbook
    # FBServer details
     array_inventory:               
       FBServer1:
-        fb_host: 10.xx.126.80
+        fb_host: 10.xx.126.80  # FlashBlade Management IP
         filesystem:
           - { name: database, size: 32G, type: nfsv3 }   
       FBServer2:
-        fb_host: 10.xx.126.110
+        fb_host: 10.xx.126.110  # FlashBlade Management IP
         filesystem:
           - { name: tools, size: 32G, type: nfsv4.1 }  
     ```
@@ -267,7 +333,7 @@ Notes on using this playbook
     ```
     array_secrets:               
       FBServer1:
-        api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a
+        api_token: T-c61e4dec-xxxx-4264-87f8-315264d9e65a  # API Token obtained from FlashBlade
       FBServer2:
-        api_token: T-d88e4dec-xxxx-4222-87g3-315264d9e77a
+        api_token: T-d88e4dec-xxxx-4222-87g3-315264d9e77a  # API Token obtained from FlashBlade
     ```

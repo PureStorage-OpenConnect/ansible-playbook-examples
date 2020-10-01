@@ -1,5 +1,5 @@
 ---
-- name: Update and install nfs-utils
+- name: Update and install NFS client packages
   block:
   - name: packages | Install updates using yum
     yum:
@@ -8,7 +8,7 @@
       skip_broken: yes
     ignore_errors: true
 
-  - name: packages | Install nfs packages on CentOS/RHEL
+  - name: packages | Install NFS client packages on CentOS/RHEL
     yum:
       name: 
         - nfs-utils
@@ -17,7 +17,7 @@
   become: yes
   when: ansible_os_family == "RedHat"
 
-- name: Update and install nfs-common package
+- name: packages | Install updates using apt
   block:
   - name: Update apt packages
     apt:
@@ -25,7 +25,7 @@
       cache_valid_time: 3600
     ignore_errors: true
 
-  - name: packages | Install nfs packages on Ubuntu
+  - name: packages | Install NFS client packages on Ubuntu
     apt:
       name: 
         - nfs-common

@@ -1,4 +1,4 @@
-FlashBlade SMB FileSystem mapping on Windows clients 
+FlashBlade SMB File System mapping on Windows clients 
 =========
 
 Ansible playbook and role for FlashBlade SMB File System mapping on Windows clients.
@@ -6,11 +6,51 @@ Ansible playbook and role for FlashBlade SMB File System mapping on Windows clie
 
 Requirements
 ------------
-**Requires: Python >=2.7, <=3.6 on Ansible control node.**
+**Requires: Python >=2.7, <=3.6 to be installed on the Ansible control node.**
 
-As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed Python version on Ansible control Node must be >=2.7 and <=3.6.
+The Python version on the Ansible control node must match the version required by the FlashBlade Python SDK (purity_fb): Python >=2.7, <=3.6
 
-* Install python-pip on Ansible control node.
+Configure Ansible control node - MacOS
+--------------
+* Setup pyenv and install Python v3.6.9.
+   ```bash
+    $ brew install pyenv
+    $ echo 'eval "$(pyenv init -)"' >> ~/.bash_profile
+    $ source ~/.bash_profile
+    $ pyenv install 3.6.9
+    $ pyenv global 3.6.9
+   ```
+* Check installed Python version, Output should be `Python 3.6.9`.
+   ```bash
+    $ python3 --version
+   ```
+* Clone Ansible Example Git Repository 
+   ```bash
+    $ git clone https://github.com/PureStorage-OpenConnect/ansible-playbook-examples.git
+   ```
+* Install dependencies using the “requirements.txt” in the directory of this README file. (This ensures that ansible, purity-fb, netaddr, and pytz are installed):
+   ```bash
+    $ cd ansible-playbook-examples/flashblade/pure-fb-sm-filesystem-map/
+    $ pip3 install -r requirements.txt
+   ```
+    **Note:** Upgrading directly from ansible-2.9 or less to ansible-2.10 or greater with pip is not supported, Uninstall ansible-2.9 or less before installing ansible-2.10 or greater.
+    ```bash
+    $ pip uninstall ansible
+    $ pip install ansible
+    ```
+* Install the FlashBlade Ansible Collection: ( Requires Ansible-2.10 or greater)
+    ```bash
+    $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
+    ```
+* Set environment variable to allow Ansible to use fork before running any playbook.
+    ```bash
+    $ echo 'export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES' >> ~/.bash_profile
+    $ source ~/.bash_profile
+    ```
+Configure Ansible control node - Linux(CentOS/Ubuntu)
+--------------
+
+* Install python-pip on Ansible control node, if it is not already installed.
 
   CentOS/RHEL:
     ```bash
@@ -23,18 +63,17 @@ As purity-fb SDK supports Python >=2.7, <=3.6, We need to ensure that Installed 
     $ sudo apt install python-pip
     $ sudo pip install --upgrade pip
     ```
-  MacOS
-    ```bash
-    $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-    $ python get-pip.py --user
-    ```
-  For more details to install Ansible on MacOS, follow this [link](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-with-pip).
   
-* Install dependencies from "requirements.txt"
+* Install dependencies using the "requirements.txt" in the directory of this README file. (This ensures that ansible, purity-fb, netaddr, and pytz are installed):
     ```bash
     $ sudo pip install -r requirements.txt 
     ```
-* Install Ansible Collection for Pure Storage FlashBlade
+    **Note:** Upgrading directly from ansible-2.9 or less to ansible-2.10 or greater with pip is not supported, Uninstall ansible-2.9 or less before installing ansible-2.10 or greater.
+    ```bash
+    $ pip uninstall ansible
+    $ pip install ansible
+    ```
+* Install the FlashBlade Ansible Collection: ( Requires Ansible-2.10 or greater)
     ```bash
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
@@ -46,52 +85,107 @@ To setup windows host for Ansible, refer to the Ansible [documentation](https://
 
 For this playbook we assumes that the `CredSSP` authentication protocol enabled on host/client. 
 
-Role Variables
+Generating FlashBlade Login Credentials for Ansible Playbooks
 --------------
 
-There are two variable files "fb_details.yml" and "fb_secrets.yml" are holding the Ansible variables for the role at path `vars/<enviorement_name>`. 
+FlashBlade Ansible playbooks require an API token to connect to FlashBlade. An API token can be obtained by using ssh to connect to the FlashBlade management IP for a user that you wish the Ansible playbook to run as, and using the ```pureadmin``` command to retrieve or create an API token.
 
-This role and playbook can be used to setup SMB File System on FlashBlade servers and mount on clients in different environments. To store role variable files user can create different directories with `vars/<environment_name>`. User must specify `<environment_name>` while running `ansible-playbook` by specifying value in extra vars command line flag `-e "env=<environment_name>"`.
+To create or retrieve an API token, first ssh to a FlashBlade as the user you wish the Ansible playbooks to run as. For example, to create an API token with full admin privileges equivalent to "pureuser", the built-in local administrator account, ssh to FlashBlade's management IP as "pureuser" and specify that user's password:
+   ```
+   ssh pureuser@flashblade.example.com
+   ```
+To see current the logged-in user's API token:
+   ```
+   pureadmin list --api-token --expose
+   ```
+To create an API token expiring in 24 hours with the same permissions as the currently logged in user:
+   ```
+   pureadmin create --api-token --timeout 1d
+   ```
+The above commands generates output like the following:
+   ```
+   Name      API Token                               Created                  Expires
+   pureuser  T-85cc9ce8-643d-4d99-8dbc-656f38cacab0  2020-09-13 23:55:33 PDT  2020-09-14 23:55:33 PDT
+   ```
+For details, see "Creating an API token" in the [FlashBlade User Guide](https://support.purestorage.com/FlashBlade/Purity_FB/FlashBlade_User_Guides).
 
-Ansible playbooks require API token to connect to FlashBlade servers. API token can be obtained by connecting FlashBlade management VIP through ssh for a specific user and running the following purity command.
-   ```
-   $ ssh <pureuser>@<pure_fb_mgmt_ip>
-   $ pureadmin list <username> --api-token -–expose
-   ```
 Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_host" value with FlashBlade Management VIP in "fb_details.yml" 
 
-Encrypt "fb_secrets.yml" using Ansible-Vault and enter password when prompted. This password is required to run playbook.
-```
-$ ansible-vault encrypt fb_secrets.yml
-```
+Specifying FlashBlade API credentials for this playbook
+--------------
 
-Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired values.
+This playbook supports organizing your FlashBlade credentials and configuration details into groups of FlashBlade arrays referred to here as "environments".
 
-* fb_details.yml
-    ```
-    ############################ FB array object-store provisioning #############################
+To specify credentials for this playbook to log into FlashBlade, create a file (relative to this playbook's location) at
+  ```
+  var/<your_env_name>/fb_secrets.yml
+  ```
+where <your_env_name> is a name you assign to a group of one or more FlashBlade arrays.
+
+The fb_secrets.yml file should look like this:
+
+    ---
+    array_secrets:
+      FBServer1: # this must match the identifier used for this FlashBlade in fb_details.yml
+        api_token: T-0b8ad89c-xxxx-yyyy-85ed-28660EXAMPLE  # API token obtained from FlashBlade
+
+For an example of an fb_secrets.yml file, see:
+  ```
+  var/region/fb_secrets.yml
+  ```
+Using Ansible Vault to Encrypt FlashBlade Credentials
+--------------
+
+It is strongly recommended that you avoid storing FlashBlade API credentials in a plain text file.
+
+You can use Ansible Vault to encrypt your FlashBlade API credentials using a password that can be specified later at the command line when running your playbook.
+
+To encrypt the fb_secrets.yml file:
+  ```
+  ansible-vault encrypt fb_secrets.yml
+  ```
+Enter the same password when prompted to encrypt the file.
+
+To edit encrypted fb_secrets.yml file:
+  ```
+  ansible-vault edit fb_secrets.yml
+  ```
+Enter the same password when prompted to encrypt the file.
+
+
+Specifying FlashBlade connection details and host details
+--------------
+
+To configure your FlashBlade connection details and the Object Store account, user, and bucket names you would like to provision, create a file at:
+  ```
+  var/<your_env_name>/fb_details.yml
+  ```
+
+The fb_details.yml file should look similar to this:
+  ```
+    ########################## FB array SMB File System provisioning #######################
     array_inventory:               
       FBServer1:
-        fb_host: 10.222.22.60                   
+        fb_host: 10.222.22.60   # FlashBlade Management IP                
         filesystem:
           - { name: winbackup, size: 32G, type: smb, smb_aclmode: native } 
 
-    ######################## Mount/Unmount Filesystem on client/host ########################
+    ######################## Map/Unmap SMB Filesystem on client/host ########################
     windows_client_mount:
       mount1:
         server: { fb_name: FBServer1, fileshare: winbackup, data_vip: NFS-1 } 
-        client: { hosts: win, mount_state: mapped, drive_letter: Z }                       
-    ```
-  Note: To unmap the fileshare, use `mount_state: unmapped` in "fb_details.yml" file.
+        client: { hosts: win, map_state: mapped, reboot: true, drive_letter: Z }                  
+  ```
+Windows host should be rebooted to apply changes. User can specify `reboot: true` to reboot host machine along with `map_state: mapped`.
 
-* fb_secrets.yml
-    ```
-    array_secrets:               
-      FBServer1:
-        api_token: T-154d4220-xxxx-xxxx-8d64-fe7ea4f93499
-    ```
-* hosts.ini 
-    ```
+As an example of an fb_details.yml file, see:
+  ```
+  /var/region/fb_details.yml
+  ```
+
+Update `hosts.ini` with windows host IP and username. 
+
+   ```
     [win]
     windows-host1 ansible_host=10.xx.xxx.96
 
@@ -100,39 +194,36 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
     ansible_connection=winrm
     ansible_winrm_transport=credssp
     ansible_winrm_server_cert_validation=ignore
-    ```
+   ```
+
+To eradicate and unmap SMB File System, change `map_state` to `unmapped` and add `destroy: true, eradicate: true` in fb_details.yml.
+
+Example `fb_details.yml` to eradicate and unmap filesystem.
+
+  ```
+    ########################## FB array SMB File System provisioning #######################
+    array_inventory:               
+      FBServer1:
+        fb_host: 10.222.22.60   # FlashBlade Management IP                
+        filesystem:
+          - { name: winbackup, destroy: true, eradicate: true, size: 32G, type: smb, smb_aclmode: native } 
+
+    ######################## Map/Unmap Filesystem on client/host ########################
+    windows_client_mount:
+      mount1:
+        server: { fb_name: FBServer1, fileshare: winbackup, data_vip: NFS-1 } 
+        client: { hosts: win, map_state: unmapped, reboot: true, drive_letter: Z }                  
+  ```     
+Windows host should be rebooted to apply changes. User can specify `reboot: true` to reboot host machine along with `map_state: unmapped`.
 
 
-Dependencies
-------------
-
-None
-
-Example Playbook
-----------------
-
-      - name: FlashBlade filesystem setup
-        hosts: localhost
-        vars_files:
-        - "vars/{{ env }}/fb_details.yml"
-        - "vars/{{ env }}/fb_secrets.yml"
-        roles:
-          - purefb_filesystem_setup
-
-      - name: Mount SMB file share on windows hosts
-        hosts: win
-        gather_facts: false
-        vars_files:
-        - "vars/{{ env }}/fb_details.yml"
-        - "vars/{{ env }}/fb_secrets.yml"
-        roles:
-          - purefb_smb_map
-
+Running this playbook
+--------------
 
 To execute playbook, issue the following command:
 ( Replace `<enviorement_name>` and `<client_pass> `with the correct value )
    ```bash
-   $ ansible-playbook filesystem_smb_map.yml -e "env=<enviorement_name> ansible_password=<client_pass>" --ask-vault-pass
+   $ ansible-playbook filesystem_smb_map.yml -e "env=<enviorement_name> ansible_password=<client_pass>" -i hosts.ini --ask-vault-pass
    ```
 Enter Ansible-Vault password when prompted.
 

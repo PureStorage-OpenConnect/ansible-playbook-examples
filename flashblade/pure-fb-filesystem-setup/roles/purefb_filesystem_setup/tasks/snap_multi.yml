@@ -1,0 +1,10 @@
+---
+- name: filesystem | Create snapshot of multiple File System on {{ outer_loop.key }}
+  purefb_snap:
+    name: "{{ item }}"
+    suffix: "{{ snap_loop.suffix }}"
+    state: "{{ 'absent' if snap_loop.state is defined and snap_loop.state == 'disabled' else 'present' }}"
+    eradicate: "{{ snap_loop.eradicate | default('false') }}"
+    fb_url: "{{ fb_vars.fb_host }}"
+    api_token: "{{ fb_vars.api_token }}"
+  with_sequence: start=1 end="{{ snap_loop.count }}" format="{{ snap_loop.filesystem_name }}_%02d"

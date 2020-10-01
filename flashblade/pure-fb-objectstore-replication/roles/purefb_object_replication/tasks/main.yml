@@ -6,6 +6,7 @@
     loop_var: repl_loop
   when: 
     - S3Replication is defined
+    - repl_loop.value.dst.server is defined and repl_loop.value.dst.server | length > 0
     - repl_loop.value.dst.server is search("FBServer")
 
 - name: object-store | Include task for Fb-AWS replication
@@ -15,4 +16,5 @@
     loop_var: repl_loop
   when: 
     - S3Replication is defined
+    - repl_loop.value.dst.server is defined and repl_loop.value.dst.server | length > 0
     - not repl_loop.value.dst.server is search("FBServer")

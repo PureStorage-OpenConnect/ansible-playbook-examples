@@ -6,10 +6,49 @@ Ansible playbook for FlashBlade Object Store account, user, and bucket configura
 
 Requirements
 ------------
-
 **Requires: Python >=2.7, <=3.6 to be installed on the Ansible control node.**
 
 The Python version on the Ansible control node must match the version required by the FlashBlade Python SDK (purity_fb): Python >=2.7, <=3.6
+
+Configure Ansible control node - MacOS
+--------------
+* Setup pyenv and install Python v3.6.9.
+   ```bash
+    $ brew install pyenv
+    $ echo 'eval "$(pyenv init -)"' >> ~/.bash_profile
+    $ source ~/.bash_profile
+    $ pyenv install 3.6.9
+    $ pyenv global 3.6.9
+   ```
+* Check installed Python version, Output should be `Python 3.6.9`.
+   ```bash
+    $ python3 --version
+   ```
+* Clone Ansible Example Git Repository 
+   ```bash
+    $ git clone https://github.com/PureStorage-OpenConnect/ansible-playbook-examples.git
+   ```
+* Install dependencies using the “requirements.txt” in the directory of this README file. (This ensures that ansible, purity-fb, netaddr, and pytz are installed):
+   ```bash
+    $ cd ansible-playbook-examples/flashblade/pure-fb-objectstore-setup/
+    $ pip3 install -r requirements.txt
+   ```
+    **Note:** Upgrading directly from ansible-2.9 or less to ansible-2.10 or greater with pip is not supported, Uninstall ansible-2.9 or less before installing ansible-2.10 or greater.
+    ```bash
+    $ pip uninstall ansible
+    $ pip install ansible
+    ```
+* Install the FlashBlade Ansible Collection: ( Requires Ansible-2.10 or greater)
+    ```bash
+    $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
+    ```
+* Set environment variable to allow Ansible to use fork before running any playbook.
+    ```bash
+    $ echo 'export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES' >> ~/.bash_profile
+    $ source ~/.bash_profile
+    ```
+Configure Ansible control node - Linux(CentOS/Ubuntu)
+--------------
 
 * Install python-pip on Ansible control node, if it is not already installed.
 
@@ -24,18 +63,17 @@ The Python version on the Ansible control node must match the version required b
     $ sudo apt install python-pip
     $ sudo pip install --upgrade pip
     ```
-  MacOS
-    ```bash
-    $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-    $ python get-pip.py --user
-    ```
-  For more details to install Ansible on MacOS, follow this [link](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-with-pip).
   
 * Install dependencies using the "requirements.txt" in the directory of this README file. (This ensures that ansible, purity-fb, netaddr, and pytz are installed):
     ```bash
     $ sudo pip install -r requirements.txt 
     ```
-* Install the FlashBlade Ansible Collection: 
+    **Note:** Upgrading directly from ansible-2.9 or less to ansible-2.10 or greater with pip is not supported, Uninstall ansible-2.9 or less before installing ansible-2.10 or greater.
+    ```bash
+    $ pip uninstall ansible
+    $ pip install ansible
+    ```
+* Install the FlashBlade Ansible Collection: ( Requires Ansible-2.10 or greater)
     ```bash
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
@@ -105,7 +143,7 @@ The fb_details.yml file should look similar to this:
   ```
     array_inventory:               
       FlashBlade1: # this must match the identifier used for this FlashBlade in fb_secrets.yml
-        fb_host: 10.20.30.40
+        fb_host: 10.20.30.40   # FlashBlade Management VIP
         object_store:
         - account: your-account
           users: 
@@ -163,7 +201,7 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151     # FlashBlade Management VIP             
         object_store:
         - account: account1
           users: 
@@ -176,17 +214,17 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151     # FlashBlade Management VIP             
         object_store:
         - account: account1
           buckets: 
             - { name: bucket1, destroy_bucket: true }                          
    ```
-   **Recover Bucket**
+   **Recover/Create Bucket**
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151     # FlashBlade Management VIP             
         object_store:
         - account: account1
           buckets: 
@@ -196,7 +234,7 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151    # FlashBlade Management VIP              
         object_store:
         - account: account1
           buckets: 
@@ -206,7 +244,7 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151    # FlashBlade Management VIP              
         object_store:
         - account: account1
           users: 
@@ -216,12 +254,32 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151   # FlashBlade Management VIP               
         object_store:
         - account: account1
           users: 
             - { name: user1, create_new_access_key: false }     
    ```
+   **Delete User**
+   ```
+    array_inventory:               
+      FlashBlade1:
+        fb_host: 10.22.222.151  # FlashBlade Management VIP       
+        object_store:
+        - account: account1
+          users: 
+            - { name: user1, delete_user: true }     
+   ```
+   **Delete Account**
+   ```
+    array_inventory:               
+      FlashBlade1:
+        fb_host: 10.22.222.151   # FlashBlade Management VIP        
+        object_store:
+        - account: account1
+          delete_account: true    
+   ```
+
  * To extend the Object-store provisioning on the fleet of FlashBlade Arrays, Add multiple "FlashBlade1...N" blocks under array_inventory in "fb_details.yml" file.
  Example configuration to setup Object-Store on two FlashBlade servers.
    
@@ -229,7 +287,7 @@ Examples
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                   
+        fb_host: 10.22.222.151     # FlashBlade Management VIP              
         object_store:
         - account: account1
           users: 
@@ -237,7 +295,7 @@ Examples
           buckets: 
             - { name: bucket1 }
       FlashBlade2:
-        fb_host: 10.22.222.152                  
+        fb_host: 10.22.222.152      # FlashBlade Management VIP          
         object_store:
         - account: account2
           state: enabled
@@ -250,9 +308,9 @@ Examples
     ```
     array_secrets:               
       FlashBlade1:
-        api_token: T-0b8ad89c-xxxx-yyyy-85ed-286607dc2cd2
+        api_token: T-0b8ad89c-xxxx-yyyy-85ed-286607dc2cd2 # API Token obtained from FlashBlade
       FlashBlade2:
-        api_token: T-0b8ad822-xxxx-yyyy-85ed-286607dc2cd2
+        api_token: T-0b8ad822-xxxx-yyyy-85ed-286607dc2cd2 # API Token obtained from FlashBlade
     
     s3_ansible_vault_pass: pureansible # Required to encrypt s3 secret files 
     ```
@@ -273,7 +331,7 @@ Example fb_details with versioning enabled.
    ```
     array_inventory:               
       FlashBlade1:
-        fb_host: 10.22.222.151                 
+        fb_host: 10.22.222.151  # FlashBlade Management IP                
         object_store:
         - account: account1
           buckets: 

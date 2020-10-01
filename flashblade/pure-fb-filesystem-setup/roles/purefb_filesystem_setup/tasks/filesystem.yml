@@ -25,6 +25,23 @@
     msg: fb_host {{ fb_vars.fb_host }} is not a valid FlashBlade
   when: (api_version.status != 200 )
 
+- name: policy | Create a filesystem snapshot policy on {{ outer_loop.key }}
+  purefb_policy:
+    name: "{{ item.name }}"
+    enabled: "{{ item.enabled | default('True') }}"
+    at: "{{ item.at | default(omit)}}"
+    keep_for: "{{ item.keep_for | default(omit)}}"
+    every: "{{ item.every | default(omit) }}"
+    timezone: "{{ item.timezone | default(omit) }}"
+    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
+    filesystem: "{{ item.filesystem | default(omit) }}"
+    replica_link:  "{{ replica_link | default(omit) }}"
+    fb_url: "{{ fb_vars.fb_host }}"
+    api_token: "{{ fb_vars.api_token }}"
+  loop: "{{ fb_vars.filesystem_snapshot_policy|default([]) }}"
+  when:
+    - item is defined and (item|default([])|length > 0)
+
 - name: filesystem | Provision file system on {{ outer_loop.key }}
   purefb_fs:
     name: "{{ item.name }}"
@@ -42,7 +59,7 @@
     writable: "{{ item.writable | default(omit) }}"
     http: "{{ item.http | default(omit) }}"
     eradicate: "{{ item.eradicate | default('false') }}"
-    promote: "{{ item.eradicate | default('true') }}"
+    promote: "{{ item.promote | default(omit) }}"
     state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     policy: "{{ item.policy | default(omit) }}"
     policy_state: "{{ item.policy_state | default(omit) }}"
@@ -74,6 +91,17 @@
   when:
     - item is defined and (item|default([])|length > 0)
     - item.restore_fs_from_snap is not defined or not item.restore_fs_from_snap|bool 
+    - item.count is not defined or item.count == 0
+
+- name: filesystem | Include task to create snapshot for multiple filesystem if count defined on {{ outer_loop.key }}
+  include: snap_multi.yml
+  loop: "{{ fb_vars.filesystem_snapshot|default([]) }}"
+  loop_control:
+    loop_var: snap_loop
+  when:
+    - snap_loop is defined and (snap_loop|default([])|length > 0)
+    - item.restore_fs_from_snap is not defined or not item.restore_fs_from_snap|bool
+    - snap_loop.count is defined and snap_loop.count > 0
 
 - name: snapshot | Restore filesystem from snapshot on {{ outer_loop.key }}
   purefb_snap:
@@ -87,20 +115,14 @@
   when:
     - item is defined and (item|default([])|length > 0)
     - item.restore_fs_from_snap is defined and item.restore_fs_from_snap|bool
+    - item.count is not defined or item.count == 0
 
-- name: policy | Create a filesystem snapshot policy on {{ outer_loop.key }}
-  purefb_policy:
-    name: "{{ item.name }}"
-    enabled: "{{ item.enabled | default('True') }}"
-    at: "{{ item.at | default(omit)}}"
-    keep_for: "{{ item.keep_for | default(omit)}}"
-    every: "{{ item.every | default(omit) }}"
-    timezone: "{{ item.timezone | default(omit) }}"
-    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
-    filesystem: "{{ item.filesystem | default(omit) }}"
-    replica_link:  "{{ replica_link | default(omit) }}"
-    fb_url: "{{ fb_vars.fb_host }}"
-    api_token: "{{ fb_vars.api_token }}"
-  loop: "{{ fb_vars.filesystem_snapshot_policy|default([]) }}"
+- name: filesystem | Include task to restore multiple filesystems if count defined on {{ outer_loop.key }}
+  include: snap_restore_multi.yml
+  loop: "{{ fb_vars.filesystem_snapshot|default([]) }}"
+  loop_control:
+    loop_var: restore_loop
   when:
-    - item is defined and (item|default([])|length > 0)
+    - restore_loop is defined and (restore_loop|default([])|length > 0)
+    - restore_loop.restore_fs_from_snap is defined and restore_loop.restore_fs_from_snap|bool
+    - restore_loop.count is defined and restore_loop.count > 0

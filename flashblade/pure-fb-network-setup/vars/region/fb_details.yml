@@ -1,7 +1,7 @@
 ---
 array_inventory:               
   FBServer1:
-    fb_host: 10.33.345.151
+    fb_host: 10.33.345.151   # FlashBlade Management IP
     network:
       dns: 
         - { domain: "purelab.purestorage.com", nameservers: [10.12.133.15, 10.12.133.16] } 
@@ -12,8 +12,8 @@ array_inventory:
         - { dstype: smb, enable: true, uri: "ldaps://lab.purestorage.com", base_dn: "DC=lab,DC=purestorage,DC=com", bind_user: Administrator, bind_password: password } 
         - { dstype: management, enable: true, uri: "ldaps://lab.purestorage.com", base_dn: "DC=lab,DC=purestorage,DC=com", bind_user: Administrator, bind_password: password }   
       subnet: 
-        - { name: VLAN2250, prefix: "10.21.250.0/24", vlan: 2250, gateway: 10.21.250.1, mtu: 1550 }
-        - { name: VLAN2210, prefix: "10.21.210.0/24", vlan: 2210, gateway: 10.21.210.1 } # default mtu: 1500
+        - { name: VLAN2250, prefix: "10.21.250.0/24", vlan: 2250, gateway: 10.21.250.1, mtu: 1500 }
+        - { name: VLAN2210, prefix: "10.21.210.0/24", vlan: 2210, gateway: 10.21.210.1, mtu: 9000 } # default mtu: 1500
       vip: 
         - { name: datavip1-2250, address: 10.21.250.7 } # deafault services: data
         - { name: replvip1-2210, address: 10.21.210.22, services: replication }
