@@ -174,8 +174,9 @@ The fb_details.yml file should look similar to this:
     windows_client_mount:
       mount1:
         server: { fb_name: FBServer1, fileshare: winbackup, data_vip: NFS-1 } 
-        client: { hosts: win, map_state: mapped, drive_letter: Z }                  
+        client: { hosts: win, map_state: mapped, reboot: true, drive_letter: Z }                  
   ```
+Windows host should be rebooted to apply changes. User can specify `reboot: true` to reboot host machine along with `map_state: mapped`.
 
 As an example of an fb_details.yml file, see:
   ```
@@ -211,9 +212,9 @@ Example `fb_details.yml` to eradicate and unmap filesystem.
     windows_client_mount:
       mount1:
         server: { fb_name: FBServer1, fileshare: winbackup, data_vip: NFS-1 } 
-        client: { hosts: win, map_state: unmapped, reboot: false, drive_letter: Z }                  
+        client: { hosts: win, map_state: unmapped, reboot: true, drive_letter: Z }                  
   ```     
-Windows host should be rebooted to apply unmap drive changes. User can specify `reboot: true` to reboot host machine along with `map_state: unmapped`.
+Windows host should be rebooted to apply changes. User can specify `reboot: true` to reboot host machine along with `map_state: unmapped`.
 
 
 Running this playbook
