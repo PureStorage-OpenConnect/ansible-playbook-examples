@@ -178,7 +178,7 @@
       fb_url: "{{ src_fb_url }}"
       api_token: "{{ src_fb_token }}"
 
-  - name: replica | Create new filesystem replica-link between {{ repl_vars.src.fb_name }} and {{ repl_vars.dst.fb_name }}
+  - name: replica | Create File System replica-link between {{ repl_vars.src.fb_name }} and {{ repl_vars.dst.fb_name }}
     purefb_fs_replica:
       name: "{{ repl_vars.src.fileshare }}"
       target_array: "{{ dst_fb_name }}"

@@ -1,8 +1,8 @@
 ---
-- name: FlashBlade filesystem failback/Reprotect
+- name: FlashBlade File System failback/Reprotect
   hosts: all
   vars_files:
-  - "vars/{{ env }}/fb_details.yml"
+  - "vars/{{ env }}/fb_details.fo_fb.yml"
   - "vars/{{ env }}/fb_secrets.yml"
   roles:
     - purefb_filesystem_failback

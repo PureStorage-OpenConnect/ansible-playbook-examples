@@ -11,7 +11,7 @@
     yum:
       name: 
         - nfs-utils
-        #- nfs4-acl-tools
+        - nfs4-acl-tools
       state: latest
   become: yes
   when: ansible_os_family == "RedHat"
@@ -28,7 +28,7 @@
     apt:
       name: 
         - nfs-common
-        #- nfs4-acl-tools
+        - nfs4-acl-tools
       state: latest
   become: yes
   when: ansible_os_family == "Debian"

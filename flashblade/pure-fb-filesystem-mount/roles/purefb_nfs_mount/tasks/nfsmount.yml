@@ -34,7 +34,7 @@
     path: "{{ mount_details['client']['mount_point'] }}"
     state: mounted
     fstype: nfs
-    opts: "{{ mount_details['client']['opts'] }}"
+    opts: "{{ mount_details['client']['opts'] | default(omit) }}"
     src: "{{ blade_info['purefb_info']['network'][mount_details.server.datavip_name]['address'] }}:/{{ mount_details.server.fileshare }}"
   become: true
   when: 

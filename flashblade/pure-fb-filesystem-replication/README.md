@@ -77,38 +77,100 @@ Configure Ansible control node - Linux(CentOS/Ubuntu)
     $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
     ```
 
-Role Variables
+Generating FlashBlade Login Credentials for Ansible Playbooks
 --------------
 
-There are two variable files "fb_details.yml" and "fb_secrets.yml" are holding the Ansible variables for the role at path `vars/<enviorement_name>`. 
+FlashBlade Ansible playbooks require an API token to connect to FlashBlade. An API token can be obtained by using ssh to connect to the FlashBlade management IP for a user that you wish the Ansible playbook to run as, and using the ```pureadmin``` command to retrieve or create an API token.
 
-This role and playbook can be used to setup replication on FlashBlade servers in different environments. To store role variable files user can create different directories with `vars/<environment_name>`. User must specify `<environment_name>` while running `ansible-playbook` by specifying value in extra vars command line flag `-e "env=<environment_name>"`.
-
-Ansible playbooks require API token to connect to FlashBlade servers. API token can be obtained by connecting FlashBlade management VIP through ssh for a specific user and running the following purity command.
+To create or retrieve an API token, first ssh to a FlashBlade as the user you wish the Ansible playbooks to run as. For example, to create an API token with full admin privileges equivalent to "pureuser", the built-in local administrator account, ssh to FlashBlade's management IP as "pureuser" and specify that user's password:
    ```
-   $ ssh <pureuser>@<pure_fb_mgmt_ip>
-   $ pureadmin list <username> --api-token --expose
+   ssh pureuser@flashblade.example.com
    ```
-Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_host" value with FlashBlade Management VIP in "fb_details.yml".
+To see current the logged-in user's API token:
+   ```
+   pureadmin list --api-token --expose
+   ```
+To create an API token expiring in 24 hours with the same permissions as the currently logged in user:
+   ```
+   pureadmin create --api-token --timeout 1d
+   ```
+The above commands generates output like the following:
+   ```
+   Name      API Token                               Created                  Expires
+   pureuser  T-85cc9ce8-643d-4d99-8dbc-656f38cacab0  2020-09-13 23:55:33 PDT  2020-09-14 23:55:33 PDT
+   ```
+For details, see "Creating an API token" in the [FlashBlade User Guide](https://support.purestorage.com/FlashBlade/Purity_FB/FlashBlade_User_Guides).
 
-Encrypt "fb_secrets.yml" using Ansible-Vault and enter password when prompted. This password is required to run playbook.
-```
-$ ansible-vault encrypt fb_secrets.yml
-```
+Update "api_token" obtained from FlashBlade in "fb_secrets.yml" file and "fb_host" value with FlashBlade Management VIP in "fb_details.repl.yml" and "fb_details.fo_fb.yml" files. 
 
-Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired values.
+Specifying FlashBlade API credentials for this playbook
+--------------
 
-* fb_details.yml
+This playbook supports organizing your FlashBlade credentials and configuration details into groups of FlashBlade arrays referred to here as "environments".
 
-    ```
+To specify credentials for this playbook to log into FlashBlade, create a file (relative to this playbook's location) at
+  ```
+  vars/<your_env_name>/fb_secrets.yml
+  ```
+where <your_env_name> is a name you assign to a group of one or more FlashBlade arrays.
+
+The fb_secrets.yml file should look like this:
+
+    ---
+    array_secrets:
+      FlashBlade1: # this must match the identifier used for this FlashBlade in fb_details
+        api_token: T-0b8ad89c-xxxx-yyyy-85ed-28660EXAMPLE  # API token obtained from FlashBlade
+      FBServer2:
+        api_token: T-79ced0e5-xxxx-xxxx-8741-66482f04c6d1  # API token obtained from FlashBlade
+
+For an example of an fb_secrets.yml file, see:
+  ```
+  vars/region/fb_secrets.yml
+  ```
+
+Using Ansible Vault to Encrypt FlashBlade Credentials
+--------------
+
+It is strongly recommended that you avoid storing FlashBlade API credentials in a plain text file.
+
+You can use Ansible Vault to encrypt your FlashBlade API credentials using a password that can be specified later at the command line when running your playbook.
+
+To encrypt the fb_secrets.yml file:
+  ```
+  ansible-vault encrypt fb_secrets.yml
+  ```
+Enter password when prompted to encrypt the file.
+
+Specifying FlashBlade connection details and Replication configuration
+--------------
+
+To configure your FlashBlade connection and Filesystem Replication details, create fb_details.repl.yml ( for failover/failback create file fb_details.fo_fb.yml ).
+
+  ```
+  var/<your_env_name>/fb_details.repl.yml
+  var/<your_env_name>/fb_details.fo_fb.yml
+  ```
+
+Example fb_details for replication and failover/failback, see:
+
+  ```
+  var/region/fb_details.repl.yml
+  vars/region/fb_details.fo_fb.yml
+  ```
+
+   #### Filesystem Replication 
+   File system replication requires two connected arrays and a replica link between the source file system and a target file system. A replica link is the connection between a local file system and target file system.
+
+   **fb_details.repl.yml for replication**
+   
     # FlashBlade inventory
     array_inventory:               
       FBServer1:
         fb_host: 10.22.222.80    #FlashBlade Management IP 
         filesystem_snapshot_policy:
-          - { name: daily, at: 12AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone
+          - { name: daily, at: 12AM, keep_for: 86400, every: 86400, timezone: America/Los_Angeles }
       FBServer2:
-        fb_host: 10.22.222.100   #FlashBlade Management IP
+          fb_host: 10.22.222.100  #FlashBlade Management IP
 
     # Filesystem replication
     FSReplication:       
@@ -116,17 +178,8 @@ Update variables in `fb_details.yml` and `fb_secrets.yml` files to the desired v
         common_params: { repl_policy: daily }
         src: { fb_name: FBServer1, replvip: 10.21.152.231, fileshare: src-nfs }
         dst: { fb_name: FBServer2, replvip: 10.21.236.201 }             
-    ```
-
-* fb_secrets.yml
-    ```
-    array_secrets:               
-      FBServer1:
-        api_token: T-c61e4dec-xxxx-xxxx-87f8-315264d9e65a
-      FBServer2:
-        api_token: T-79ced0e5-xxxx-xxxx-8741-66482f04c6d1 
-    ```
- `filesystem_snapshot_policy` variables:
+   
+`filesystem_snapshot_policy` variables:
 * `name`: name of the policy
 * `enabled`: whether policy is enabled( True/False )
 * `every`: Frequency in which snapshots are created - Range( in seconds ) available 300 - 31536000 (equates to 5m to 365d)
@@ -142,37 +195,15 @@ Snapshot Policy Examples:
 
 * Hourly: { name: hourly, every: 3600, keep_for: 3600 }
 
-
- #### Filesystem Replication 
-   In Filesystem replication local(src) and remote(dst) FlashBlades should be connected state. Replica-link will be established between local filesystem and remote filesystem with replication policy. 
-   
-   **fb_details.yml for replication**
-   
-    
-    # FlashBlade inventory
-    array_inventory:               
-      FBServer1:
-        fb_host: 10.22.222.80    #FlashBlade Management IP 
-        filesystem_snapshot_policy:
-          - { name: daily, at: 12AM, keep_for: 86400, every: 86400, timezone: Asia/Shanghai } # optional params: timezone
-      FBServer2:
-          fb_host: 10.22.222.100   #FlashBlade Management IP
-
-    # Filesystem replication
-    FSReplication:       
-      replication1:
-        common_params: { repl_policy: daily }
-        src: { fb_name: FBServer1, replvip: 10.21.152.231, fileshare: src-nfs }
-        dst: { fb_name: FBServer2, replvip: 10.21.236.201 }             
-    
-
  #### Filesystem failover 
-   In Filesystem failover target(dst) filesystem to be promoted and all the clients must then be directed to the target array. The local file system is then demoted.
+   In a replication setup, failover requires promoting the file system on target (remote) array and then demoting the file system on the local (source) array.
+    
+   Note that when demoting the local file system, any writes performed since the last replication will be discarded. If a local snapshot was taken since last replication, demoting the file system requires that snapshot be destroyed and eradicated. The file system must either have no snapshots, or the most recent snapshot must be a replication snapshot.
   
-   Enter Clients inventory detail in `hosts.ini` and specify `mount_point` under "client_details" section in `fb_details.yml` file.
-   Data VIP is required to redirect clients from local to remote array.
+   Enter Clients inventory detail in `hosts.ini`.
+   Example fb_details for failover present at `vars/region/fb_details.fo_fb.yml`
   
-  **fb_details.yml for failover**
+  **fb_details.fo_fb.yml for failover**
    
    ```
     # FlashBlade inventory
@@ -189,16 +220,16 @@ Snapshot Policy Examples:
         client_details:
           - hosts: dc
             mount_point: /mnt/src-nfs
-        src: { fb_name: FBServer1, datavip_name: srcdatavip, fileshare: src-nfs }
-        dst: { fb_name: FBServer2, datavip_name: dstdatavip }                        
+        src: { fb_name: FBServer1, datavip_name: <srcdatavip_name>, fileshare: src-nfs }
+        dst: { fb_name: FBServer2, datavip_name: <dstdatavip_name> }                        
    ``` 
  #### Filesystem failback/reprotect 
-   Filesystem failback required to stop writes on the promoted remote file system, promoting source filesystem and redirecting all the clients to local filesystem. The remote file system is then demoted.
+   Performing failback restores the original local/target relationship between arrays and file systems in a replication setup. During failback, once the remote file system is demoted and the local file system is promoted and clients redirected to the local file system, the original replication setup resumes; data is written to the local file system and then replicated to the remote file system.
    
-   Enter Clients detail in `hosts.ini` and provide details of mount point and "host/group_name" under "client_details" section in `fb_details.yml` file.
-   Data VIP is required to redirect clients from local to remote array.
-   
-   **fb_details.yml for failback**
+   Update Client/host details in `hosts.ini`. 
+   Example fb_details for failback present at `vars/region/fb_details.fo_fb.yml`
+
+   **fb_details.fo_fb.yml for failback**
    
    ```
     # FlashBlade inventory
@@ -214,31 +245,30 @@ Snapshot Policy Examples:
         common_params: { repl_policy: daily }
         client_details:
           - hosts: dc
-            mount_point: /mnt/var/src-nfs
-        src: { fb_name: FBServer1, datavip_name: srcdatavip, fileshare: src-nfs }
-        dst: { fb_name: FBServer2, datavip_name: dstdatavip }                        
+            mount_point: /mnt/src-nfs
+        src: { fb_name: FBServer1, datavip_name: <srcdatavip_name>, fileshare: src-nfs }
+        dst: { fb_name: FBServer2, datavip_name: <dstdatavip_name> }                        
    ``` 
 
 Running this playbook
 --------------
 
 To execute playbook, issue the following command:
-( Replace `<enviorement_name>` with the correct value )
 * Replication
    ```bash
-   $ ansible-playbook filesystem_replication.yml -e "env=<enviorement_name>" --ask-vault-pass
+   $ ansible-playbook filesystem_replication.yml -e "env=<your_env_name>" --ask-vault-pass
    ```
 * Failover
 
   Using Remote host SSH key(Replace `<ssh-key-path>` with ssh private key path)
      ```bash
-   $ ansible-playbook filesystem_failover.yml -i hosts -e "env=<enviorement_name>" --ask-vault-pass --key-file=<ssh-key-path>
+   $ ansible-playbook filesystem_failover.yml -i hosts.ini -e "env=<your_env_name>" --ask-vault-pass --key-file=<ssh-key-path>
    ```
    Enter vault password when prompted.
   
   Using Remote host password(Not Recommended)
    ```bash
-   $ ansible-playbook filesystem_failover.yml -i hosts -e "env=<enviorement_name>" --ask-vault-pass --ask-pass --ask-become-pass
+   $ ansible-playbook filesystem_failover.yml -i hosts.ini -e "env=<your_env_name>" --ask-vault-pass --ask-pass --ask-become-pass
    ```
    Enter vault password, hosts ssh password and root password.
 
@@ -246,13 +276,13 @@ To execute playbook, issue the following command:
 
   Using Remote host SSH key(Replace `<ssh-key-path>` with ssh private key path)
      ```bash
-   $ ansible-playbook filesystem_failback.yml -i hosts -e "env=<enviorement_name>" --ask-vault-pass --key-file=<ssh-key-path>
+   $ ansible-playbook filesystem_failback.yml -i hosts.ini -e "env=<your_env_name>" --ask-vault-pass --key-file=<ssh-key-path>
    ```
    Enter vault password when prompted.
 
   Using Remote host password(Not Recommended)
    ```bash
-   $ ansible-playbook filesystem_failback.yml -i hosts -e "env=<enviorement_name>" --ask-vault-pass --ask-pass --ask-become-pass
+   $ ansible-playbook filesystem_failback.yml -i hosts.ini -e "env=<your_env_name>" --ask-vault-pass --ask-pass --ask-become-pass
    ```
    Enter vault password, hosts ssh password and root password.
 
@@ -268,16 +298,15 @@ The workaround for this limitation is to pass `-c paramiko` flag in ansible-play
   **failover**
   
    ```bash
-   $ sudo pip install paramiko
-   $ ansible-playbook filesystem_failover.yml -i hosts -e "env=region" --ask-vault-pass --ask-pass --ask-become-pass -c paramiko
+   $ pip install paramiko
+   $ ansible-playbook filesystem_failover.yml -i hosts.ini -e "env=region" --ask-vault-pass --ask-pass --ask-become-pass -c paramiko
    ```
    Enter remote hosts ssh password, root password and ansible vault password.
    
   **failback**
   
    ```bash
-   $ sudo pip install paramiko
-   $ ansible-playbook filesystem_failback.yml -i hosts -e "env=region" --ask-vault-pass --ask-pass --ask-become-pass -c paramiko
+   $ ansible-playbook filesystem_failback.yml -i hosts.ini -e "env=region" --ask-vault-pass --ask-pass --ask-become-pass -c paramiko
    ```
    Enter remote hosts ssh password, root password and ansible vault password.
 

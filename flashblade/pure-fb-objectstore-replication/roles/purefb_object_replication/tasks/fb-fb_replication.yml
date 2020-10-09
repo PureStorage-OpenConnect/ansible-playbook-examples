@@ -4,6 +4,31 @@
     combined_inventory: "{{ array_inventory|combine(array_secrets, recursive=True) }}"
   no_log: true
 
+- name: validation | Fail if source Flashblade server not exist in replication for {{ repl_loop.key }}
+  fail:
+    msg: FB server {{ repl_vars.src.server }} not available in fb_details
+  when: repl_vars.src.server not in combined_inventory
+
+- name: validation | Fail if target Flashblade server not exist in replication for {{ repl_loop.key }}
+  fail:
+    msg: FB server {{ repl_vars.dst.server }} not available in fb_details
+  when: repl_vars.dst.server not in combined_inventory
+
+- name: validation | Fail if src fb_host not defined for {{ repl_loop.key }}
+  fail:
+    msg: fb_host not available in fb_details for {{ repl_vars.src.server }}
+  when: combined_inventory[repl_vars.src.server].fb_host is not defined
+
+- name: validation | Fail if src api_token not defined for {{ repl_loop.key }}
+  fail:
+    msg: api_token not available in fb_secrets for {{ repl_vars.src.server }}
+  when: combined_inventory[repl_vars.src.server].api_token is not defined
+
+- name: validation | Fail if dst api_token not defined for {{ repl_loop.key }}
+  fail:
+    msg: api_token not available in fb_secrets for {{ repl_vars.dst.server }}
+  when: combined_inventory[repl_vars.dst.server].api_token is not defined
+
 - name: facts | Set fb_url and fb_token facts from array_inventory for {{ repl_loop.key }}
   set_fact:
     src_fb_url: "{{ combined_inventory[repl_vars.src.server].fb_host }}"

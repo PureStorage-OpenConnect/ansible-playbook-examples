@@ -1,0 +1,16 @@
+# FlashBlade inventory
+array_inventory:               
+  FBServer1:
+      fb_host: 10.21.xxx.151  #FlashBlade Management IP
+  FBServer2:
+      fb_host: 10.21.xxx.11  #FlashBlade Management IP
+
+# Filesystem replication
+FSReplication:       
+  replication1:
+    common_params: { repl_policy: daily }
+    client_details:
+      - hosts: dc
+        mount_point: /mnt/database
+    src: { fb_name: FBServer1, datavip_name: data8, fileshare: database }
+    dst: { fb_name: FBServer2, datavip_name: NFS-1 }

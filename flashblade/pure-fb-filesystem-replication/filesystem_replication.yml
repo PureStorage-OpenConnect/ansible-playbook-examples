@@ -1,9 +1,9 @@
 ---
-- name: FlashBlade filesystem replication
+- name: FlashBlade File System replication
   hosts: localhost
   gather_facts: false
   vars_files:
-  - "vars/{{ env }}/fb_details.yml"
+  - "vars/{{ env }}/fb_details.repl.yml"
   - "vars/{{ env }}/fb_secrets.yml"
   roles:
     - purefb_filesystem_replication
