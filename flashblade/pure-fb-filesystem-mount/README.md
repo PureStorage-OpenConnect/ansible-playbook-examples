@@ -201,6 +201,19 @@ File System configuration options:
 * fastremove: Define whether the fast remove directory is enabled for the filesystem. ( default false)
 * hard_limit: Define whether the capacity for a filesystem is a hard limit. ( default false )
 
+Using Ansible Vault to Encrypt FlashBlade Credentials
+--------------
+
+It is strongly recommended that you avoid storing FlashBlade API credentials in a plain text file.
+
+You can use Ansible Vault to encrypt your FlashBlade API credentials using a password that can be specified later at the command line when running your playbook.
+
+To encrypt the fb_secrets.yml file:
+  ```
+  ansible-vault encrypt fb_secrets.yml
+  ```
+Enter the password when prompted to encrypt the file.
+
 Running this playbook
 --------------
 

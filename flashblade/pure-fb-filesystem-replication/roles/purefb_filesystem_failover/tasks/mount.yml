@@ -4,11 +4,26 @@
   - name: packages | Install nfs-utils package
     include: packages.yml
 
-  - name: mount | Unmout all the clients from src and mount back to dst filesystem
+  - name: opts | Get mount options from existing File System mount
+    set_fact:
+      mount_opts: "{{ item.options }}"
+    loop: "{{ ansible_mounts }}"
+    when: item.mount == mount.mount_point
+    loop_control:
+      label: "{{ item.mount }}"
+
+  - name: unmount | Unmout all the clients from source File System
+    mount:
+      path: "{{ mount.mount_point }}"
+      state: absent
+    become: true
+
+  - name: mount | Mount clients back to the destination File System
     mount:
       path: "{{ mount.mount_point }}"
       state: mounted
       fstype: nfs
+      opts: "{{ mount_opts | default(omit) }}"
       src: "{{ dst_data_vip }}:/{{ dst_fileshare }}"
     become: true
   when: mount.hosts in group_names or mount.hosts == inventory_hostname or mount.hosts == ansible_hostname

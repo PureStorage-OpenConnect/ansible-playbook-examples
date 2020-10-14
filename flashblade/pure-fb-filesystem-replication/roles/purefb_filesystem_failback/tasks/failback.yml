@@ -99,8 +99,6 @@
   set_fact:
     src_fb_name: "{{ src_fb_info.purefb_info.default.flashblade_name }}" 
     dst_fb_name: "{{ dst_fb_info.purefb_info.default.flashblade_name }}" 
-    # src_rl_policy: "{{ src_fb_info['purefb_info']['file_replication'][repl_vars.src.fileshare].policies | list }}"
-    # dst_rl_policy: "{{ dst_fb_info['purefb_info']['file_replication'][dst_fileshare].policies | list }}"
     src_data_vip: "{{ src_fb_info.purefb_info.network[repl_vars.src.datavip_name].address }}" 
     dst_data_vip: "{{ dst_fb_info.purefb_info.network[repl_vars.dst.datavip_name].address }}" 
   delegate_to: localhost
@@ -131,28 +129,13 @@
   purefb_fs:
     name: "{{ repl_vars.src.fileshare }}"
     policy: "{{ repl_vars.common_params.src_policy }}"
-    policy_state: absent
+    policy_state: present
     fb_url: "{{ src_fb_url }}"
     api_token: "{{ src_fb_token }}"
   when: repl_vars.common_params.src_policy is defined
   delegate_to: localhost
   become: false
   run_once: true
-
-# TODO: Feature will be Released in PureFB collection v1.4.0
-# - name: replica | Remove replica link policy for {{ repl_loop.key }}
-#   purefb_fs_replica:
-#     name: "{{ dst_fileshare }}"
-#     policy: "{{ dst_rl_policy[0] }}"
-#     state: absent
-#     fb_url: "{{ dst_fb_url }}"
-#     api_token: "{{ dst_fb_token }}"
-#   when:
-#     - dst_rl_policy is defined and dst_rl_policy | length > 0
-#     - dst_fb_info.purefb_info.file_replication[dst_fileshare].direction == "outbound"
-#   delegate_to: localhost
-#   become: false
-#   run_once: true
 
 - name: mount | Unmout all the clients from remote(dst) and mount back to local(src) filesystem
   include: mount.yml
@@ -164,28 +147,10 @@
   purefb_fs:
     name: "{{ dst_fileshare }}"
     promote: false
+    discard_snaps: true
     fb_url: "{{ dst_fb_url }}"
     api_token: "{{ dst_fb_token }}"
   delegate_to: localhost
   register: demote_fs
-  become: false
-  run_once: true
-
-- name: sleep for 30 seconds and continue with play
-  wait_for:
-    timeout: 30
-  when: demote_fs.changed | bool
-  delegate_to: localhost
-  run_once: true
-
-- name: replica | Add replica link policy back for {{ repl_loop.key }}
-  purefb_fs_replica:
-    name: "{{ repl_vars.src.fileshare }}"
-    policy: "{{ repl_vars.common_params.repl_policy }}"
-    state: present
-    fb_url: "{{ src_fb_url }}"
-    api_token: "{{ src_fb_token }}"
-  when: repl_vars.common_params.repl_policy is defined
-  delegate_to: localhost
   become: false
   run_once: true

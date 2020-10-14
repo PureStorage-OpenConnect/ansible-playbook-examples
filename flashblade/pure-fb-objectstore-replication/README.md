@@ -119,9 +119,9 @@ To configure your FlashBlade connection details and the Object Store account, us
     # FBServer details
     array_inventory:               
       FBServer1:
-        fb_host: 10.21.241.151     #FlashBlade Management IP
+        fb_host: 10.xx.xxx.151     #FlashBlade Management IP
       FBServer2:
-        fb_host: 10.21.241.11      #FlashBlade Management IP     
+        fb_host: 10.xx.xxx.11      #FlashBlade Management IP     
 
     # FB-FB Replication
     S3Replication: 
