@@ -1,0 +1,109 @@
+---
+  - name: Drift Control | FlashArray | Get facts for {{ url }}
+    purefa_info:
+      fa_url: "{{ url }}"
+      api_token: "{{ api }}"
+    register: array_info
+
+  - name: Drift Control | FlashArray | Set array_name variable
+    set_fact:
+      array_name: "{{ array_info.purefa_info.default.array_name }}"
+
+  - name: Drift Control | FlashArray | Set purity_version variable
+    set_fact:
+      array_version: "{{ array_info.purefa_info.default.purity_version }}"
+
+  - name: Drift Control | FlashArray | DNS for {{ array_name }}
+    purefa_dns:
+      domain: "{{ dns_domain }}"
+      nameservers: "{{ dns_address }}"
+      fa_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashArray | NTP for {{ array_name }}
+    purefa_ntp:
+      ntp_servers: "{{ ntp_servers }}"
+      fa_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashArray | Banner for {{ array_name }}
+    purefa_banner:
+      banner: "Acme Co. Array - {{ array_name }} ({{ array_info.purefa_info.default.purity_version }})\n              ---------              \n     Do Not Use Without Permission"
+      fa_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashArray | SMTP for {{ array_name }}
+    purefa_smtp:
+      sender_domain: "{{ smtp_domain }}"
+      relay_host: "{{ smtp_relay }}"
+      fa_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashArray | syslog for {{ array_name }}
+    purefa_syslog:
+      protocol: "{{ syslog_protocol }}"
+      address: "{{ syslog_address }}"
+      fa_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashArray | Alert Email for {{ array_name }}
+    purefa_alert:
+      address: "{{ alert_address }}"
+      fa_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashArray | GUI Timeout for {{ array_name }}
+    purefa_timeout:
+      state: absent
+      fa_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashArray | Active Directory roles for {{ array_name }}
+    purefa_dsrole:
+      fa_url: "{{ url }}"
+      api_token: "{{ api }}"
+      role: "{{ ad_item.name }}"
+      group_base: "{{ ad_item.group_base }}"
+      group: "{{ ad_item.group }}"
+      state: "{{ ad_item.state }}"
+    loop_control:
+      loop_var: ad_item
+    loop:
+      - name: array_admin
+        group_base: "{{ ad_admin_base }}"
+        group: "{{ ad_admin_group }}"
+        state: present
+      - name: readonly
+        group_base: "{{ ad_ro_base }}"
+        group: "{{ ad_ro_group }}"
+        state: present
+      - name: ops_admin
+        group_base: null
+        group: null 
+        state: absent
+      - name: storage_admin
+        group_base: null
+        group: null 
+        state: absent
+
+  - name: Drift Control | FlashArray | Management Active Directory for {{ array_name }}
+    purefa_ds:
+      fa_url: "{{ url }}"
+      api_token: "{{ api }}"
+      enable: true
+      dstype: management
+      uri: "{{ mgmt_ad_uri }}"
+      base_dn: "{{ mgmt_ad_base }}"
+      bind_user: "{{ mgmt_fa_ad_user }}"
+
+  - name: Drift Control | FlashArray | Data Active Directory for {{ array_name }}
+    purefa_ds:
+      fa_url: "{{ url }}"
+      api_token: "{{ api }}"
+      enable: false
+      dstype: data
+      uri: "{{ data_ad_uri }}"
+      base_dn: "{{ data_ad_base }}"
+      bind_user: "{{ data_fa_ad_user }}"
+    when: array_version.split('.')[0]|int == 6
+

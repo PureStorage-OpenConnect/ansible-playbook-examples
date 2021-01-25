@@ -1,0 +1,108 @@
+---
+  - name: Drift Control | FlashBlade | Get facts for {{ url }}
+    purefb_info:
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+    register: blade_info
+
+  - name: Drift Control | FlashBlade | Set flashblade_name variable
+    set_fact:
+      blade_name: "{{ blade_info.purefb_info.default.flashblade_name }}"
+
+  - name: Drift Control | FlashBlade | Set purity_version variable
+    set_fact:
+      blade_version: "{{ blade_info.purefb_info.default.purity_version }}"
+
+  - name: Drift Control | FlashBlade | DNS for {{ blade_name }}
+    purefb_dns:
+      domain: "{{ dns_domain }}"
+      nameservers: "{{ dns_address }}"
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashBlade | NTP for {{ blade_name }}
+    purefb_ntp:
+      ntp_servers: "{{ ntp_servers }}"
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashBlade | Banner for {{ blade_name }}
+    purefb_banner:
+      banner: "Acme Co. FlashBlade - {{ blade_name }} ({{ blade_info.purefb_info.default.purity_version }})\n                 ---------                 \n        Do Not Use Without Permission"
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashBlade | SMTP for {{ blade_name }}
+    purefb_smtp:
+      domain: "{{ smtp_domain }}"
+      host: "{{ smtp_relay }}"
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashBlade | syslog for {{ blade_name }}
+    purefb_syslog:
+      name: syslog1
+      protocol: "{{ syslog_protocol }}"
+      address: "{{ syslog_address }}"
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashBlade | Alert Email for {{ blade_name }}
+    purefb_alert:
+      address: "{{ alert_address }}"
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+
+  - name: Drift Control | FlashBlade | Active Directory Roles for {{ blade_name }}
+    purefb_dsrole:
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+      role: "{{ ad_item.name }}"
+      group_base: "{{ ad_item.group_base }}"
+      group: "{{ ad_item.group }}"
+      state: "{{ ad_item.state }}"
+    loop_control:
+      loop_var: ad_item
+    loop:
+      - name: array_admin
+        group_base: "{{ ad_admin_base }}"
+        group: "{{ ad_admin_group }}"
+        state: present
+      - name: readonly
+        group_base: "{{ ad_ro_base }}"
+        group: "{{ ad_ro_group }}"
+        state: present
+      - name: ops_admin
+        group_base: null
+        group: null 
+        state: absent
+      - name: storage_admin
+        group_base: null
+        group: null 
+        state: absent
+
+  - name: Drift Control | FlashBlade | Active Directory for {{ blade_name }}
+    purefb_ds:
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+      enable: true
+      uri: "{{ ad_item.uri }}"
+      base_dn: "{{ ad_item.base }}"
+      bind_user: "{{ ad_item.user }}"
+      bind_password: "{{ ad_item.password }}" 
+      dstype: "{{ ad_item.type }}"
+    loop_control:
+      loop_var: ad_item
+    loop:
+      - type: management
+        uri: "{{ mgmt_ad_uri }}"
+        base: "{{ mgmt_ad_base }}"
+        user: "{{ fb_ad_user }}"
+        password: "{{ mgmt_ad_password }}"
+      - type: smb
+        uri: "{{ smb_uri }}"
+        base: "{{ mgmt_ad_base }}"
+        user: "{{ smb_user }}"
+        password: "{{ mgmt_ad_password }}"
+    no_log: True
+
