@@ -1,0 +1,57 @@
+---
+arrays:
+  # FA 1
+  - url: <IP address>
+    api: <API token>
+  # FA 2
+  - url: <IP address>
+    api: <API token>
+
+blades:
+  # FB 1
+  - url: <IP address>
+    api: <API token>
+  # FB 2
+  - url: <IP address>
+    api: <API token>
+
+dns_address:
+  - <IP address 1>
+  - <IP address 2>
+
+dns_domain: example.acme.com
+
+ntp_servers:
+  - ntp1.pool.org
+  - ntp2.pool.org
+
+syslog_protocol: udp
+syslog_address: syslog.acme.com
+
+smtp_relay: smtp.acme.com
+smtp_domain: acme.com
+
+alert_address: notify@acme.com
+
+mgmt_ad_uri:
+  - ldap://ad01.acme.com
+  - ldap://ad02.acme.com
+mgmt_ad_base: "DC=acme,DC=com"
+mgmt_fa_ad_user: "service.ldap"
+mgmt_ad_password: "P@55word1!"
+
+data_ad_uri:
+  - "ldap://10.21.234.10"
+data_ad_base: "DC=acme,DC=comn"
+data_fa_ad_user: "CN=fafiles,OU=Users,OU=Acme Users,DC=acme,DC=com"
+data_ad_password: "P@55word1!"
+fb_ad_user: "service.ldap@acme.com"
+ad_admin_base: "OU=Groups,OU=Acme Users"
+ad_admin_group: "Acme Co Array Admins"
+ad_ro_base: "OU=Groups,OU=Acme Users"
+ad_ro_group: "Acme Co Array ReadOnly"
+
+smb_uri:
+  - ldap://ad01.acme.com
+  - ldap://ad02.acme.com
+smb_user: "CN=acem ldap,OU=Users,OU=Acme Users,DC=acme,DC=com"
