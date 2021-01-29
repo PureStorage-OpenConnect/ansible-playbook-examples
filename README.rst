@@ -24,9 +24,9 @@ the latest Ansible package:
 ``#  pip install ansible``
 
 
-====================
-FlashArray Playbooks
-====================
+==============================================
+FlashArray (incl. Cloud Block Store) Playbooks
+==============================================
 Customizing Playbooks for your environment
 ------------------------------------------
 
