@@ -1,0 +1,58 @@
+---
+- name: Collect IQN and iSCSI IP Info
+  hosts: cloudblockstore
+  connection: local
+  gather_facts: yes
+  collections:
+  - purestorage.flasharray
+  vars:
+    ansible_python_interpreter: auto
+
+  tasks:
+    - name: Collect Pure iSCSI Configuration
+      purefa_info:
+        gather_subset:
+          - all
+        fa_url: "{{ fa_url }}"
+        api_token: "{{ pure_api_token }}"
+      register: array_info
+
+    - name: Collect Pure Target IQN and Set as Fact
+      shell: echo "{{ array_info['purefa_info']['interfaces']['CT0.ETH2'] }}"
+      register: pureportiqn
+
+    - set_fact:
+        iqn: "{{ pureportiqn }}"
+        cacheable: yes
+
+    - name: echo ct0.eth2
+      shell: echo "{{ array_info['purefa_info']['network']['ct0.eth2']['address'] }}"
+      register: pureiscsiportalct0ip
+    
+    - name: register ct0.eth2 ip.port
+      shell: echo "{{ array_info['purefa_info']['network']['ct1.eth2']['address'] }}":3260
+      register: pureiscsiportalct0ipport
+    
+    - set_fact:
+        iscsiportalct0ip: "{{ pureiscsiportalct0ip }}"
+        cacheable: yes
+    
+    - set_fact:
+        iscsiportalct0ipport: "{{ pureiscsiportalct0ipport }}"
+        cacheable: yes
+
+    - name: echo ct1.eth2
+      shell: echo "{{ array_info['purefa_info']['network']['ct1.eth2']['address'] }}"
+      register: pureiscsiportalct1ip
+
+    - name: register ct1.eth2 ip.port
+      shell: echo "{{ array_info['purefa_info']['network']['ct1.eth2']['address'] }}":3260
+      register: pureiscsiportalct1ipport
+
+    - set_fact:
+        iscsiportalct1ip: "{{ pureiscsiportalct1ip }}"
+        cacheable: yes
+            
+    - set_fact:
+        iscsiportalct1ipport: "{{ pureiscsiportalct1ipport }}"
+        cacheable: yes

@@ -1,0 +1,31 @@
+---
+- hosts: "{{ cloud_initiator }}"
+  become: true
+  gather_facts: yes
+  vars:
+    ansible_python_interpreter: auto
+
+  tasks:
+
+        - name: Perform iSCSI session rescan
+          shell:
+            cmd: iscsiadm -m session --rescan
+
+        - name: Sleep for 10 seconds to allow time for iscsi rescan to complete
+          wait_for:
+            timeout: 10
+          delegate_to: localhost
+
+        - name: Scan system for multipath devices and assemble them on SUSE
+          shell:
+            cmd: multipath
+          when: ansible_distribution_file_variety == 'SUSE'
+
+        - name: register multipath -ll output
+          shell:
+            cmd: multipath -ll
+          register: multipathll
+
+        - name: print multipath -ll output
+          debug:
+            var: multipathll
