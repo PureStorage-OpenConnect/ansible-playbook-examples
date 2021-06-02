@@ -1,4 +1,4 @@
-ansible==2.10
+ansible==2.10.7
 purity-fb==1.10
 netaddr
 pytz
