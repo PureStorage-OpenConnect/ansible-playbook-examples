@@ -22,7 +22,7 @@ Configure Ansible control node - MacOS
    ```
 * Install dependencies using the “requirements.txt” in the directory of this README file. (This ensures that ansible, purity-fb, netaddr, and pytz are installed):
    ```bash
-    $ cd ansible-playbook-examples/flashblade/pure-fb-objectstore-replication/
+    $ cd ansible-playbook-examples/flashblade/pure-fb-filesystem-setup/
     $ pip3 install -r requirements.txt
    ```
     **Note:** Upgrading directly from ansible-2.9 or less to ansible-2.10 or greater with pip is not supported, Uninstall ansible-2.9 or less before installing ansible-2.10 or greater.
