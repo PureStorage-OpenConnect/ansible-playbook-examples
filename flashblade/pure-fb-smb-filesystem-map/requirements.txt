@@ -1,5 +1,6 @@
 ansible==2.10.7
-purity-fb==1.10
+purity-fb
+py-pure-client
 netaddr
 pytz
 pywinrm>=0.3.0
