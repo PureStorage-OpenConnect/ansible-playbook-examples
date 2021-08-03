@@ -6,21 +6,13 @@ Ansible playbook for FlashBlade Object Store account, user, and bucket configura
 
 Requirements
 ------------
-**Requires: Python >=2.7, <=3.6 to be installed on the Ansible control node.**
+**Requires: Python >=2.7, >=3.4 to be installed on the Ansible control node.**
 
-The Python version on the Ansible control node must match the version required by the FlashBlade Python SDK (purity_fb): Python >=2.7, <=3.6
+The Python version on the Ansible control node must match the version required by the FlashBlade Python SDK (purity_fb): Python >=2.7, >=3.4
 
 Configure Ansible control node - MacOS
 --------------
-* Setup pyenv and install Python v3.6.9.
-   ```bash
-    $ brew install pyenv
-    $ echo 'eval "$(pyenv init -)"' >> ~/.bash_profile
-    $ source ~/.bash_profile
-    $ pyenv install 3.6.9
-    $ pyenv global 3.6.9
-   ```
-* Check installed Python version, Output should be `Python 3.6.9`.
+* Check Python version, Output should be Python >=2.7, >=3.4.
    ```bash
     $ python3 --version
    ```
@@ -38,9 +30,9 @@ Configure Ansible control node - MacOS
     $ pip uninstall ansible
     $ pip install ansible
     ```
-* Install the FlashBlade Ansible Collection: ( Requires Ansible-2.10 or greater)
+* Install the FlashBlade Ansible Collection:
     ```bash
-    $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
+    $ ansible-galaxy collection install purestorage.flashblade
     ```
 * Set environment variable to allow Ansible to use fork before running any playbook.
     ```bash
@@ -73,9 +65,9 @@ Configure Ansible control node - Linux(CentOS/Ubuntu)
     $ pip uninstall ansible
     $ pip install ansible
     ```
-* Install the FlashBlade Ansible Collection: ( Requires Ansible-2.10 or greater)
+* Install the FlashBlade Ansible Collection:
     ```bash
-    $ ansible-galaxy collection install git+https://github.com/Pure-Storage-Ansible/FlashBlade-Collection.git#/collections/ansible_collections/purestorage/flashblade/ --force
+    $ ansible-galaxy collection install purestorage.flashblade
     ```
 
 Generating FlashBlade Login Credentials for Ansible Playbooks
