@@ -1,4 +1,4 @@
-ansible==2.10
+ansible>=4.2.0
 purity-fb
 py-pure-client
 netaddr
