@@ -9,7 +9,7 @@
 
   - name: Create new FlashArray Volume
     purefa_volume:
-      name: "{{ volName }}"
+      name: "{{ volPrefix }}{{ volName }}{{ volSuffix }}"
       size: "{{ volSize }}"
       fa_url: "{{ faUrl }}"
       api_token: "{{ apiToken }}"
@@ -18,7 +18,7 @@
     purefa_pg:
       pgroup: "{{ pgName }}"
       volume:
-        - "{{ volName }}"
+        - "{{ volPrefix }}{{ volName }}{{ volSuffix }}"
       fa_url: "{{ faUrl }}"
       api_token: "{{ apiToken }}"
       enabled: False
