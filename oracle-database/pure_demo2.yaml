@@ -2,6 +2,8 @@
   hosts: localhost 
   vars_files:
     - vars/demo.yaml
+  collections:
+    - purestorage.flasharray
 
   gather_facts: false
 
