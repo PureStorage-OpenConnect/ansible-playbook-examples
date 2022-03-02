@@ -1,10 +1,12 @@
 ---
 # 
 volName:   ansible_demo
+volPrefix:
+volSuffix:
 volSize:   1T
 volNbr:    3
 pgName:    demoPG
 pgSuffix:  snap
 tgtServer: z-oracle     
 faUrl:     10.225.112.80       
-apiToken:  c4eb5b21-4122-b871-8b0f-684bf72b5283
+apiToken:  5d8ad02f-547d-fc24-bb51-fa0d2b0de973
