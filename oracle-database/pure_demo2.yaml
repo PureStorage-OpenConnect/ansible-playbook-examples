@@ -26,7 +26,7 @@
  
   - name: Delete FlashArray Volume
     purefa_volume:
-      name: "{{ volName }}"
+      name: "{{ volPrefix }}{{ volName }}{{ volSuffix }}"
       fa_url: "{{ faUrl }}"
       api_token: "{{ apiToken }}"
       state: absent
