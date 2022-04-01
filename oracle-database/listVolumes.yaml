@@ -1,0 +1,42 @@
+# List Pure FlashArray Volumes
+- name: FlashArray Volume List
+  hosts: localhost 
+  vars_files:
+    - vars/demo.yaml 
+
+  gather_facts: false
+
+  tasks:
+
+# Create FlasArray session  
+  - name: Create FlashArray Session
+    uri:
+      url: https://{{ faUrl }}/api/1.19/auth/session
+      method: POST
+      validate_certs: "no"
+      return_content: "yes"
+      body:
+        api_token: "{{ apiToken }}"
+      body_format: json 
+    register: session
+
+# Get FA Volumes, filter and sort
+  - name: Get FA Volumes
+    uri:
+      url: "https://{{ faUrl }}/api/1.19/volume?filter=name='{{ volPrefix }}*'%20and%20name='*{{ volSuffix }}'&sort=name"
+      method: GET
+      headers:
+        Cookie: "{{ session.set_cookie }}"
+      validate_certs: "no"
+      return_content: "yes"
+    register: faVols
+
+#  - name: Print returned json dictionary
+#    debug:
+#      var: faVols.json
+
+# Show results
+  - name: List filtered FA Volumes
+    debug:
+      msg: "Found Volume: {{ item.name }}"
+    loop: "{{ faVols.json }}"
