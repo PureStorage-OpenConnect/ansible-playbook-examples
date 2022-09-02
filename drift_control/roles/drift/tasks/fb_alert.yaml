@@ -1,0 +1,177 @@
+---
+  - name: Drift Control | FlashBlade | Get facts for {{ url }}
+    purefb_info:
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+    register: blade_info
+
+  - name: Drift Control | FlashBlade | Set facts
+    set_fact:
+      blade_name: "{{ blade_info.purefb_info.default.flashblade_name }}"
+      full_blade_name: "{{ blade_info.purefb_info.default.flashblade_name + '[' + dc + ']'}}"
+      blade_version: "{{ blade_info.purefb_info.default.purity_version }}"
+
+  - name: Drift Control | FlashBlade | DNS for {{ full_blade_name }}
+    purefb_dns:
+      domain: "{{ dc + '_dns_domain' }}"
+      nameservers: "{{ dc + '_dns_address' }}"
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+    check_mode: yes
+    register: dns_change
+
+  - name: Drift Control | FlashBlade | Slack alert for DNS on {{ full_blade_name }}
+    local_action:
+      module: slack
+      token: "{{ slack_token }}"
+      msg: "Array {{ full_blade_name }} has incorrect DNS configuration"
+    when: dns_change is defined
+
+  - name: Drift Control | FlashBlade | NTP for {{ full_blade_name }}
+    purefb_ntp:
+      ntp_servers: "{{ dc + '_ntp_servers' }}"
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+    check_mode: yes
+    register: ntp_change
+
+  - name: Drift Control | FlashBlade | Slack alert for NTP on {{ full_blade_name }}
+    local_action:
+      module: slack
+      token: "{{ slack_token }}"
+      msg: "Array {{ full_blade_name }} has incorrect NTP configuration"
+    when: ntp_change is defined
+
+  - name: Drift Control | FlashBlade | Banner for {{ full_blade_name }}
+    purefb_banner:
+      banner: "{{ blade_name }} [{{ dc }}] ({{ blade_info.purefb_info.default.purity_version }})\n                 ---------                 \n        Do Not Use Without Permission"
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+    check_mode: yes
+    register: banner_change
+
+  - name: Drift Control | FlashBlade | Slack alert for Banner on {{ full_blade_name }}
+    local_action:
+      module: slack
+      token: "{{ slack_token }}"
+      msg: "Array {{ full_blade_name }} has incorrect Banner configuration"
+    when: banner_change is defined
+
+  - name: Drift Control | FlashBlade | SMTP for {{ full_blade_name }}
+    purefb_smtp:
+      domain: "{{ dc + '_smtp_domain' }}"
+      host: "{{ dc + '_smtp_relay' }}"
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+    check_mode: yes
+    register: smtp_change
+
+  - name: Drift Control | FlashBlade | Slack alert for SMTP on {{ full_blade_name }}
+    local_action:
+      module: slack
+      token: "{{ slack_token }}"
+      msg: "Array {{ full_blade_name }} has incorrect SMTP configuration"
+    when: smtp_change is defined
+
+  - name: Drift Control | FlashBlade | syslog for {{ full_blade_name }}
+    purefb_syslog:
+      name: syslog1
+      protocol: "{{ syslog_protocol }}"
+      address: "{{ dc + '_syslog_address' }}"
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+    check_mode: yes
+    register: syslog_change
+
+  - name: Drift Control | FlashBlade | Slack alert for syslog on {{ full_blade_name }}
+    local_action:
+      module: slack
+      token: "{{ slack_token }}"
+      msg: "Array {{ full_blade_name }} has incorrect syslog configuration"
+    when: syslog_change is defined
+
+  - name: Drift Control | FlashBlade | Alert Email for {{ full_blade_name }}
+    purefb_alert:
+      address: "{{ alert_address }}"
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+    check_mode: yes
+    register: alert_change
+
+  - name: Drift Control | FlashBlade | Slack alert for ALert Email on {{ full_blade_name }}
+    local_action:
+      module: slack
+      token: "{{ slack_token }}"
+      msg: "Array {{ full_blade_name }} has incorrect ALert Email configuration"
+    when: alert_change is defined
+
+  - name: Drift Control | FlashBlade | Active Directory Roles for {{ full_blade_name }}
+    purefb_dsrole:
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+      role: "{{ dc + '_ad_item.name' }}"
+      group_base: "{{ dc + '_ad_item.group_base' }}"
+      group: "{{ dc + '_ad_item.group' }}"
+      state: "{{ dc + '_ad_item.state' }}"
+    loop_control:
+      loop_var: dc + '_ad_item'
+    loop:
+      - name: array_admin
+        group_base: "{{ dc + '_ad_admin_base' }}"
+        group: "{{ dc + '_ad_admin_group' }}"
+        state: present
+      - name: readonly
+        group_base: "{{ dc + '_ad_ro_base' }}"
+        group: "{{ dc + '_ad_ro_group' }}"
+        state: present
+      - name: ops_admin
+        group_base: null
+        group: null 
+        state: absent
+      - name: storage_admin
+        group_base: null
+        group: null 
+        state: absent
+    check_mode: yes
+    register: ad_role_change
+
+  - name: Drift Control | FlashBlade | Slack alert for AD Role on {{ full_blade_name }}
+    local_action:
+      module: slack
+      token: "{{ slack_token }}"
+      msg: "Array {{ full_blade_name }} has incorrect AD Role configuration"
+    when: ad_role_change is defined
+
+  - name: Drift Control | FlashBlade | Active Directory for {{ full_blade_name }}
+    purefb_ds:
+      fb_url: "{{ url }}"
+      api_token: "{{ api }}"
+      enable: true
+      uri: "{{ dc + '_ad_item.uri' }}"
+      base_dn: "{{ dc + '_ad_item.base' }}"
+      bind_user: "{{ dc + '_ad_item.user' }}"
+      bind_password: "{{ dc + '_ad_item.password }}" 
+      dstype: "{{ dc + '_ad_item.type' }}"
+    loop_control:
+      loop_var: dc + '_ad_item'
+    loop:
+      - type: management
+        uri: "{{ dc + '_mgmt_ad_uri' }}"
+        base: "{{ dc + '_mgmt_ad_base' }}"
+        user: "{{ dc + '_fb_ad_user' }}"
+        password: "{{ dc + '_mgmt_ad_password' }}"
+      - type: smb
+        uri: "{{ dc + '_smb_uri' }}"
+        base: "{{ dc + '_mgmt_ad_base' }}"
+        user: "{{ dc + '_smb_user' }}"
+        password: "{{ dc + '_mgmt_ad_password' }}"
+    no_log: True
+    check_mode: yes
+    register: ad_change
+
+  - name: Drift Control | FlashBlade | Slack alert for AD on {{ full_blade_name }}
+    local_action:
+      module: slack
+      token: "{{ slack_token }}"
+      msg: "Array {{ full_blade_name }} has incorrect AD configuration"
+    when: ad_change is defined

@@ -1,0 +1,27 @@
+---
+- name: Check latest SDKs installed
+  pip:
+    name:
+     - purity_fb
+     - purestorage
+     - py-pure-client
+    state: latest
+
+- name: Drift Control | FlashArray
+  include_tasks:
+    file: "fa.yaml"
+  vars:
+    url: "{{ item.url }}"
+    api: "{{ item.api }}"
+    dc: "{{ item.dc }}"
+  with_items: "{{ arrays }}"
+  no_log: True
+
+- name: Drift Control | FlashBlade
+  include_tasks:
+    file: "fb.yaml"
+  vars:
+    url: "{{ item.url }}"
+    api: "{{ item.api }}"
+  with_items: "{{ blades }}"
+  no_log: True

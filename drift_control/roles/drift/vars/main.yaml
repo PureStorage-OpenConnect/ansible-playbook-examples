@@ -1,0 +1,111 @@
+---
+arrays:
+  - url: 10.34.200.210
+    api: 89a9356f-c203-d263-8a89-c229486a13ba
+    dc: London
+  - url: 10.34.200.190
+    api: 41238831-2b9d-89e2-b4f2-936e0a03ffb6
+    dc: London
+  - url: 10.34.230.28
+    api: 9d1fb279-5a90-1960-8af6-d0554118b85c
+    dc: London
+  - url: 10.34.230.24
+    api: 24ab1d69-526d-52cb-0f69-37020641a927
+    dc: London
+  - url: 10.23.228.28
+    api: c891bc3a-a658-eb46-c74f-273dfb211e7d
+    dc: NewYork
+  - url: 10.23.228.24
+    api: 6c926e94-5a02-292a-d761-088d92e5133e
+    dc: NewYork
+  - url: 10.23.229.28
+    api: 4b67b998-b2ca-e223-eae8-914e2e4c21d6
+    dc: NewYork
+  - url: 10.23.229.24
+    api: dd1d5e40-b598-6afe-172c-498f23bb36ad
+    dc: NewYork
+
+blades:
+  - url: 10.34.200.5
+    api: T-68618f31-0c9e-4e57-aa44-5306a2cf10e3
+    dc: London
+  - url: 10.23.200.19
+    api: T-0ba43bc7-3809-4256-9e16-0ab7fdcd8cca
+    dc: NewYork
+
+slack_token: TM2LX0BNF/BME4HPUGY/Hx0OJytIgWZzAe4LQdbjfBMm
+
+London_dns_address:
+  - 10.34.234.10
+  - 10.34.234.11
+
+NewYork_dns_address:
+  - 10.23.234.10
+  - 10.23.234.11
+
+London_dns_domain: ldn.acme.com
+NewYork_dns_domain: nyc.acme.com
+
+London_ntp_servers:
+  - ldnntp1.acme.com
+  - ldnntp2.acme.com
+NewYork_ntp_servers:
+  - nycntp1.acme.com
+  - nycntp2.acme.com
+
+timeout: 60
+
+syslog_protocol: udp
+London_syslog_address: syslog.ldn.acme.com
+NewYork_syslog_address: syslog.nyc.acme.com
+
+London_smtp_relay: smtp.ldn.acme.com
+NewYork_smtp_relay: smtp.nyc.acme.com
+London_smtp_domain: ldn.acme.com
+NewYork_smtp_domain: nyc.acme.com
+
+alert_address: alert@acme.com
+
+London_mgmt_ad_uri:
+  - "ldap://10.34.234.10"
+  - "ldap://10.34.234.11"
+London_mgmt_ad_base: "DC=acme,DC=com"
+London_mgmt_fa_ad_user: "svc.ldap"
+London_mgmt_ad_password: "Password1!"
+London_data_ad_uri:
+  - "ldap://10.34.234.10"
+London_data_ad_base: "DC=acme,DC=com"
+London_data_fa_ad_user: "CN=fafiles,OU=Users,OU=London,DC=acme,DC=com"
+London_data_ad_password: "Password55"
+London_fb_ad_user: "svc.ldap@acme.com"
+London_ad_admin_base: "OU=Groups,OU=London"
+London_ad_admin_group: "Array Admins"
+London_ad_ro_base: "OU=Groups,OU=London"
+London_ad_ro_group: "Array ReadOnly"
+
+NewYork_smb_uri:
+  - ldap://ad01.ldn.acme.com
+  - ldap://ad02.ldn.acme.com
+NewYork_smb_user: "CN=svc ldap,OU=Users,OU=London,DC=acme,DC=com"
+
+NewYork_mgmt_ad_uri:
+  - "ldap://10.23.234.10"
+  - "ldap://10.23.234.11"
+NewYork_mgmt_ad_base: "DC=acme,DC=com"
+NewYork_mgmt_fa_ad_user: "svc.ldap"
+NewYork_mgmt_ad_password: "Password1!"
+NewYork_data_ad_uri:
+  - "ldap://10.23.234.10"
+NewYork_data_ad_base: "DC=acme,DC=com"
+NewYork_data_fa_ad_user: "CN=fafiles,OU=Users,OU=New York,DC=acme,DC=com"
+NewYork_data_ad_password: "Password55"
+NewYork_fb_ad_user: "svc.ldap@acme.com"
+NewYork_ad_admin_base: "OU=Groups,OU=New York"
+NewYork_ad_admin_group: "Array Admins"
+NewYork_ad_ro_base: "OU=Groups,OU=New York"
+NewYork_ad_ro_group: "Array ReadOnly"
+
+NewYork_smb_uri:
+  - ldap://ad01.nyc.acme.com
+  - ldap://ad02.nyc.acme.com
+NewYork_smb_user: "CN=svc ldap,OU=Users,OU=New York,DC=acme,DC=com"
