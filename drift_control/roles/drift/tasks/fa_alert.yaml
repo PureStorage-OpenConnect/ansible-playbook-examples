@@ -16,8 +16,8 @@
 
   - name: Drift Control | FlashArray | DNS for {{ full_array_name }}
     purestorage.flasharray.purefa_dns:
-      domain: "{{ dc + '_dns_domain }}"
-      nameservers: "{{ dc + '_dns_address }}"
+      domain: "{{ vars[dc + '_dns_domain] }}"
+      nameservers: "{{ vars[dc + '_dns_address] }}"
       fa_url: "{{ url }}"
       api_token: "{{ api }}"
     check_mode: yes
@@ -32,7 +32,7 @@
 
   - name: Drift Control | FlashArray | NTP for {{ full_array_name }}
     purestorage.flasharray.purefa_ntp:
-      ntp_servers: "{{ dc + '_ntp_servers' }}"
+      ntp_servers: "{{ vars[dc + '_ntp_servers'] }}"
       fa_url: "{{ url }}"
       api_token: "{{ api }}"
     check_mode: yes
@@ -63,8 +63,8 @@
 
   - name: Drift Control | FlashArray | SMTP for {{ full_array_name }}
     purestorage.flasharray.purefa_smtp:
-      sender_domain: "{{ dc + '_smtp_domain' }}"
-      relay_host: "{{ dc + '_smtp_relay' }}"
+      sender_domain: "{{ vars[dc + '_smtp_domain'] }}"
+      relay_host: "{{ vars[dc + '_smtp_relay'] }}"
       fa_url: "{{ url }}"
       api_token: "{{ api }}"
     check_mode: yes
@@ -80,7 +80,7 @@
   - name: Drift Control | FlashArray | syslog for {{ full_array_name }}
     purestorage.flasharray.purefa_syslog:
       protocol: "{{ syslog_protocol }}"
-      address: "{{ dc + '_syslog_address' }}"
+      address: "{{ vars[dc + '_syslog_address'] }}"
       fa_url: "{{ url }}"
       api_token: "{{ api }}"
     check_mode: yes
@@ -127,19 +127,19 @@
     purestorage.flasharray.purefa_dsrole:
       fa_url: "{{ url }}"
       api_token: "{{ api }}"
-      role: "{{ dc + '_ad_item.name' }}"
-      group_base: "{{ dc + '_ad_item.group_base' }}"
-      group: "{{ dc + '_ad_item.group' }}"
-      state: "{{ dc + '_ad_item.state' }}"
+      role: "{{ vars[dc + '_ad_item.name'] }}"
+      group_base: "{{ vars[dc + '_ad_item.group_base'] }}"
+      group: "{{ vars[dc + '_ad_item.group'] }}"
+      state: "{{ vars[dc + '_ad_item.state'] }}"
     loop_control:
       loop_var: dc + '_ad_item'
     loop:
       - name: array_admin
-        group_base: "{{ dc + '_ad_admin_base' }}"
-        group: "{{ dc + '_ad_admin_group' }}"
+        group_base: "{{ vars[dc + '_ad_admin_base'] }}"
+        group: "{{ vars[dc + '_ad_admin_group'] }}"
         state: present
       - name: readonly
-        group_base: "{{ dc + '_ad_ro_base' }}"
+        group_base: "{{ vars[dc + '_ad_ro_base'] }}"
         group: "{{ ad_ro_group' }}"
         state: present
       - name: ops_admin
@@ -166,9 +166,9 @@
       api_token: "{{ api }}"
       enable: true
       dstype: management
-      uri: "{{ dc + '_mgmt_ad_uri' }}"
-      base_dn: "{{ dc + '_mgmt_ad_base' }}"
-      bind_user: "{{ dc + '_mgmt_fa_ad_user' }}"
+      uri: "{{ vars[dc + '_mgmt_ad_uri'] }}"
+      base_dn: "{{ vars[dc + '_mgmt_ad_base'] }}"
+      bind_user: "{{ vars[dc + '_mgmt_fa_ad_user'] }}"
     check_mode: yes
     register: mgmt_ad_change
 
@@ -185,9 +185,9 @@
       api_token: "{{ api }}"
       enable: false
       dstype: data
-      uri: "{{ dc + '_data_ad_uri' }}"
-      base_dn: "{{ dc + '_data_ad_base' }}"
-      bind_user: "{{ dc + '_data_fa_ad_user' }}"
+      uri: "{{ vars[dc + '_data_ad_uri'] }}"
+      base_dn: "{{ vars[dc + '_data_ad_base'] }}"
+      bind_user: "{{ vars[dc + '_data_fa_ad_user'] }}"
     when: array_version.split('.')[0]|int == 6
     check_mode: yes
     register: data_ad_change

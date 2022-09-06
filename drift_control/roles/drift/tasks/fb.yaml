@@ -13,14 +13,14 @@
 
   - name: Drift Control | FlashBlade | DNS for {{ full_blade_name }}
     purestorage.flashblade.purefb_dns:
-      domain: "{{ dc + '_dns_domain' }}"
-      nameservers: "{{ dc + '_dns_address' }}"
+      domain: "{{ vars[dc + '_dns_domain'] }}"
+      nameservers: "{{ vars[dc + '_dns_address'] }}"
       fb_url: "{{ url }}"
       api_token: "{{ api }}"
 
   - name: Drift Control | FlashBlade | NTP for {{ full_blade_name }}
     purestorage.flashblade.purefb_ntp:
-      ntp_servers: "{{ dc + '_ntp_servers' }}"
+      ntp_servers: "{{ vars[dc + '_ntp_servers'] }}"
       fb_url: "{{ url }}"
       api_token: "{{ api }}"
 
@@ -32,8 +32,8 @@
 
   - name: Drift Control | FlashBlade | SMTP for {{ full_blade_name }}
     purestorage.flashblade.purefb_smtp:
-      domain: "{{ dc + '_smtp_domain' }}"
-      host: "{{ dc + '_smtp_relay' }}"
+      domain: "{{ vars[dc + '_smtp_domain'] }}"
+      host: "{{ vars[dc + '_smtp_relay'] }}"
       fb_url: "{{ url }}"
       api_token: "{{ api }}"
 
@@ -41,7 +41,7 @@
     purestorage.flashblade.purefb_syslog:
       name: syslog1
       protocol: "{{ syslog_protocol }}"
-      address: "{{ dc + '_syslog_address' }}"
+      address: "{{ vars[dc + '_syslog_address'] }}"
       fb_url: "{{ url }}"
       api_token: "{{ api }}"
 
@@ -55,20 +55,20 @@
     purestorage.flashblade.purefb_dsrole:
       fb_url: "{{ url }}"
       api_token: "{{ api }}"
-      role: "{{ dc + '_ad_item.name' }}"
-      group_base: "{{ dc + '_ad_item.group_base' }}"
-      group: "{{ dc + '_ad_item.group' }}"
-      state: "{{ dc + '_ad_item.state' }}"
+      role: "{{ vars[dc + '_ad_item.name'] }}"
+      group_base: "{{ vars[dc + '_ad_item.group_base'] }}"
+      group: "{{ vars[dc + '_ad_item.group'] }}"
+      state: "{{ vars[dc + '_ad_item.state'] }}"
     loop_control:
       loop_var: dc + '_ad_item'
     loop:
       - name: array_admin
-        group_base: "{{ dc + '_ad_admin_base' }}"
-        group: "{{ dc + '_ad_admin_group' }}"
+        group_base: "{{ vars[dc + '_ad_admin_base'] }}"
+        group: "{{ vars[dc + '_ad_admin_group'] }}"
         state: present
       - name: readonly
-        group_base: "{{ dc + '_ad_ro_base' }}"
-        group: "{{ dc + '_ad_ro_group' }}"
+        group_base: "{{ vars[dc + '_ad_ro_base'] }}"
+        group: "{{ vars[dc + '_ad_ro_group'] }}"
         state: present
       - name: ops_admin
         group_base: null
@@ -84,22 +84,22 @@
       fb_url: "{{ url }}"
       api_token: "{{ api }}"
       enable: true
-      uri: "{{ dc + '_ad_item.uri' }}"
-      base_dn: "{{ dc + '_ad_item.base' }}"
-      bind_user: "{{ dc + '_ad_item.user' }}"
-      bind_password: "{{ dc + '_ad_item.password' }}" 
-      dstype: "{{ dc + '_ad_item.type' }}"
+      uri: "{{ vars[dc + '_ad_item.uri'] }}"
+      base_dn: "{{ vars[dc + '_ad_item.base'] }}"
+      bind_user: "{{ vars[dc + '_ad_item.user'] }}"
+      bind_password: "{{ vars[dc + '_ad_item.password'] }}" 
+      dstype: "{{ vars[dc + '_ad_item.type'] }}"
     loop_control:
       loop_var: ad_item
     loop:
       - type: management
-        uri: "{{ dc + '_mgmt_ad_uri' }}"
-        base: "{{ dc + '_mgmt_ad_base' }}"
-        user: "{{ dc + '_fb_ad_user' }}"
-        password: "{{ dc + '_mgmt_ad_password' }}"
+        uri: "{{ vars[dc + '_mgmt_ad_uri'] }}"
+        base: "{{ vars[dc + '_mgmt_ad_base'] }}"
+        user: "{{ vars[dc + '_fb_ad_user'] }}"
+        password: "{{ vars[dc + '_mgmt_ad_password'] }}"
       - type: smb
-        uri: "{{ dc + '_smb_uri' }}"
-        base: "{{ dc + '_mgmt_ad_base' }}"
-        user: "{{ dc + '_smb_user' }}"
-        password: "{{ dc + '_mgmt_ad_password' }}"
+        uri: "{{ vars[dc + '_smb_uri'] }}"
+        base: "{{ vars[dc + '_mgmt_ad_base'] }}"
+        user: "{{ vars[dc + '_smb_user'] }}"
+        password: "{{ vars[dc + '_mgmt_ad_password'] }}"
     no_log: True
