@@ -28,7 +28,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_array_name }} has incorrect DNS configuration"
-    when: dns_change is defined
+    when: dns_change.changed
 
   - name: Drift Control | FlashArray | NTP for {{ full_array_name }}
     purestorage.flasharray.purefa_ntp:
@@ -43,7 +43,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_array_name }} has incorrect NTP configuration"
-    when: ntp_change is defined
+    when: ntp_change.changed
 
   - name: Drift Control | FlashArray | Banner for {{ full_array_name }}
     purestorage.flasharray.purefa_banner:
@@ -58,7 +58,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_array_name }} has incorrect Banner configuration"
-    when: banner_change is defined
+    when: banner_change.changed
 
 
   - name: Drift Control | FlashArray | SMTP for {{ full_array_name }}
@@ -75,7 +75,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_array_name }} has incorrect SMTP configuration"
-    when: smtp_change is defined
+    when: smtp_change.changed
 
   - name: Drift Control | FlashArray | syslog for {{ full_array_name }}
     purestorage.flasharray.purefa_syslog:
@@ -91,7 +91,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_array_name }} has incorrect syslog configuration"
-    when: syslog_change is defined
+    when: syslog_change.changed
 
   - name: Drift Control | FlashArray | Alert Email for {{ full_array_name }}
     purestorage.flasharray.purefa_alert:
@@ -106,7 +106,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_array_name }} has incorrect Alert email configuration"
-    when: alert_change is defined
+    when: alert_change.changed
 
   - name: Drift Control | FlashArray | GUI Timeout for {{ full_array_name }}
     purestorage.flasharray.purefa_timeout:
@@ -121,7 +121,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_array_name }} has incorrect GUI Timeout configuration"
-    when: gui_change is defined
+    when: gui_change.changed
 
   - name: Drift Control | FlashArray | Active Directory roles for {{ full_array_name }}
     purestorage.flasharray.purefa_dsrole:
@@ -158,7 +158,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_array_name }} has incorrect NTP configuration"
-    when: ad_role_change is defined
+    when: ad_role_change.changed
 
   - name: Drift Control | FlashArray | Management Active Directory for {{ full_array_name }}
     purestorage.flasharray.purefa_ds:
@@ -177,7 +177,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_array_name }} has incorrect Mgmt AD configuration"
-    when: mgmt_ad_change is defined
+    when: mgmt_ad_change.changed
 
   - name: Drift Control | FlashArray | Data Active Directory for {{ full_array_name }}
     purestorage.flasharray.purefa_ds:
@@ -197,4 +197,4 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_array_name }} has incorrect Data AD configuration"
-    when: data_ad_change is defined
+    when: data_ad_change.changed
