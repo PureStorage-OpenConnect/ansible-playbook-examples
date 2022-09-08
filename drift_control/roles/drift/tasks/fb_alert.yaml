@@ -25,7 +25,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_blade_name }} has incorrect DNS configuration"
-    when: dns_change is defined
+    when: dns_change.changed
 
   - name: Drift Control | FlashBlade | NTP for {{ full_blade_name }}
     purefb_ntp:
@@ -40,7 +40,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_blade_name }} has incorrect NTP configuration"
-    when: ntp_change is defined
+    when: ntp_change.changed
 
   - name: Drift Control | FlashBlade | Banner for {{ full_blade_name }}
     purefb_banner:
@@ -55,7 +55,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_blade_name }} has incorrect Banner configuration"
-    when: banner_change is defined
+    when: banner_change.changed
 
   - name: Drift Control | FlashBlade | SMTP for {{ full_blade_name }}
     purefb_smtp:
@@ -71,7 +71,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_blade_name }} has incorrect SMTP configuration"
-    when: smtp_change is defined
+    when: smtp_change.changed
 
   - name: Drift Control | FlashBlade | syslog for {{ full_blade_name }}
     purefb_syslog:
@@ -88,7 +88,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_blade_name }} has incorrect syslog configuration"
-    when: syslog_change is defined
+    when: syslog_change.changed
 
   - name: Drift Control | FlashBlade | Alert Email for {{ full_blade_name }}
     purefb_alert:
@@ -103,7 +103,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_blade_name }} has incorrect ALert Email configuration"
-    when: alert_change is defined
+    when: alert_change.changed
 
   - name: Drift Control | FlashBlade | Active Directory Roles for {{ full_blade_name }}
     purefb_dsrole:
@@ -140,7 +140,7 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_blade_name }} has incorrect AD Role configuration"
-    when: ad_role_change is defined
+    when: ad_role_change.changed
 
   - name: Drift Control | FlashBlade | Active Directory for {{ full_blade_name }}
     purefb_ds:
@@ -174,4 +174,4 @@
       module: slack
       token: "{{ slack_token }}"
       msg: "Array {{ full_blade_name }} has incorrect AD configuration"
-    when: ad_change is defined
+    when: ad_change.changed
