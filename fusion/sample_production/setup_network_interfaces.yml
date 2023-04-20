@@ -1,0 +1,12 @@
+- name: Assign network interface(s) on array to a network interface group
+  purestorage.fusion.fusion_ni:
+    app_id: "{{ api_client }}"
+    key_file: "{{ priv_key_file }}"
+    name: "{{ item.name }}"
+    region: "{{ array.region }}"
+    availability_zone: "{{ array.az }}"
+    array: "{{ array.name }}"
+    enabled: true
+    network_interface_group: "{{ item.network_interface_group }}"
+  when: array.network_interfaces is not undefined
+  loop: "{{ array.network_interfaces }}"

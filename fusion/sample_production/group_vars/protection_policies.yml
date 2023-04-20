@@ -1,0 +1,14 @@
+---
+protection_policy:
+  - name: db_fifteen
+    display_name: db_fifteen
+    local_rpo: 15  # in minutes, Minimum value is 10 minutes.
+    local_retention: 24h  # m(inutes), h(ours), d(ays), w(eeks), or y(ears).
+  - name: hourly_for_a_week
+    display_name: hourly_for_a_week
+    local_rpo: 60
+    local_retention: 1w
+  - name: daily_for_a_month
+    display_name: daily_for_a_month
+    local_rpo: 1440
+    local_retention: 30d

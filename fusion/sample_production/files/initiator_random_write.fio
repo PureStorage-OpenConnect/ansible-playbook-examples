@@ -1,0 +1,14 @@
+[write-verify]
+name=Write Verify Job
+description="Randomly writes to a directory and verifies the write"
+ioengine=libaio
+iodepth=4
+bs=16k
+direct=1
+rw=randwrite
+verify=crc32c
+filesize=128k
+time_based
+runtime=10m
+
+

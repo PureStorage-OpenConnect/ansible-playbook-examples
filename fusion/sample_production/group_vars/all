@@ -1,0 +1,8 @@
+# read from OS vars
+api_client: "{{ ansible_env.API_CLIENT }}"
+priv_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+
+# read from value/file
+#api_client: "pure1:apikey:123456789"
+#priv_key_file: "/home/user/key.pem"
+

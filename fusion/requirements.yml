@@ -1,0 +1,6 @@
+---
+collections:
+  - purestorage.fusion
+  - community.crypto
+  - community.general
+  - ansible.posix

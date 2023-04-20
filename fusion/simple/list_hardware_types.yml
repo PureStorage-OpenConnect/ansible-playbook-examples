@@ -1,0 +1,14 @@
+---
+- name: Print hardware types
+  hosts: localhost
+  tasks:
+    - name: Collect hardware_types for Pure Storage
+      purestorage.fusion.fusion_info:
+        gather_subset: hardware_types
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+      register: fusion_info
+
+    - name: Print Fusion resources
+      ansible.builtin.debug:
+        msg: "{{ fusion_info['fusion_info'] }}"
