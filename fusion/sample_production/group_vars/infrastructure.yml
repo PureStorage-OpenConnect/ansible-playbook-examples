@@ -1,0 +1,74 @@
+---
+regions:
+  - name: pure-us-west
+    display_name: pure-us-west
+
+availability_zones:
+  - name: AZ-1
+    display_name: "AZ 1"
+    region: pure-us-west
+
+network_interface_groups:
+  - name: 10316
+    display_name: "10.31"
+    availability_zone: AZ-1
+    region: pure-us-west
+    group_type: eth
+    mtu: 9000
+    gateway: 10.31.0.1
+    prefix: 10.31.0.0/21
+    vlan: 0
+
+storage_endpoints:
+  - name: AZ1-StorageEndpoint
+    display_name: AZ1-StorageEndpoint
+    endpoint_type: iscsi
+    availability_zone: AZ-1
+    region: pure-us-west
+    iscsi:
+      - address: "10.31.6.180/21"
+        gateway: "10.31.0.1"
+        network_interface_groups: ["10316"]
+      - address: "10.31.6.181/21"
+        gateway: "10.31.0.1"
+        network_interface_groups: ["10316"]
+      - address: "10.31.6.182/21"
+        gateway: "10.31.0.1"
+        network_interface_groups: ["10316"]
+      - address: "10.31.6.183/21"
+        gateway: "10.31.0.1"
+        network_interface_groups: ["10316"]
+
+arrays:
+  - name: flasharray1
+    display_name: flasharray1
+    appliance_id: your-applance-id-goes-here
+    host_name: flasharray1
+    hardware_type: flash-array-x
+    az: AZ-1
+    region: pure-us-west
+    network_interfaces:
+      - name: "ct0.eth4"
+        network_interface_group: "10316"
+      - name: "ct0.eth5"
+        network_interface_group: "10316"
+      - name: "ct1.eth4"
+        network_interface_group: "10316"
+      - name: "ct1.eth5"
+        network_interface_group: "10316"
+  - name: flasharray2
+    display_name: flasharray2
+    appliance_id: your-appliance-id-goes-here
+    host_name: flasharray2
+    hardware_type: flash-array-x
+    az: AZ-1
+    region: pure-us-west
+    network_interfaces:
+      - name: "ct0.eth4"
+        network_interface_group: "10316"
+      - name: "ct0.eth5"
+        network_interface_group: "10316"
+      - name: "ct1.eth4"
+        network_interface_group: "10316"
+      - name: "ct1.eth5"
+        network_interface_group: "10316"

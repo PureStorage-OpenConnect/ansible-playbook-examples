@@ -1,0 +1,65 @@
+---
+- name: List consumer items
+  hosts: localhost
+  tasks:
+    - name: Import consumer variables
+      ansible.builtin.include_vars: group_vars/consumer.yml
+
+    - name: Setup local variables
+      ansible.builtin.set_fact:
+        tenants_dict: {}
+
+    - name: Get tenants
+      purestorage.fusion.fusion_info:
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
+        gather_subset: tenants
+      register: fusion_info
+
+    - name: Print tenants
+      ansible.builtin.debug:
+        msg: "{{ fusion_info['fusion_info'] }}"
+
+    - name: Get tenant_spaces
+      purestorage.fusion.fusion_info:
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
+        gather_subset: tenant_spaces
+      register: fusion_info
+
+    - name: Print tenant spaces
+      ansible.builtin.debug:
+        msg: "{{ fusion_info['fusion_info'] }}"
+
+    - name: Collect api_clients from Pure Storage
+      purestorage.fusion.fusion_info:
+        gather_subset: api_clients
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+      register: fusion_info
+
+    - name: Print API clients
+      ansible.builtin.debug:
+        msg: "{{ fusion_info['fusion_info'] }}"
+
+    - name: Collect Roles from Pure Storage
+      purestorage.fusion.fusion_info:
+        gather_subset: roles
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+      register: fusion_info
+
+    - name: Print roles
+      ansible.builtin.debug:
+        msg: "{{ fusion_info['fusion_info'] }}"
+
+    - name: Collect Users from Pure Storage
+      purestorage.fusion.fusion_info:
+        gather_subset: users
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+      register: fusion_info
+
+    - name: Print users spaces
+      ansible.builtin.debug:
+        msg: "{{ fusion_info['fusion_info'] }}"

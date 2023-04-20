@@ -1,0 +1,14 @@
+---
+- name: Print tenant spaces
+  hosts: localhost
+  tasks:
+    - name: Collect tenant_spaces for Pure Storage
+      purestorage.fusion.fusion_info:
+        gather_subset: tenant_spaces
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+      register: fusion_info
+
+    - name: Print Fusion resources
+      ansible.builtin.debug:
+        msg: "{{ fusion_info['fusion_info'] }}"

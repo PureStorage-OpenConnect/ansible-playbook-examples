@@ -1,0 +1,83 @@
+---
+- name: Setup infrastructure
+  hosts: localhost
+  tasks:
+    - name: Import infrastructure variables
+      ansible.builtin.include_vars: group_vars/infrastructure.yml
+
+    - name: Check private key exists
+      ansible.builtin.stat:
+        path: "{{ priv_key_file }}"
+      register: result
+
+    - name: End run if missing private key
+      ansible.builtin.meta: end_play
+      when: (result.stat.isreg is undefined) or (not result.stat.isreg)
+
+    - name: Create new region(s)
+      purestorage.fusion.fusion_region:
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
+        state: present # or absent
+        name: "{{ item.name }}"
+        display_name: "{{ item.display_name }}"
+      loop: "{{ regions }}"
+
+    - name: Create new Availability Zone(s)
+      purestorage.fusion.fusion_az:
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
+        state: present # or absent
+        name: "{{ item.name }}"
+        display_name: "{{ item.display_name }}"
+        region: "{{ item.region }}"
+      loop: "{{ availability_zones }}"
+
+    - name: Create new network interface group(s)
+      purestorage.fusion.fusion_nig:
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
+        state: present # or absent
+        name: "{{ item.name }}"
+        display_name: "{{ item.display_name }}"
+        availability_zone: "{{ item.availability_zone }}"
+        region: "{{ item.region }}"
+        group_type: "{{ item.group_type }}"
+        mtu: "{{ item.mtu }}"
+        gateway: "{{ item.gateway }}"
+        prefix: "{{ item.prefix }}"
+      loop: "{{ network_interface_groups }}"
+
+    - name: Create new Storage Endpoint network(s)
+      purestorage.fusion.fusion_se:
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
+        state: present # or absent
+        name: "{{ item.name }}"
+        display_name: "{{ item.display_name }}"
+        availability_zone: "{{ item.availability_zone }}"
+        endpoint_type: "{{ item.endpoint_type }}"
+        region: "{{ item.region }}"
+        iscsi: "{{ item.iscsi }}"
+      loop: "{{ storage_endpoints }}"
+
+    - name: Create new array(s)
+      purestorage.fusion.fusion_array:
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
+        state: present # or absent
+        name: "{{ item.name }}"
+        display_name: "{{ item.display_name }}"
+        appliance_id: "{{ item.appliance_id }}"
+        host_name: "{{ item.host_name }}"
+        az: "{{ item.az }}"
+        hardware_type: "{{ item.hardware_type }}"
+        region: "{{ item.region }}"
+        maintenance_mode: false
+      loop: "{{ arrays }}"
+
+    - name: Assign network interface(s) to network interface group(s)
+      ansible.builtin.include_tasks: setup_network_interfaces.yml
+      loop: "{{ arrays }}"
+      loop_control:
+        loop_var: array

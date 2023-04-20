@@ -1,0 +1,65 @@
+---
+- name: Teardown consumer
+  hosts: localhost
+  tasks:
+    - name: Import consumer variables
+      ansible.builtin.include_vars: group_vars/consumer.yml
+
+    - name: Setup local variables
+      ansible.builtin.set_fact:
+        tenants_dict: {}
+
+    - name: Convert Tenant list to dict
+      ansible.builtin.set_fact:
+        tenants_dict: "{{ tenants_dict | combine({item.name: item.display_name}) }}"
+      with_items:
+        - "{{ tenants }}"
+
+    - name: Collect Api Clients
+      purestorage.fusion.fusion_info:
+        gather_subset: api_clients
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+      register: fusion_info
+
+    - name: Delete Role Assignment to Tenant(s)
+      purestorage.fusion.fusion_ra:
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        state: absent
+        name: "tenant-admin"
+        scope: "tenant"  # "organization" "tenant_space"
+        tenant: "{{ item.value.display_name }}"
+        user: "{{ item.value.issuer }}"
+      with_dict: "{{ fusion_info['fusion_info']['api_clients'] }}"
+      when: item.value.display_name in tenants_dict.keys()
+
+    - name: Delete API clients
+      purestorage.fusion.fusion_api_client:
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        state: absent
+        name: "{{ item.name }}"
+        public_key: "{{
+          lookup('file',
+          workdir +
+          '/' +
+          item.name +
+          '/pub_' +
+          item.name +
+          '.pem') }}"
+      loop: "{{ tenants }}"
+
+    - name: Delete Tenants
+      purestorage.fusion.fusion_tenant:
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        state: absent
+        name: "{{ item.name }}"
+      loop: "{{ tenants }}"
+
+    - name: Delete Tenants directory
+      ansible.builtin.file:
+        state: absent
+        path: "{{ workdir }}/{{ item.name }}"
+      loop: "{{ tenants }}"

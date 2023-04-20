@@ -1,0 +1,60 @@
+---
+- name: List IQN
+  hosts: Initiators_Hosts
+  become: true
+  tasks:
+    - name: Obtain IQN from Initiators_Hosts
+      ansible.builtin.shell: >
+        set -o pipefail &&
+        (cat /etc/iscsi/initiatorname.iscsi |
+        grep "^InitiatorName=iqn" |
+        awk -F'=' '{print $2}')
+      register: iqn
+      changed_when: false
+      args:
+        executable: /bin/bash
+
+    - name: IQN Results
+      ansible.builtin.debug:
+        msg:
+          - "Inventory Hostname: {{ inventory_hostname }}"
+          - "Hostname: {{ ansible_hostname }}"
+          - "IQN: {{ iqn.stdout }}"
+
+- name: Setup environment
+  hosts: localhost
+  tasks:
+    - name: Import storage service/class variables
+      ansible.builtin.include_vars: group_vars/workloads.yml
+
+    - name: Setup local variables
+      ansible.builtin.set_fact:
+        iqn_data: []
+        map_volumes: {}
+
+    - name: Check private key exists
+      ansible.builtin.stat:
+        path: "{{ priv_key_file }}"
+      register: result
+
+    - name: End run if missing private key
+      ansible.builtin.meta: end_play
+      when: (result.stat.isreg is undefined) or (not result.stat.isreg)
+
+    - name: Create IQN/Hostname dictionary
+      ansible.builtin.set_fact:
+        iqn_data: "{{ iqn_data | default([]) + [{'hostname': item, 'iqn': (hostvars[item]['iqn'].stdout)}] }}"
+      with_items:
+        - "{{ groups['Initiators_Hosts'] }}"
+
+    - name: Create host access policy
+      purestorage.fusion.fusion_hap:
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
+        state: "present"
+        name: "{{ item.hostname }}"
+        display_name: "{{ item.hostname }}"
+        personality: "linux"
+        iqn: "{{ item.iqn }}"
+      with_items: "{{ iqn_data }}"
+      when: item.iqn | length > 0

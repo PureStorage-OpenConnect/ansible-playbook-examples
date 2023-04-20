@@ -1,0 +1,13 @@
+---
+- name: Create availability zone
+  hosts: localhost
+  tasks:
+
+    - name: Create new Availability Zone
+      purestorage.fusion.fusion_az:
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        state: present  # or absent
+        name: "az2"
+        display_name: "az2"
+        region: region1
