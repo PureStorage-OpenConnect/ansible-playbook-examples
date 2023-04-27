@@ -4,9 +4,9 @@
   tasks:
     - name: Add tenant-admin role to api-client
       purestorage.fusion.fusion_ra:
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
         state: present
         name: "tenant-admin"
         scope: "organization"  # "organization" "tenant_space"
-        user: "{{ ansible_env.API_CLIENT }}"
+        user: "{{ ansible_env.FUSION_ISSUER_ID }}"
