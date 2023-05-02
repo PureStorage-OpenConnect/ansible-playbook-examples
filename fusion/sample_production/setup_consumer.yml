@@ -11,7 +11,7 @@
 
     - name: Check private key exists
       ansible.builtin.stat:
-        path: "{{ ansible_env.PRIV_KEY_FILE }}"
+        path: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
       register: result
 
     - name: End run if missing private key
@@ -33,8 +33,8 @@
 
     - name: Create new tenant(s)
       purestorage.fusion.fusion_tenant:
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -55,8 +55,8 @@
 
     - name: Create new API client foo
       purestorage.fusion.fusion_api_client:
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
         state: present
         name: "{{ item.name }}"
         public_key: "{{ lookup('file', workdir + '/' + item.name + '/pub_' + item.name + '.pem') }}"
@@ -71,8 +71,8 @@
     - name: Collect Api Clients
       purestorage.fusion.fusion_info:
         gather_subset: api_clients
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
       register: fusion_info
 
     - name: Creating a file .iss in tenant folder
@@ -85,8 +85,8 @@
 
     - name: Role Assignment to Tenant(s)
       purestorage.fusion.fusion_ra:
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
         state: present
         name: "tenant-admin"
         scope: "tenant"  # "organization" "tenant_space"
