@@ -11,8 +11,8 @@
 
     - name: Get tenants
       purestorage.fusion.fusion_info:
-        issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ priv_private_key_file }}"
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
         gather_subset: tenants
       register: fusion_info
 
@@ -22,8 +22,8 @@
 
     - name: Get tenant_spaces
       purestorage.fusion.fusion_info:
-        issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ private_key_file }}"
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
         gather_subset: tenant_spaces
       register: fusion_info
 
@@ -34,8 +34,8 @@
     - name: Collect api_clients from Pure Storage
       purestorage.fusion.fusion_info:
         gather_subset: api_clients
-        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
       register: fusion_info
 
     - name: Print API clients
@@ -45,8 +45,8 @@
     - name: Collect Roles from Pure Storage
       purestorage.fusion.fusion_info:
         gather_subset: roles
-        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
       register: fusion_info
 
     - name: Print roles
@@ -56,8 +56,8 @@
     - name: Collect Users from Pure Storage
       purestorage.fusion.fusion_info:
         gather_subset: users
-        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
       register: fusion_info
 
     - name: Print users spaces

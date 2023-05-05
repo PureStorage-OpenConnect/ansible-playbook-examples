@@ -1,8 +1,8 @@
 # read from OS vars
-issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
-private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
+api_client: "{{ ansible_env.API_CLIENT }}"
+priv_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
 
 # read from value/file
-#issuer_id: "pure1:apikey:123456789"
-#private_key_file: "/home/user/key.pem"
+#api_client: "pure1:apikey:123456789"
+#priv_key_file: "/home/user/key.pem"
 
