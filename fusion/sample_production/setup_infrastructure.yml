@@ -7,7 +7,7 @@
 
     - name: Check private key exists
       ansible.builtin.stat:
-        path: "{{ private_key_file }}"
+        path: "{{ priv_key_file }}"
       register: result
 
     - name: End run if missing private key
@@ -16,8 +16,8 @@
 
     - name: Create new region(s)
       purestorage.fusion.fusion_region:
-        issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ private_key_file }}"
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -25,8 +25,8 @@
 
     - name: Create new Availability Zone(s)
       purestorage.fusion.fusion_az:
-        issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ private_key_file }}"
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -35,8 +35,8 @@
 
     - name: Create new network interface group(s)
       purestorage.fusion.fusion_nig:
-        issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ private_key_file }}"
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -50,8 +50,8 @@
 
     - name: Create new Storage Endpoint network(s)
       purestorage.fusion.fusion_se:
-        issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ private_key_file }}"
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -63,8 +63,8 @@
 
     - name: Create new array(s)
       purestorage.fusion.fusion_array:
-        issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ private_key_file }}"
+        app_id: "{{ api_client }}"
+        key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"

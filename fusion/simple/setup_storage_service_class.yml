@@ -4,8 +4,8 @@
   tasks:
     - name: Create new storage service called storage_service_1
       purestorage.fusion.fusion_ss:
-        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
         name: storage_service_1
         display_name: "storage_service_1"
         hardware_types: flash-array-c
@@ -13,8 +13,8 @@
 
     - name: Create new storage class storage_class_1
       purestorage.fusion.fusion_sc:
-        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
         name: storage_class_1
         display_name: "storage_class_1"
         storage_service: storage_service_1

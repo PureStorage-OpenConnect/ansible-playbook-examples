@@ -5,8 +5,8 @@
 
     - name: Remove array
       purestorage.fusion.fusion_array:
-        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
+        app_id: "{{ ansible_env.API_CLIENT }}"
+        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
         state: absent  # or present
         name: flasharray3
         display_name: "flasharray3"
