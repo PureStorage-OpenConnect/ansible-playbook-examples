@@ -5,8 +5,8 @@
 
     - name: Create new tenant space db_tenant_space for tenant_name
       purestorage.fusion.fusion_ts:
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
         state: "present"  # or absent
         name: "db_tenant_space"
         tenant: "tenant_name"

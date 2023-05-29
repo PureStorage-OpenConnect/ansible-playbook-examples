@@ -16,8 +16,8 @@
 
     - name: Create new region(s)
       purestorage.fusion.fusion_region:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -25,8 +25,8 @@
 
     - name: Create new Availability Zone(s)
       purestorage.fusion.fusion_az:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -35,8 +35,8 @@
 
     - name: Create new network interface group(s)
       purestorage.fusion.fusion_nig:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -50,8 +50,8 @@
 
     - name: Create new Storage Endpoint network(s)
       purestorage.fusion.fusion_se:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -62,8 +62,8 @@
 
     - name: Create new array(s)
       purestorage.fusion.fusion_array:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"

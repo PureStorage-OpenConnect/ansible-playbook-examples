@@ -49,8 +49,8 @@
 
     - name: Create host access policy
       purestorage.fusion.fusion_hap:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: "present"
         name: "{{ item.hostname }}"
         display_name: "{{ item.hostname }}"
@@ -61,8 +61,8 @@
 
     - name: Create new tenant space(s)
       purestorage.fusion.fusion_ts:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: "present" # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -71,8 +71,8 @@
 
     - name: Create new placement group(s)
       purestorage.fusion.fusion_pg:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: "present" # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -85,8 +85,8 @@
 
     - name: Create new volume(s)
       purestorage.fusion.fusion_volume:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: "present" # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -100,8 +100,8 @@
 
     - name: Get Volumes info
       purestorage.fusion.fusion_info:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         gather_subset: volumes
       register: fusion_info
 
@@ -116,8 +116,8 @@
     - name: Get Purestorage Storage Endpoints
       purestorage.fusion.fusion_info:
         gather_subset: storage_endpoints
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
       register: reg_fusion_info
 
 - name: Run an IO workload

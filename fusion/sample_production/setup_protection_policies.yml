@@ -19,8 +19,8 @@
 
     - name: Create new protection policy(s)
       purestorage.fusion.fusion_pp:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"

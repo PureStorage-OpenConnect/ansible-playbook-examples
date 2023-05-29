@@ -20,8 +20,8 @@
 
     - name: Create new storage service
       purestorage.fusion.fusion_ss:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -30,8 +30,8 @@
 
     - name: Create new storage class
       purestorage.fusion.fusion_sc:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"

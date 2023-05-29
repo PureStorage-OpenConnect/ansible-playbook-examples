@@ -20,8 +20,8 @@
 
     - name: Get Volumes info
       purestorage.fusion.fusion_info:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         gather_subset: volumes
       register: fusion_info
 
@@ -36,8 +36,8 @@
     - name: Get Purestorage Storage Endpoints
       purestorage.fusion.fusion_info:
         gather_subset: storage_endpoints
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
       register: reg_fusion_info
 
 - name: Unmount volumes
@@ -162,8 +162,8 @@
 
     - name: Delete volume(s)
       purestorage.fusion.fusion_volume:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
         tenant: "{{ item.tenant }}"
@@ -176,8 +176,8 @@
 
     - name: Delete Host Access Policy
       purestorage.fusion.fusion_hap:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: "absent"
         name: "{{ item.hostname }}"
         iqn: "{{ item.iqn }}"
@@ -186,8 +186,8 @@
 
     - name: Delete placement group(s)
       purestorage.fusion.fusion_pg:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: "absent"
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -200,8 +200,8 @@
 
     - name: Delete tenant space(s)
       purestorage.fusion.fusion_ts:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: "absent"
         name: "{{ item.name }}"
         tenant: "{{ item.tenant }}"

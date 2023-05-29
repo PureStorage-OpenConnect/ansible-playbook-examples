@@ -5,8 +5,8 @@
     - name: Collect storage_endpoints for Pure Storage
       purestorage.fusion.fusion_info:
         gather_subset: storage_endpoints
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
       register: fusion_info
 
     - name: Print Fusion resources

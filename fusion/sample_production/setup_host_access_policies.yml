@@ -49,8 +49,8 @@
 
     - name: Create host access policy
       purestorage.fusion.fusion_hap:
-        app_id: "{{ api_client }}"
-        key_file: "{{ priv_key_file }}"
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ priv_key_file }}"
         state: "present"
         name: "{{ item.hostname }}"
         display_name: "{{ item.hostname }}"
