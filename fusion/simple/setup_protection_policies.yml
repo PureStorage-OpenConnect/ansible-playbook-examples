@@ -8,6 +8,6 @@
         key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
         name: "PP_name"
         display_name: "PP_name"
-        local_rpo: "15"  # in minutes
-        local_retention: "24h"  # m(inutes), h(ours), d(ays), w(eeks) or y(ears)
+        local_rpo: "15m" # m(inutes), h(ours), d(ays), w(eeks) or y(ears)
+        local_retention: "24h"
         state: present  # or absent
