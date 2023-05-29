@@ -7,6 +7,6 @@
         app_id: "{{ ansible_env.API_CLIENT }}"
         key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
         state: present
-        name: "tenant-admin"
+        role: "tenant-admin"
         scope: "organization"  # "organization" "tenant_space"
         user: "{{ ansible_env.API_CLIENT }}"

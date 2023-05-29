@@ -27,7 +27,7 @@
         app_id: "{{ ansible_env.API_CLIENT }}"
         key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
         state: absent
-        name: "tenant-admin"
+        role: "tenant-admin"
         scope: "tenant"  # "organization" "tenant_space"
         tenant: "{{ item.value.display_name }}"
         user: "{{ item.value.issuer }}"
