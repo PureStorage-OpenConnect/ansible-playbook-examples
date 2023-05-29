@@ -41,7 +41,6 @@
         name: default
         display_name: default
         availability_zone: az1
-        endpoint_type: iscsi
         iscsi:
           - address: "172.17.1.2/24"
             gateway: "172.17.1.1"

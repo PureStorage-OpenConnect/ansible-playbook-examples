@@ -56,7 +56,6 @@
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
         availability_zone: "{{ item.availability_zone }}"
-        endpoint_type: "{{ item.endpoint_type }}"
         region: "{{ item.region }}"
         iscsi: "{{ item.iscsi }}"
       loop: "{{ storage_endpoints }}"
