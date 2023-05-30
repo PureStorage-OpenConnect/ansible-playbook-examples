@@ -18,14 +18,14 @@
     - name: Collect Api Clients
       purestorage.fusion.fusion_info:
         gather_subset: api_clients
-        issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
       register: fusion_info
 
     - name: Delete Role Assignment to Tenant(s)
       purestorage.fusion.fusion_ra:
-        issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
         state: absent
         role: "tenant-admin"
         scope: "tenant"  # "organization" "tenant_space"
@@ -36,8 +36,8 @@
 
     - name: Delete API clients
       purestorage.fusion.fusion_api_client:
-        issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
         state: absent
         name: "{{ item.name }}"
         public_key: "{{
@@ -52,8 +52,8 @@
 
     - name: Delete Tenants
       purestorage.fusion.fusion_tenant:
-        issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
         state: absent
         name: "{{ item.name }}"
       loop: "{{ tenants }}"

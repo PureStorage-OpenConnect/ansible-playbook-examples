@@ -9,20 +9,25 @@ The goal of this document is to help you set up and understand the functionality
 ansible-playbook playbook_name.yml
 ```
 
-### Environment Variables
-In almost every playbook, there are 2 lines that require an environment variable
+### Authentication
+
+The most common method for authentication is to use an issuer ID and private key file.
+This can be set with the `issuer_id` and `private_key_file` parameters:
 
 ```
-issuer_id: "{{ ansible_env.ISSUER_ID}}"
-private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE}}"
+issuer_id: "{{ ansible_env.FUSION_ISSUER_ID}}"
+private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE}}"
 ```
-In this case, the variables are: ISSUER_ID and PRIVATE_KEY_FILE
-To set them, you can temporarily enable them with:
+
+In this case, we are using the `FUSION_ISSUER_ID` and `FUSION_PRIVATE_KEY_FILE` environment variables.
+You can set them with
+
 ```
-export ISSUER_ID='pure1:apikey:123456789'
-export PRIVATE_KEY_FILE='/home/user/key.pem'
+export FUSION_ISSUER_ID='pure1:apikey:123456789'
+export FUSION_PRIVATE_KEY_FILE='/home/user/key.pem'
 ```
-in the case of ```PRIVATE_KEY_FILE```, the path to the ```key.pem``` needs to be absolute.
+
+In the case of ```FUSION_PRIVATE_KEY_FILE```, the path to the ```key.pem``` needs to be absolute.
 
 If you prefer to not use environment variables, you can change the values inside the playbook:
 
@@ -30,6 +35,12 @@ If you prefer to not use environment variables, you can change the values inside
 issuer_id: "<your_API_Issuer_ID_here>"
 private_key_file: "/home/user/key.pem"
 ```
+
+If you are using an encrypted private key, you can use the `private_key_password` field to specify the password for it.
+
+As an alternative form of authentication, you can use the `access_token` field or the `FUSION_ACCESS_TOKEN` env var to provide an API access token directly.
+
+You can change the Fusion API host and token endpoint by specifying `FUSION_API_HOST` and `FUSION_TOKEN_ENDPOINT` env vars respectively.
 
 ## Folder: simple
 This series of playbooks are meant to run as standalone, so no need for external input, and all information required to create a resource/element are inside each playbook.
