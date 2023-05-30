@@ -34,7 +34,7 @@
 
     - name: Check private key exists
       ansible.builtin.stat:
-        path: "{{ priv_key_file }}"
+        path: "{{ private_key_file }}"
       register: result
 
     - name: End run if missing private key
@@ -50,7 +50,7 @@
     - name: Create host access policy
       purestorage.fusion.fusion_hap:
         issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ priv_key_file }}"
+        private_key_file: "{{ private_key_file }}"
         state: "present"
         name: "{{ item.hostname }}"
         display_name: "{{ item.hostname }}"
@@ -62,7 +62,7 @@
     - name: Create new tenant space(s)
       purestorage.fusion.fusion_ts:
         issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ priv_key_file }}"
+        private_key_file: "{{ private_key_file }}"
         state: "present" # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -72,7 +72,7 @@
     - name: Create new placement group(s)
       purestorage.fusion.fusion_pg:
         issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ priv_key_file }}"
+        private_key_file: "{{ private_key_file }}"
         state: "present" # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -86,7 +86,7 @@
     - name: Create new volume(s)
       purestorage.fusion.fusion_volume:
         issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ priv_key_file }}"
+        private_key_file: "{{ private_key_file }}"
         state: "present" # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"
@@ -101,7 +101,7 @@
     - name: Get Volumes info
       purestorage.fusion.fusion_info:
         issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ priv_key_file }}"
+        private_key_file: "{{ private_key_file }}"
         gather_subset: volumes
       register: fusion_info
 
@@ -117,7 +117,7 @@
       purestorage.fusion.fusion_info:
         gather_subset: storage_endpoints
         issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ priv_key_file }}"
+        private_key_file: "{{ private_key_file }}"
       register: reg_fusion_info
 
 - name: Run an IO workload

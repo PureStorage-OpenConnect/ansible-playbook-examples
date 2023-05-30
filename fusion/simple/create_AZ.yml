@@ -6,7 +6,7 @@
     - name: Create new Availability Zone
       purestorage.fusion.fusion_az:
         issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
         state: present  # or absent
         name: "az2"
         display_name: "az2"

@@ -14,20 +14,20 @@ In almost every playbook, there are 2 lines that require an environment variable
 
 ```
 issuer_id: "{{ ansible_env.ISSUER_ID}}"
-private_key_file: "{{ ansible_env.PRIV_KEY_FILE}}"
+private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE}}"
 ```
-In this case, the variables are: ISSUER_ID and PRIV_KEY_FILE
+In this case, the variables are: ISSUER_ID and PRIVATE_KEY_FILE
 To set them, you can temporarily enable them with:
 ```
 export ISSUER_ID='pure1:apikey:123456789'
-export PRIV_KEY_FILE='/home/user/key.pem'
+export PRIVATE_KEY_FILE='/home/user/key.pem'
 ```
-in the case of ```PRIV_KEY_FILE```, the path to the ```key.pem``` needs to be absolute.
+in the case of ```PRIVATE_KEY_FILE```, the path to the ```key.pem``` needs to be absolute.
 
 If you prefer to not use environment variables, you can change the values inside the playbook:
 
 ```
-issuer_id: "<your_API_Application_ID_here>"
+issuer_id: "<your_API_Issuer_ID_here>"
 private_key_file: "/home/user/key.pem"
 ```
 

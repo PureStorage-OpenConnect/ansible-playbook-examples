@@ -1,7 +1,7 @@
 - name: Assign network interface(s) on array to a network interface group
   purestorage.fusion.fusion_ni:
     issuer_id: "{{ issuer_id }}"
-    private_key_file: "{{ priv_key_file }}"
+    private_key_file: "{{ private_key_file }}"
     name: "{{ item.name }}"
     region: "{{ array.region }}"
     availability_zone: "{{ array.az }}"

@@ -6,7 +6,7 @@
       purestorage.fusion.fusion_info:
         gather_subset: snapshots
         issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
       register: fusion_info
 
     - name: Print Fusion resources

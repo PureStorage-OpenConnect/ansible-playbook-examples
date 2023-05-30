@@ -18,7 +18,7 @@
     - name: Create new tenant space db_tenant_space for oracle_dbas
       purestorage.fusion.fusion_ts:
         issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
         name: "db_tenant_space"
         tenant: "oracle_dbas"
         state: "present"  # or absent
@@ -26,7 +26,7 @@
     - name: Create new placement group named pg1
       purestorage.fusion.fusion_pg:
         issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
         name: "pg1"
         tenant: "oracle_dbas"
         tenant_space: "db_tenant_space"
@@ -38,7 +38,7 @@
     - name: Create new host access policy
       purestorage.fusion.fusion_hap:
         issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
         name: "customer_host_access"
         personality: "linux"
         iqn: "iqn.1994-05.com.redhat:9dd57693efb"
@@ -47,7 +47,7 @@
     - name: Create new volume data_vol1 in storage_class db_high_performance
       purestorage.fusion.fusion_volume:
         issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
         name: "data_vol1"
         storage_class: "db_high_performance"
         size: "500G"  # Volume size in M, G, T or P units.
@@ -60,7 +60,7 @@
     - name: Create new volume data_vol2 in storage_class db_high_performance
       purestorage.fusion.fusion_volume:
         issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
         name: "data_vol2"
         storage_class: "db_high_performance"
         size: "500G"  # Volume size in M, G, T or P units.

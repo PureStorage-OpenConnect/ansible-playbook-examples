@@ -34,7 +34,7 @@
 
     - name: Check private key exists
       ansible.builtin.stat:
-        path: "{{ priv_key_file }}"
+        path: "{{ private_key_file }}"
       register: result
 
     - name: End run if missing private key
@@ -50,7 +50,7 @@
     - name: Create host access policy
       purestorage.fusion.fusion_hap:
         issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ priv_key_file }}"
+        private_key_file: "{{ private_key_file }}"
         state: "present"
         name: "{{ item.hostname }}"
         display_name: "{{ item.hostname }}"

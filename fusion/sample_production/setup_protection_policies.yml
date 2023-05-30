@@ -10,7 +10,7 @@
 
     - name: Check private key exists
       ansible.builtin.stat:
-        path: "{{ priv_key_file }}"
+        path: "{{ private_key_file }}"
       register: result
 
     - name: End run if missing private key
@@ -20,7 +20,7 @@
     - name: Create new protection policy(s)
       purestorage.fusion.fusion_pp:
         issuer_id: "{{ issuer_id }}"
-        private_key_file: "{{ priv_key_file }}"
+        private_key_file: "{{ private_key_file }}"
         state: present # or absent
         name: "{{ item.name }}"
         display_name: "{{ item.display_name }}"

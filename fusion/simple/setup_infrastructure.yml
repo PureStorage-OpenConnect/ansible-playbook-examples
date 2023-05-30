@@ -6,7 +6,7 @@
     - name: Create new region
       purestorage.fusion.fusion_region:
         issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
         state: present  # or absent
         name: region1
         display_name: "region1"
@@ -14,7 +14,7 @@
     - name: Create new Availability Zone
       purestorage.fusion.fusion_az:
         issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
         state: present  # or absent
         name: az1
         display_name: "az1"
@@ -23,7 +23,7 @@
     - name: Create new network interface group
       purestorage.fusion.fusion_nig:
         issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
         state: present  # or absent
         name: "interface_group1"
         availability_zone: "az1"
@@ -35,7 +35,7 @@
     - name: Create new Storage Endpoint
       purestorage.fusion.fusion_se:
         issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
         state: present  # or absent
         region: region1
         name: default
@@ -52,7 +52,7 @@
     - name: Register new array
       purestorage.fusion.fusion_array:
         issuer_id: "{{ ansible_env.ISSUER_ID }}"
-        private_key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        private_key_file: "{{ ansible_env.PRIVATE_KEY_FILE }}"
         state: present  # or absent
         name: flasharray1
         display_name: "flasharray1"
