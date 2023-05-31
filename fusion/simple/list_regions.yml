@@ -1,10 +1,10 @@
 ---
-- name: List hosts
+- name: List regions
   hosts: localhost
   tasks:
-    - name: Collect hosts for Pure Storage
+    - name: Collect regions for Pure Storage
       purestorage.fusion.fusion_info:
-        gather_subset: host_access_policies
+        gather_subset: regions
         issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
         private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
       register: fusion_info
