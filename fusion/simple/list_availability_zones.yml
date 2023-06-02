@@ -4,9 +4,9 @@
   tasks:
     - name: Collect Availability Zones for Pure Storage
       purestorage.fusion.fusion_info:
-        gather_subset: zones
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        gather_subset: availability_zones
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
       register: fusion_info
 
     - name: Print Fusion resources

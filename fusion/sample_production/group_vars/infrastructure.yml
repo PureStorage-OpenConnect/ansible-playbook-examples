@@ -22,7 +22,6 @@ network_interface_groups:
 storage_endpoints:
   - name: AZ1-StorageEndpoint
     display_name: AZ1-StorageEndpoint
-    endpoint_type: iscsi
     availability_zone: AZ-1
     region: pure-us-west
     iscsi:

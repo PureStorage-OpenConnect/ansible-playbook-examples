@@ -5,16 +5,16 @@
 
     - name: Create new region
       purestorage.fusion.fusion_region:
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
         state: present  # or absent
         name: region1
         display_name: "region1"
 
     - name: Create new Availability Zone
       purestorage.fusion.fusion_az:
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
         state: present  # or absent
         name: az1
         display_name: "az1"
@@ -22,8 +22,8 @@
 
     - name: Create new network interface group
       purestorage.fusion.fusion_nig:
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
         state: present  # or absent
         name: "interface_group1"
         availability_zone: "az1"
@@ -34,14 +34,13 @@
 
     - name: Create new Storage Endpoint
       purestorage.fusion.fusion_se:
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
         state: present  # or absent
         region: region1
         name: default
         display_name: default
         availability_zone: az1
-        endpoint_type: iscsi
         iscsi:
           - address: "172.17.1.2/24"
             gateway: "172.17.1.1"
@@ -52,8 +51,8 @@
 
     - name: Register new array
       purestorage.fusion.fusion_array:
-        app_id: "{{ ansible_env.API_CLIENT }}"
-        key_file: "{{ ansible_env.PRIV_KEY_FILE }}"
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
         state: present  # or absent
         name: flasharray1
         display_name: "flasharray1"
