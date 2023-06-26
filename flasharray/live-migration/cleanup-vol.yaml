@@ -1,13 +1,11 @@
 - name: Cleanup environment after migration complete
   hosts: localhost
   gather_facts: true
-  collections:
-  - purestorage.flasharray
   vars_files:
     - mig-vars.yaml
   tasks:
   - name: Get destination array information
-    purefa_info:
+    purestorage.flasharray.purefa_info:
       gather_subset:
       - network
       - volumes
@@ -29,14 +27,14 @@
     register: mpath_dev
 
   - name: Delete host object from destination array
-    purefa_host:
+    purestorage.flasharray.purefa_host:
       host: "{{ ansible_hostname }}"
       state: absent
       fa_url: "{{ dst_array_ip }}"
       api_token: "{{ dst_array_api }}"
 
   - name: Delete migrated volume from destination array
-    purefa_volume:
+    purestorage.flasharray.purefa_volume:
       name: "{{ migration_volume }}"
       state: absent
       eradicate: true
