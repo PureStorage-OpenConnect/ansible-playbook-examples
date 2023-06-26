@@ -1,13 +1,11 @@
 - name: Live migration using ActiveCluster
   hosts: localhost
   gather_facts: true
-  collections:
-  - purestorage.flasharray
   vars_files:
     - mig-vars.yaml
   tasks:
   - name: Get source FlashArray info
-    purefa_info:
+    purestorage.flasharray.purefa_info:
       gather_subset:
       - minimum
       - network
@@ -17,7 +15,7 @@
     register: src_array_info
 
   - name: Get destination FlashArray info
-    purefa_info:
+    purestorage.flasharray.purefa_info:
       gather_subset:
       - minimum
       - network
@@ -27,7 +25,7 @@
     register: dst_array_info
 
   - name: Connect arrays in ActiveCluster configuration
-    purefa_connect:
+    purestorage.flasharray.purefa_connect:
       target_url: "{{ dst_array_ip }}"
       target_api: "{{ dst_array_api }}"
       connection: sync
@@ -35,27 +33,27 @@
       api_token: "{{ src_array_api }}"
 
   - name: Create migration pod
-    purefa_pod:
+    purestorage.flasharray.purefa_pod:
       name: "{{ migration_pod }}"
       fa_url: "{{ src_array_ip }}"
       api_token: "{{ src_array_api }}"
 
   - name: Move migration volume to migration pod
-    purefa_volume:
+    purestorage.flasharray.purefa_volume:
       name: "{{ migration_volume }}"
       move: "{{ migration_pod }}"
       fa_url: "{{ src_array_ip }}"
       api_token: "{{ src_array_api }}"
 
   - name: Stretch migration pod to destination array
-    purefa_pod:
+    purestorage.flasharray.purefa_pod:
       name: "{{ migration_pod }}"
       stretch: "{{ dst_array_info['purefa_info']['default']['array_name'] }}"
       fa_url: "{{ src_array_ip }}"
       api_token: "{{ src_array_api }}"
 
   - name: Wait for pod sync
-    purefa_info:
+    purestorage.flasharray.purefa_info:
       gather_subset: pods
       fa_url: "{{ src_array_ip }}"
       api_token: "{{ src_array_api }}"
@@ -65,7 +63,7 @@
     until: "output | json_query('purefa_info.pods.\"{{ migration_pod }}\".arrays[].status') == ['online', 'online']"
 
   - name: Create host object on destination array
-    purefa_host:
+    purestorage.flasharray.purefa_host:
       host: "{{ ansible_hostname }}"
       iqn: "{{ ansible_iscsi_iqn }}"
       volume: "{{ migration_pod }}::{{ migration_volume }}"
@@ -93,7 +91,7 @@
   - pause:
 
   - name: Disconnect migration volume from host on source array
-    purefa_host:
+    purestorage.flasharray.purefa_host:
       volume: "{{ migration_pod }}::{{ migration_volume }}"
       host: "{{ ansible_hostname }}"
       state: absent
@@ -101,7 +99,7 @@
       api_token: "{{ src_array_api }}"
 
   - name: Unstretch pod from source array
-    purefa_pod:
+    purestorage.flasharray.purefa_pod:
       name: "{{ migration_pod }}"
       state: absent
       stretch: "{{ src_array_info['purefa_info']['default']['array_name'] }}"
@@ -109,7 +107,7 @@
       api_token: "{{ src_array_api }}"
 
   - name: Move migrated volume out of pod on destination array
-    purefa_volume:
+    purestorage.flasharray.purefa_volume:
       name: '{{ migration_pod }}::{{ migration_volume }}'
       move: local
       fa_url: "{{ dst_array_ip }}"
@@ -124,7 +122,7 @@
   - pause:
 
   - name: Eradicate migration pod on destination array
-    purefa_pod:
+    purestorage.flasharray.purefa_pod:
       name: "{{ migration_pod }}"
       state: absent
       eradicate: true
@@ -132,7 +130,7 @@
       api_token: "{{ dst_array_api }}"
 
   - name: Cleanup hanging migration pod on source array
-    purefa_pod:
+    purestorage.flasharray.purefa_pod:
       name: "{{ migration_pod }}.restretch"
       state: absent
       eradicate: true
@@ -140,7 +138,7 @@
       api_token: "{{ src_array_api }}"
 
   - name: Disconnect arrays from ActiveCluster mode
-    purefa_connect:
+    purestorage.flasharray.purefa_connect:
       target_url: "{{ dst_array_ip }}"
       target_api: "{{ dst_array_api }}"
       state: absent
