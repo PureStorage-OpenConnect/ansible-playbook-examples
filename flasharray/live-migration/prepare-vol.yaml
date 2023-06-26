@@ -1,13 +1,11 @@
 - name: Create volume for migration example
   hosts: localhost
   gather_facts: true
-  collections:
-  - purestorage.flasharray
   vars_files:
     - mig-vars.yaml
   tasks:
   - name: Get source FlashArray info
-    purefa_info:
+    purestorage.flasharray.purefa_info:
       gather_subset:
       - minimum
       - network
@@ -17,14 +15,14 @@
     register: src_array_info
 
   - name: Create volume for migration
-    purefa_volume:
+    purestorage.flasharray.purefa_volume:
       name: "{{ migration_volume }}"
       size: 10G
       fa_url: "{{ src_array_ip }}"
       api_token: "{{ src_array_api }}"
 
   - name: Get serial number of migration volume
-    purefa_info:
+    purestorage.flasharray.purefa_info:
       gather_subset: volumes
       fa_url: "{{ src_array_ip }}"
       api_token: "{{ src_array_api }}"
@@ -34,7 +32,7 @@
       volume_serial: "{{ volumes_data.purefa_info.volumes[migration_volume].serial }}"
 
   - name: Create host object on source array and connect volume
-    purefa_host:
+    purestorage.flasharray.purefa_host:
       host: "{{ ansible_hostname }}"
       iqn: "{{ ansible_iscsi_iqn }}"
       volume: "{{ migration_volume }}"
