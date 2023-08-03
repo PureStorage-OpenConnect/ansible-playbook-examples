@@ -1,0 +1,63 @@
+---
+- name: Teardown infrastructure
+  hosts: localhost
+  tasks:
+    - name: Import infrastructure variables
+      ansible.builtin.include_vars: group_vars/infrastructure.yml
+
+    - name: Check private key exists
+      ansible.builtin.stat:
+        path: "{{ private_key_file }}"
+      register: result
+
+    - name: End run if missing private key
+      ansible.builtin.meta: end_play
+      when: (result.stat.isreg is undefined) or (not result.stat.isreg)
+
+    - name: Delete array(s)
+      purestorage.fusion.fusion_array:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: absent
+        name: "{{ item.name }}"
+        az: "{{ item.az }}"
+        region: "{{ item.region }}"
+      loop: "{{ arrays }}"
+
+    - name: Delete Storage Endpoint network(s)
+      purestorage.fusion.fusion_se:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: absent
+        name: "{{ item.name }}"
+        availability_zone: "{{ item.availability_zone }}"
+        region: "{{ item.region }}"
+      loop: "{{ storage_endpoints }}"
+
+    - name: Delete new network interface group(s)
+      purestorage.fusion.fusion_nig:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: absent
+        name: "{{ item.name }}"
+        display_name: "{{ item.display_name }}"
+        availability_zone: "{{ item.availability_zone }}"
+        region: "{{ item.region }}"
+      loop: "{{ network_interface_groups }}"
+
+    - name: Delete Availability Zone(s)
+      purestorage.fusion.fusion_az:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: absent
+        name: "{{ item.name }}"
+        region: "{{ item.region }}"
+      loop: "{{ availability_zones }}"
+
+    - name: Delete region(s)
+      purestorage.fusion.fusion_region:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: absent
+        name: "{{ item.name }}"
+      loop: "{{ regions }}"
