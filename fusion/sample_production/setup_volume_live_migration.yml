@@ -1,0 +1,145 @@
+---
+- name: Setup volume live migration
+  hosts: localhost
+
+  tasks:
+    - name: Import live migration variables
+      ansible.builtin.include_vars: group_vars/live_migration.yml
+
+    - name: Check private key exists
+      ansible.builtin.stat:
+        path: "{{ private_key_file }}"
+      register: result
+
+    - name: End run if missing private key
+      ansible.builtin.meta: end_play
+      when: (result.stat.isreg is undefined) or (not result.stat.isreg)
+
+    - name: Create new tenant A
+      purestorage.fusion.fusion_tenant:
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
+        state: present
+        name: Tenant-A
+ 
+    - name: Create new tenant A
+      purestorage.fusion.fusion_tenant:
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
+        state: present
+        name: Tenant-A
+ 
+    - name: Create new tenant space A
+      purestorage.fusion.fusion_ts:
+        issuer_id: "{{ ansible_env.FUSION_ISSUER_ID }}"
+        private_key_file: "{{ ansible_env.FUSION_PRIVATE_KEY_FILE }}"
+        state: present
+        name: Tenant-Space-A
+        tenant: Tenant-A
+     
+    - name: Create new region
+      purestorage.fusion.fusion_region:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: present
+        name: pure-us-west
+
+    - name: Create new Availability Zone
+      purestorage.fusion.fusion_az:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: present
+        name: az1
+        region: pure-us-west
+
+    - name: Create new storage service A
+      purestorage.fusion.fusion_ss:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: present
+        name: storage-service-A
+        hardware_types: "{{ array_type }}"
+
+    - name: Create new storage class A
+      purestorage.fusion.fusion_sc:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: present
+        name: storage-class-A
+        storage_service: storage-service-A
+        size_limit: 1T
+        iops_limit: 20000
+        bw_limit: 2G
+
+    - name: Create new storage class B
+      purestorage.fusion.fusion_sc:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: present
+        name: storage-class-B
+        storage_service: storage-service-A
+        size_limit: 1T
+        iops_limit: 20000
+        bw_limit: 2G
+    
+    - name: Create new placement group A
+      purestorage.fusion.fusion_pg:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: present
+        name: pg-A
+        tenant: Tenant-A
+        tenant_space: Tenant-Space-A
+        availability_zone: az1
+        region: pure-us-west
+        array: "{{ arrays[0].name }}"
+        storage_service: storage-service-A
+
+    - name: Create new volume A
+      purestorage.fusion.fusion_volume:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: present
+        name: Volume-A
+        storage_class: storage-class-A
+        placement_group: pg-A
+        size: 100M
+        tenant: Tenant-A
+        tenant_space: Tenant-Space-A
+    
+    - name: Create new volume A
+      purestorage.fusion.fusion_volume:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: present
+        name: Volume-A
+        storage_class: storage-class-A
+        placement_group: pg-A
+        size: 100M
+        tenant: Tenant-A
+        tenant_space: Tenant-Space-A
+
+    - name: Create another volume that is a copy of the first volume A (assign a different storage class) affinity
+      purestorage.fusion.fusion_volume:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: present
+        name: Volume-B
+        storage_class: storage-class-B
+        placement_group: pg-A
+        tenant: Tenant-A
+        tenant_space: Tenant-Space-A
+        source_volume: Volume-A
+    
+    - name: Move the placement group to a different array - anti-affinity (live migration)
+      purestorage.fusion.fusion_pg:
+        issuer_id: "{{ issuer_id }}"
+        private_key_file: "{{ private_key_file }}"
+        state: present
+        name: pg-A
+        tenant: Tenant-A
+        tenant_space: Tenant-Space-A
+        availability_zone: az1
+        region: pure-us-west
+        array: "{{ arrays[1].name }}"
+        storage_service: storage-service-A
