@@ -1,5 +1,26 @@
 # Ansible Playbooks for the Fusion DevKit
 
+## Prerequisites
+
+
+### Ansible galaxy
+
+Install Ansible galaxy.
+
+```shell
+pip3 install ansible
+```
+
+
+### Ansible Collections
+
+Install required Ansible Collections.
+
+```shell
+ansible-galaxy install -r requirements.yml
+```
+
+
 ## Summary
 The goal of this document is to help you set up and understand the functionality and scope of the ansible playbooks provided here.
 
