@@ -1,7 +1,7 @@
-    src_array_ip: 10.21.200.10
-    src_array_api: c6033033-f569-2515-a9e8-966bb7fe4b40
-    dst_array_ip: 10.21.200.80
-    dst_array_api: 9c0b56bc-f9f1-f7a6-9f85-dcc3e9a8f7d6
+    src_array_ip: <array_ip>
+    src_array_api: <array_toekn>
+    dst_array_ip: <array_ip>
+    dst_array_api: <account_token>
     migration_pod: mig-pod
     src_iscsi_port: ct1.eth4
     dst_iscsi_port: ct0.eth8
