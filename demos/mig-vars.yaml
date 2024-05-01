@@ -2,7 +2,6 @@
     src_array_api: c6033033-f569-2515-a9e8-966bb7fe4b40
     dst_array_ip: 10.21.200.80
     dst_array_api: 9c0b56bc-f9f1-f7a6-9f85-dcc3e9a8f7d6
-    migration_volume: mig-test
     migration_pod: mig-pod
     src_iscsi_port: ct1.eth4
     dst_iscsi_port: ct0.eth8
