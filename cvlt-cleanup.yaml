@@ -1,0 +1,26 @@
+- name: Commvault Snapshots Cleanup
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    array_ip: 10.21.200.190  # sn1-c60-e12-16
+    array_api: 41238831-2b9d-89e2-b4f2-936e0a03ffb6
+  tasks:
+    - name: perform the Commvault cleanup
+      block:
+      - name: Get all snapshot information
+        purestorage.flasharray.purefa_info:
+          gather_subset:
+          - snapshots
+          fa_url: "{{ array_ip }}"
+          api_token: "{{ array_api }}"
+        register: fa_snapshots
+      - name: Check local Commvault related snapshots
+        include_tasks: time_check.yaml
+        with_items: "{{ fa_snapshots.purefa_info.snapshots | dict2items }}"
+        when: '"SP-2" in item.key and item.value.is_local'
+        ignore_errors: true
+        no_log: true
+      rescue:
+      - name: No Commvault snapshots present
+        ansible.builtin.debug:
+          msg: "No Commvault snapshots present on array"

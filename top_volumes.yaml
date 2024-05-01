@@ -1,0 +1,56 @@
+- name: Get top volumes
+  hosts: localhost
+  gather_facts: no
+  vars:
+    array_ip: 10.21.200.190  # sn1-c60-e12-16
+    array_api: 41238831-2b9d-89e2-b4f2-936e0a03ffb6
+    count: 5
+  tasks:
+    - name: info
+      purestorage.flasharray.purefa_info:
+        gather_subset:
+        - volumes
+        - performance
+        fa_url: "{{ array_ip }}"
+        api_token: "{{ array_api }}"
+      register: fa_volumes
+
+    - name: Get writes perf
+      ansible.builtin.set_fact:
+        param: "{{ param | default({}) | ansible.builtin.combine({item['key'] : item.value.performance.writes_per_sec}) }}"
+      with_items: "{{ fa_volumes.purefa_info.volumes | dict2items }}"
+      no_log: true
+
+    - name: Get top volumes
+      ansible.builtin.set_fact:
+        top_order: "{{ ( param | dict2items | sort(attribute='value', reverse=true)) }}"
+
+    - name: Extract volume names
+      ansible.builtin.set_fact:
+        top_vol: "{{ top_vol | default([]) + [item.key] }}"
+      with_items: "{{ top_order }}"
+      when:
+        - item.value != 0
+        - item is not search("::")
+        - item is not search("/")
+      no_log: true
+
+    - name: Select top {{ count }} volumes
+      ansible.builtin.set_fact:
+        selected_vols: "{{ top_vol[:count|int] }}"
+
+    - name: Show selected vols
+      ansible.builtin.debug:
+        msg: "{{ selected_vols }}"
+
+    - name: Create migrate_volumes file
+      ansible.builtin.template:
+        src: migrate_volumes.j2
+        dest: migrate_volumes.yaml
+      delegate_to: localhost
+
+    - name: Add candidates to migrate_volumes file
+      ansible.builtin.lineinfile:
+        line: "  - {{ item }}"
+        path: migrate_volumes.yaml
+      with_items: "{{ selected_vols }}"

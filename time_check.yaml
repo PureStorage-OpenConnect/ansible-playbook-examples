@@ -1,0 +1,16 @@
+---
+- set_fact:
+    created_epoch: "{{ item.value.created_epoch }}"
+    snapname: "{{ item.key.split('.') }}"
+  no_log: true
+
+- name: Delete Commvault snapshot for volume {{ snapname.0 }} older than {{ days }} days
+  purefa_snap:
+    state: absent
+    name: "{{ snapname.0 }}"
+    suffix: "{{ snapname.1 }}"
+    fa_url: "{{ array_ip }}"
+    api_token: "{{ array_api }}"
+  check_mode: true
+  when: ansible_date_time.epoch|int > ( created_epoch|int + ( days|int * 86400 )|int )
+  ignore_errors: true
