@@ -2,8 +2,8 @@
   hosts: localhost
   gather_facts: no
   vars:
-    array_ip: 10.21.200.190  # sn1-c60-e12-16
-    array_api: 41238831-2b9d-89e2-b4f2-936e0a03ffb6
+    array_ip: <array_ip>
+    array_api: <account_token>
     count: 5
   tasks:
     - name: info
