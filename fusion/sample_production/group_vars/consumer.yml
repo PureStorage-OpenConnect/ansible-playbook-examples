@@ -1,7 +1,0 @@
----
-workdir: "keys"
-key_size: 2048
-
-tenants:
-  - name: Tenant-2
-    display_name: Tenant-2
