@@ -1,9 +1,0 @@
----
-collections:
-  - purestorage.fusion
-  - community.crypto
-  - community.general
-  - ansible.posix
-  - name: purestorage.fusion
-    version: ">=1.6.0"
-    type: galaxy
