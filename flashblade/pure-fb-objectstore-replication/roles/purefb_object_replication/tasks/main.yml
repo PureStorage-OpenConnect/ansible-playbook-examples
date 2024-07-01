@@ -1,20 +1,20 @@
 ---
-- name: object-store | Include task for FB-FB replication
-  include: fb-fb_replication.yml repl_vars={{ repl_loop.value }}
-  loop: "{{ S3Replication|default({})|dict2items }}"
+- name: Object-store | Include task for FB-FB replication
+  ansible.builtin.include_tasks: fb-fb_replication.yml repl_vars={{ repl_loop.value }}
+  loop: "{{ s3replication | default({}) | dict2items }}"
   loop_control:
     loop_var: repl_loop
-  when: 
-    - S3Replication is defined
+  when:
+    - s3replication is defined
     - repl_loop.value.dst.server is defined and repl_loop.value.dst.server | length > 0
     - repl_loop.value.dst.server is search("FBServer")
 
-- name: object-store | Include task for Fb-AWS replication
-  include: fb-aws_replication.yml repl_vars={{ repl_loop.value }}
-  loop: "{{ S3Replication|default({})|dict2items }}"
+- name: Object-store | Include task for Fb-AWS replication
+  ansible.builtin.include_tasks: fb-aws_replication.yml repl_vars={{ repl_loop.value }}
+  loop: "{{ s3replication | default({}) | dict2items }}"
   loop_control:
     loop_var: repl_loop
-  when: 
-    - S3Replication is defined
+  when:
+    - s3replication is defined
     - repl_loop.value.dst.server is defined and repl_loop.value.dst.server | length > 0
     - not repl_loop.value.dst.server is search("FBServer")

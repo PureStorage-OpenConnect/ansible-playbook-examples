@@ -1,58 +1,59 @@
 - name: Pure Storage storage module examples
   hosts: localhost
-  collections:
-  - purestorage.flashblade
   vars:
     fb_url: 10.10.10.10
-    fb_api_token: 
-  gather_facts: no
+    fb_api_token: T-xxx-xxxx-xxxx-xxxxx-xxxx-xxx
+  gather_facts: false
   tasks:
     - name: Get FB facts
-      purefb_info:
-        fb_url: {{ fb_url }}
-        api_token: {{fb_api_token }}
+      purestorage.flashblade.purefb_info:
+        fb_url: "{{ fb_url }}"
+        api_token: "{{ fb_api_token }}"
         gather_subset: all
       register: blade_info
 
-    - debug:
-        msg:  "{{ blade_info['purefb_info'] }}"
+    - name: Debug
+      ansible.builtin.debug:
+        msg: "{{ blade_info['purefb_info'] }}"
 
-    - pause:
+    - name: Pause
+      ansible.builtin.pause:
 
     - name: Create test filesystem
-      purefb_fs:
-        fb_url: {{ fb_url }}
-        api_token: {{fb_api_token }}
+      purestorage.flashblade.purefb_fs:
+        fb_url: "{{ fb_url }}"
+        api_token: "{{ fb_api_token }}"
         name: "rules_test"
         state: present
         size: 1T
-        nfsv3: True
-        nfsv4: False
+        nfsv3: true
+        nfsv4: false
         hard_limit: true
         nfs_rules: '10.10.28.78/32(rw,no_root_squash)'
-        snapshot: True
+        snapshot: true
 
     - name: Create test snapshot
-      purefb_snap:
-        fb_url: {{ fb_url }}
-        api_token: {{fb_api_token }}
+      purestorage.flashblade.purefb_snap:
+        fb_url: "{{ fb_url }}"
+        api_token: "{{ fb_api_token }}"
         name: "rules_test"
         state: present
         suffix: "ansible-snap"
 
-    - pause:
+    - name: Pause
+      ansible.builtin.pause:
 
     - name: Delete test filesystem
-      purefb_fs:
-        fb_url: {{ fb_url }}
-        api_token: {{fb_api_token }}
+      purestorage.flashblade.purefb_fs:
+        fb_url: "{{ fb_url }}"
+        api_token: "{{ fb_api_token }}"
         name: "rules_test"
         state: absent
 
     - name: Delete test filesystem
-      purefb_fs:
-        fb_url: {{ fb_url }}
-        api_token: {{fb_api_token }}
+      purestorage.flashblade.purefb_fs:
+        fb_url: "{{ fb_url }}"
+        api_token: "{{ fb_api_token }}"
         name: "rules_test"
         state: absent
         eradicate: true

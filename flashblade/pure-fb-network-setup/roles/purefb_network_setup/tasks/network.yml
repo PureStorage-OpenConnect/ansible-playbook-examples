@@ -1,86 +1,86 @@
 ---
-- name: validation | Check connectivity for FBServer
-  shell: ping -q -c 4 -W 1 {{ fb_vars.fb_host }}
+- name: Validation | Check connectivity for FBServer
+  ansible.builtin.command: ping -q -c 4 -W 1 {{ fb_vars.fb_host }}
   register: fb_ping_status
   failed_when: false
   changed_when: false
 
-- name: validation | Fail if Flashblade server not reachable
-  fail:
+- name: Validation | Fail if Flashblade server not reachable
+  ansible.builtin.fail:
     msg: FB server {{ fb_vars.fb_host }} not reachable
   when: "'100% packet loss' in fb_ping_status.stdout"
 
-- name: validation | Check if reachable fb_host is FB server or not to fail fast
-  uri:
+- name: Validation | Check if reachable fb_host is FB server or not to fail fast
+  ansible.builtin.uri:
     url: https://{{ fb_vars.fb_host }}/api/api_version
     method: GET
-    validate_certs: no
-    return_content: yes
+    validate_certs: false
+    return_content: true
     timeout: 10
   register: api_version
   failed_when: false
 
-- name: validation | Fail if Flashblade server mentioned in "fb_host" is not FlashBlade server
-  fail:
+- name: Validation | Fail if Flashblade server mentioned in "fb_host" is not FlashBlade server
+  ansible.builtin.fail:
     msg: FB server {{ fb_vars.fb_host }} is not valid FlashBlade server
   when: (api_version.status != 200 )
 
-- name: dns | Set DNS settings for {{ outer_loop.key }}
-  purefb_dns:
+- name: Dns | Set DNS settings for {{ outer_loop.key }}
+  purestorage.flashblade.purefb_dns:
     domain: "{{ fb_vars.network.dns[0].domain | default(omit) }}"
     nameservers: "{{ fb_vars.network.dns[0].nameservers | default(omit) }}"
     state: "{{ 'absent' if fb_vars.network.dns[0].state is defined and fb_vars.network.dns[0].state == 'disabled' else 'present' }}"
     fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
-  when: (fb_vars.network.dns is defined) and (fb_vars.network.dns|length > 0) 
+  when: (fb_vars.network.dns is defined) and (fb_vars.network.dns|length > 0)
 
-- name: ntp | Set new array NTP servers for {{ outer_loop.key }}
-  purefb_ntp:
+- name: Ntp | Set new array NTP servers for {{ outer_loop.key }}
+  purestorage.flashblade.purefb_ntp:
     state: "{{ 'absent' if fb_vars.network.ntp[0].state is defined and fb_vars.network.ntp[0].state == 'disabled' else 'present' }}"
     ntp_servers: "{{ fb_vars.network.ntp[0].servers }}"
     fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   when: (fb_vars.network.ntp is defined) and (fb_vars.network.ntp|length > 0)
 
-- name: ds | Create NFS directory service for {{ outer_loop.key }}
-  purefb_ds:
+- name: Ds | Create NFS directory service for {{ outer_loop.key }}
+  purestorage.flashblade.purefb_ds:
     dstype: "{{ item.dstype }}"
     enable: "{{ item.enable | default('false') }}"
     state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     uri: "{{ item.uri | default(omit) }}"
-    base_dn: "{{ item.base_dn | default(omit)}}"
+    base_dn: "{{ item.base_dn | default(omit) }}"
     bind_user: "{{ item.bind_user | default(omit) }}"
-    bind_password: "{{ item.bind_password | default(omit)  }}"
+    bind_password: "{{ item.bind_password | default(omit) }}"
     nis_servers: "{{ item.nis_servers | default(omit) }}"
     nis_domain: "{{ item.nis_domain | default(omit) }}"
-    join_ou: "{{ item.join_ou | default(omit)  }}"    
+    join_ou: "{{ item.join_ou | default(omit) }}"
     fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.network.ds }}"
-  when: 
-    - (fb_vars.network.ds is defined and (fb_vars.network.ds|length > 0)) 
-    - (item.dstype == "nfs") 
+  when:
+    - (fb_vars.network.ds is defined and (fb_vars.network.ds|length > 0))
+    - (item.dstype == "nfs")
 
-- name: ds | Create SMB directory service for {{ outer_loop.key }}
-  purefb_ds:
+- name: Ds | Create SMB directory service for {{ outer_loop.key }}
+  purestorage.flashblade.purefb_ds:
     dstype: "{{ item.dstype }}"
     enable: "{{ item.enable | default('false') }}"
-    state: "{{ 'absent' if item.state is defined and item.state== 'disabled' else 'present' }}"
+    state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     uri: "{{ item.uri | default(omit) }}"
-    base_dn: "{{ item.base_dn | default(omit)}}"
+    base_dn: "{{ item.base_dn | default(omit) }}"
     bind_user: "{{ item.bind_user | default(omit) }}"
-    bind_password: "{{ item.bind_password | default(omit)  }}"
-    join_ou: "{{ item.join_ou | default(omit)  }}"       
+    bind_password: "{{ item.bind_password | default(omit) }}"
+    join_ou: "{{ item.join_ou | default(omit) }}"
     fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   no_log: true
   loop: "{{ fb_vars.network.ds }}"
-  when: 
-    - (fb_vars.network.ds is defined) and (fb_vars.network.ds|length > 0) 
-    - (item.dstype == "smb") 
+  when:
+    - (fb_vars.network.ds is defined) and (fb_vars.network.ds|length > 0)
+    - (item.dstype == "smb")
 
-- name: ds | Create Management directory service for {{ outer_loop.key }}
-  purefb_ds:
+- name: Ds | Create Management directory service for {{ outer_loop.key }}
+  purestorage.flashblade.purefb_ds:
     dstype: "{{ item.dstype }}"
     enable: "{{ item.enable | default('false') }}"
     state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
@@ -88,22 +88,22 @@
     base_dn: "{{ item.base_dn }}"
     bind_user: "{{ item.bind_user }}"
     bind_password: "{{ item.bind_password }}"
-    join_ou: "{{ item.join_ou | default(omit)  }}"       
+    join_ou: "{{ item.join_ou | default(omit) }}"
     fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   no_log: true
   loop: "{{ fb_vars.network.ds }}"
-  when: 
-    - (fb_vars.network.ds is defined and (fb_vars.network.ds|length > 0)) 
-    - (item.dstype == "management") 
+  when:
+    - (fb_vars.network.ds is defined and (fb_vars.network.ds|length > 0))
+    - (item.dstype == "management")
 
-- name: subnet | Create new network subnet for {{ outer_loop.key }}
-  purefb_subnet:
+- name: Subnet | Create new network subnet for {{ outer_loop.key }}
+  purestorage.flashblade.purefb_subnet:
     name: "{{ item.name }}"
     prefix: "{{ item.prefix }}"
     gateway: "{{ item.gateway }}"
-    mtu: "{{ item.mtu | default(omit)}}"
-    vlan: "{{ item.vlan | default(omit)}}"
+    mtu: "{{ item.mtu | default(omit) }}"
+    vlan: "{{ item.vlan | default(omit) }}"
     state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
     fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
@@ -111,8 +111,8 @@
   when:
     - (fb_vars.network.subnet is defined) and (fb_vars.network.subnet|length > 0)
 
-- name: vip | Create new network interface(VIP) for {{ outer_loop.key }}
-  purefb_network:
+- name: Vip | Create new network interface(VIP) for {{ outer_loop.key }}
+  purestorage.flashblade.purefb_network:
     name: "{{ item.name }}"
     address: "{{ item.address }}"
     state: "{{ 'absent' if item.state is defined and item.state == 'disabled' else 'present' }}"
@@ -120,5 +120,5 @@
     fb_url: "{{ fb_vars.fb_host }}"
     api_token: "{{ fb_vars.api_token }}"
   loop: "{{ fb_vars.network.vip }}"
-  when: 
+  when:
     - (fb_vars.network.vip is defined) and (fb_vars.network.vip|length > 0)

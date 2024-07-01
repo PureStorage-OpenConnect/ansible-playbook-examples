@@ -117,7 +117,7 @@ To configure your FlashBlade connection details and the Object Store account, us
         fb_host: 10.xx.xxx.11      #FlashBlade Management IP     
 
     # FB-FB Replication
-    S3Replication: 
+    s3replication: 
       replication1: # FB-FB Replication
         common_params: { del_repl_link: false, repl_type: oneway, src_dst_repl_pause: false, dst_src_repl_pause: false }
         src: { server: FBServer1, replvip: 10.21.152.231, account: srcaccount, user: srcuser, bucket: srcbucket }
@@ -146,7 +146,7 @@ Example fb_details.yml:
         fb_host: 10.21.241.11      #FlashBlade Management IP     
 
     # FB-FB Replication
-    S3Replication: 
+    s3replication: 
       replication1: # FB-FB Replication
         common_params: { del_repl_link: true, repl_type: oneway, src_dst_repl_pause: false, dst_src_repl_pause: false }
         src: { server: FBServer1, replvip: 10.21.152.231, account: srcaccount, user: srcuser, bucket: srcbucket }
@@ -166,7 +166,7 @@ Example fb_details.yml:
         fb_host: 10.xx.xxx.11      #FlashBlade Management IP     
 
     # FB-FB or FB-AWS replication
-    S3Replication: 
+    s3replication: 
       replication1: # FB-AWS Replication
         common_params: { del_repl_link: false, pause_repl: false }
         src: { server: FBServer1, replvip: 10.xx.xxx.231, account: awssrcaccount, user: srcuser36, bucket: srcbucketaws }
@@ -198,7 +198,7 @@ Example fb_details.yml:
         fb_host: 10.xx.xxx.11      #FlashBlade Management IP     
 
     # FB-FB or FB-AWS replication
-    S3Replication: 
+    s3replication: 
       replication1: # FB-AWS Replication
         common_params: { del_repl_link: true, pause_repl: false }
         src: { server: FBServer1, replvip: 10.xx.xxx.231, account: awssrcaccount, user: srcuser36, bucket: srcbucketaws }
@@ -216,7 +216,7 @@ Note:
         fb_host: 10.16.126.80   # FlashBlade Management IP                            
 
     # FB-AWS object replication
-    S3Replication: 
+    s3replication: 
       replication1:
         src: { server: FBServer1, account: srcaccount, user: srcuser, bucket: srcbucket, noncurrent_version_expiration_days: 7 }
         dst: { server: s3.amazonaws.com, region: us-west-2, credential: aws1, bucket: pureawsbucket, expiration_days: 6, noncurrent_version_expiration_days: 7  }
