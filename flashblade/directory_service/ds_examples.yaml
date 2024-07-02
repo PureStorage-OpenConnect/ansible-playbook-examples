@@ -1,53 +1,50 @@
 - name: Pure Storage storage module examples
   hosts: localhost
-  collections:
-  - purestorage.flashblade
-  gather_facts: no
+  gather_facts: false
   vars:
     url: 10.10.10.10
     api: T-9f276a18-xxxx-yyyy-8a0c-666a3529a1b6
   tasks:
-  - name: Set NFS NIS Directory Service
-    purefb_ds:
-      dstype: nfs
-      nis_domain: "my.nis_domain"
-      nis_servers:
-      - "nis.master.example.com"
-      - "nis.backup.example.com"
-      fb_url: "{{ url }}"
-      api_token: "{{ api }}"
+    - name: Set NFS NIS Directory Service
+      purestorage.flashblade.purefb_ds:
+        dstype: nfs
+        nis_domain: "my.nis_domain"
+        nis_servers:
+          - "nis.master.example.com"
+          - "nis.backup.example.com"
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"
 
-  - name: Set Array Management Directory Service
-    purefb_ds:
-      dstype: management
-      uri: "http://lab.purestorage.com"
-      base_dn: "DC=lab,DC=purestorage,DC=com"
-      bind_user: Administrator
-      bind_password: password
-      fb_url: "{{ url }}"
-      api_token: "{{ api }}"
+    - name: Set Array Management Directory Service
+      purestorage.flashblade.purefb_ds:
+        dstype: management
+        uri: "http://lab.purestorage.com"
+        base_dn: "DC=lab,DC=purestorage,DC=com"
+        bind_user: Administrator
+        bind_password: password
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"
 
-  - name: Set Array ops_admin Directory Service Role
-    purefb_dsrole:
-      role: ops_admin
-      group_base: "OU=PureGroups,OU=SANManagers"
-      group: pureops
-      fb_url: "{{ url }}"
-      api_token: "{{ api }}"
+    - name: Set Array ops_admin Directory Service Role
+      purestorage.flashblade.purefb_dsrole:
+        role: ops_admin
+        group_base: "OU=PureGroups,OU=SANManagers"
+        group: pureops
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"
 
-  - name: Set Array readonly Directory Service Role
-    purefb_dsrole:
-      role: readonly
-      group_base: "OU=PureGroups,OU=SANManagers"
-      group: pureusers
-      fb_url: "{{ url }}"
-      api_token: "{{ api }}"
+    - name: Set Array readonly Directory Service Role
+      purestorage.flashblade.purefb_dsrole:
+        role: readonly
+        group_base: "OU=PureGroups,OU=SANManagers"
+        group: pureusers
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"
 
-  - name: Set Array storage_admin Directory Service Role
-    purefb_dsrole:
-      role: storage_admin
-      group_base: "OU=PureGroups,OU=SANManagers"
-      group: pureadmins
-      fb_url: "{{ url }}"
-      api_token: "{{ api }}"
-
+    - name: Set Array storage_admin Directory Service Role
+      purestorage.flashblade.purefb_dsrole:
+        role: storage_admin
+        group_base: "OU=PureGroups,OU=SANManagers"
+        group: pureadmins
+        fb_url: "{{ url }}"
+        api_token: "{{ api }}"

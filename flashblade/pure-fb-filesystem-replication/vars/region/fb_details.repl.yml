@@ -1,14 +1,15 @@
+---
 # FlashBlade inventory
-array_inventory:               
+array_inventory:
   FBServer1:
-    fb_host: 10.21.xxx.151   # FlashBlade Management VIP
+    fb_host: 10.21.xxx.151 # FlashBlade Management VIP
     filesystem_snapshot_policy:
       - { name: daily, at: 12AM, keep_for: 86400, every: 86400, timezone: America/Los_Angeles }
   FBServer2:
-    fb_host: 10.21.xxx.11  # FlashBlade Management VIP
+    fb_host: 10.21.xxx.11 # FlashBlade Management VIP
 
 # Filesystem replication
-FSReplication:       
+fsreplication:
   replication1:
     common_params: { repl_policy: daily }
     src: { fb_name: FBServer1, replvip: 10.21.152.231, fileshare: database }

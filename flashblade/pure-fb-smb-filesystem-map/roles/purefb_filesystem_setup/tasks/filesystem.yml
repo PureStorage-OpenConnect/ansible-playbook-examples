@@ -1,35 +1,35 @@
 ---
-- name: validation | Check reachability for FlashBlade
-  shell: ping -q -c 4 -W 1 {{ fb_vars.fb_host }}
+- name: Validation | Check reachability for FlashBlade
+  ansible.builtin.command: ping -q -c 4 -W 1 {{ fb_vars.fb_host }}
   register: fb_ping_status
   failed_when: false
   changed_when: false
 
-- name: validation | Fail if FlashBlade not reachable
-  fail:
+- name: Validation | Fail if FlashBlade not reachable
+  ansible.builtin.fail:
     msg: FlashBlade {{ fb_vars.fb_host }} not reachable
   when: "'100% packet loss' in fb_ping_status.stdout"
 
-- name: validation | Check if reachable fb_host is FlashBlade to fail fast
-  uri:
+- name: Validation | Check if reachable fb_host is FlashBlade to fail fast
+  ansible.builtin.uri:
     url: https://{{ fb_vars.fb_host }}/api/api_version
     method: GET
-    validate_certs: no
-    return_content: yes
+    validate_certs: false
+    return_content: true
     timeout: 10
   register: api_version
   failed_when: false
 
-- name: validation | Fail if "fb_host" is not FlashBlade
-  fail:
+- name: Validation | Fail if "fb_host" is not FlashBlade
+  ansible.builtin.fail:
     msg: fb_host {{ fb_vars.fb_host }} is not a valid FlashBlade
   when: (api_version.status != 200 )
 
-- name: filesystem | Provision File System on {{ outer_loop.key }}
-  purefb_fs:
+- name: Filesystem | Provision File System on {{ outer_loop.key }}
+  purestorage.flashblade.purefb_fs:
     name: "{{ item.name }}"
     size: "{{ item.size | default(omit) }}"
-    nfsv3: "{{ 'nfsv3' in item.type | default(omit)}}"
+    nfsv3: "{{ 'nfsv3' in item.type | default(omit) }}"
     nfsv4: "{{ 'nfsv4.1' in item.type | default(omit) }}"
     user_quota: "{{ item.user_quota | default(omit) }}"
     group_quota: "{{ item.group_quota | default(omit) }}"
@@ -43,7 +43,7 @@
     http: "{{ item.http | default(omit) }}"
     eradicate: "{{ item.eradicate | default('false') }}"
     promote: "{{ item.promote | default(omit) }}"
-    state: "{{ 'absent' if item.destroy is defined and item.destroy|bool else 'present' }}"
+    state: "{{ 'absent' if item.destroy is defined and item.destroy | bool else 'present' }}"
     policy: "{{ item.policy | default(omit) }}"
     policy_state: "{{ item.policy_state | default(omit) }}"
     fb_url: "{{ fb_vars.fb_host }}"
@@ -53,9 +53,9 @@
     - item is defined and (item|default([])|length > 0)
     - item.count is not defined or item.count == 0
 
-- name: filesystem | Include task to setup multiple File System if count defined on {{ outer_loop.key }}
-  include: filesystem_multi.yml
-  loop: "{{ fb_vars.filesystem|default([]) }}"
+- name: Filesystem | Include task to setup multiple File System if count defined on {{ outer_loop.key }}
+  ansible.builtin.include_tasks: filesystem_multi.yml
+  loop: "{{ fb_vars.filesystem | default([]) }}"
   loop_control:
     loop_var: fs_loop
   when:

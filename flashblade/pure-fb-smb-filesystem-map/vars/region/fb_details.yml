@@ -1,12 +1,13 @@
+---
 ######################### FB array SMB File System provisioning ##########################
-array_inventory:               
+array_inventory:
   FBServer1:
-    fb_host: 10.21.241.11   # FlashBlade Management IP             
+    fb_host: 10.21.241.11 # FlashBlade Management IP
     filesystem:
-      - { name: winbackup, destroy: false, eradicate: false, size: 32G, type: smb, smb_aclmode: native } # smb_aclmode: shared/native 
+      - { name: winbackup, destroy: false, eradicate: false, size: 32G, type: smb, smb_aclmode: native } # smb_aclmode: shared/native
 
 ######################## Map/Unmap SMB Filesystem on client/host ########################
 windows_client_mount:
   mount1:
-    server: { fb_name: FBServer1, fileshare: winbackup, data_vip: NFS-1 } 
-    client: { hosts: win, map_state: mapped, reboot: false, drive_letter: Z }   # map_state: mapped/unmapped
+    server: { fb_name: FBServer1, fileshare: winbackup, data_vip: NFS-1 }
+    client: { hosts: win, map_state: mapped, reboot: false, drive_letter: Z } # map_state: mapped/unmapped

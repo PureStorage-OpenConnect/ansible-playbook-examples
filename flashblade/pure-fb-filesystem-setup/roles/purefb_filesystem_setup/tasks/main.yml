@@ -1,7 +1,7 @@
 ---
-- name: filesystem | Include task to setup filesystem
-  include: filesystem.yml fb_vars={{outer_loop.value}}
-  loop: "{{ array_inventory|combine(array_secrets, recursive=True)|dict2items  }}"
+- name: Filesystem | Include task to setup filesystem
+  ansible.builtin.include_tasks: filesystem.yml fb_vars={{ outer_loop.value }}
+  loop: "{{ array_inventory | combine(array_secrets, recursive=True) | dict2items }}"
   loop_control:
     loop_var: outer_loop
   when: outer_loop.value.fb_host is defined and outer_loop.value.api_token is defined

@@ -1,9 +1,9 @@
 ---
-- name: filesystem | Provision multiple file system on {{ outer_loop.key }}
-  purefb_fs:
+- name: Filesystem | Provision multiple file system on {{ outer_loop.key }}
+  purestorage.flashblade.purefb_fs:
     name: "{{ item }}"
     size: "{{ fs_loop.size | default(omit) }}"
-    nfsv3: "{{ 'nfsv3' in fs_loop.type | default(omit)}}"
+    nfsv3: "{{ 'nfsv3' in fs_loop.type | default(omit) }}"
     nfsv4: "{{ 'nfsv4.1' in fs_loop.type | default(omit) }}"
     user_quota: "{{ fs_loop.user_quota | default(omit) }}"
     group_quota: "{{ fs_loop.group_quota | default(omit) }}"

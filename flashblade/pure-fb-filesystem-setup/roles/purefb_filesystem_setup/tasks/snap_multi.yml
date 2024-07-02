@@ -1,6 +1,6 @@
 ---
-- name: filesystem | Create snapshot of multiple File System on {{ outer_loop.key }}
-  purefb_snap:
+- name: Filesystem | Create snapshot of multiple File System on {{ outer_loop.key }}
+  purestorage.flashblade.purefb_snap:
     name: "{{ item }}"
     suffix: "{{ snap_loop.suffix }}"
     state: "{{ 'absent' if snap_loop.state is defined and snap_loop.state == 'disabled' else 'present' }}"

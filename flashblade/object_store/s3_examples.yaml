@@ -1,35 +1,31 @@
 - name: Pure Storage storage module examples
   hosts: localhost
-  collections:
-  - purestorage.flashblade
-  gather_facts: no
+  gather_facts: false
   vars:
     url: 10.10.10.10
     api: T-9f276a18-xxxx-yyyy-8a0c-666a3529a1b6
-  collections:
-  - purestorage.flashblade
   tasks:
     - name: Create s3 account
-      purefb_s3acc:
+      purestorage.flashblade.purefb_s3acc:
         name: foo
         fb_url: "{{ url }}"
         api_token: "{{ api }}"
 
     - name: Create s3 user
-      purefb_s3user:
-        name:  bar
+      purestorage.flashblade.purefb_s3user:
+        name: bar
         account: foo
         fb_url: "{{ url }}"
         api_token: "{{ api }}"
       register: user_info
 
-    - debug:
+    - name: Debug response
+      ansible.builtin.debug:
         var: user_info.s3user_info.fb_s3user
 
     - name: Create bucket
-      purefb_bucket:
+      purestorage.flashblade.purefb_bucket:
         name: testbucket
         account: foo
         fb_url: "{{ url }}"
         api_token: "{{ api }}"
-

@@ -165,7 +165,7 @@ Example fb_details for replication and failover/failback, see:
           fb_host: 10.22.222.100  #FlashBlade Management IP
 
     # Filesystem replication
-    FSReplication:       
+    fsreplication:       
       replication1:
         common_params: { repl_policy: daily }
         src: { fb_name: FBServer1, replvip: 10.21.152.231, fileshare: src-nfs }
@@ -206,7 +206,7 @@ Snapshot Policy Examples:
           fb_host: 10.22.222.100  #FlashBlade Management IP
 
     # Filesystem replication
-    FSReplication:       
+    fsreplication:       
       replication1:
         common_params: { repl_policy: daily }
         client_details:
@@ -232,7 +232,7 @@ Snapshot Policy Examples:
         fb_host: 10.22.222.100  #FlashBlade Management IP
 
     # Filesystem replication
-    FSReplication:       
+    fsreplication:       
       replication1:
         common_params: { repl_policy: daily }
         client_details:

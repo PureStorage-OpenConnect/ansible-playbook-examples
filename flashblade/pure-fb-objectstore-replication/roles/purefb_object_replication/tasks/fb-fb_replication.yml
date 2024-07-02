@@ -1,75 +1,75 @@
 ---
-- name: facts | Combine array_inventory and array_secrets for {{ repl_loop.key }}
-  set_fact:
-    combined_inventory: "{{ array_inventory|combine(array_secrets, recursive=True) }}"
+- name: Facts | Combine array_inventory and array_secrets for {{ repl_loop.key }}
+  ansible.builtin.set_fact:
+    combined_inventory: "{{ array_inventory | combine(array_secrets, recursive=True) }}"
   no_log: true
 
-- name: validation | Fail if source Flashblade server not exist in replication for {{ repl_loop.key }}
-  fail:
+- name: Validation | Fail if source Flashblade server not exist in replication for {{ repl_loop.key }}
+  ansible.builtin.fail:
     msg: FB server {{ repl_vars.src.server }} not available in fb_details
   when: repl_vars.src.server not in combined_inventory
 
-- name: validation | Fail if target Flashblade server not exist in replication for {{ repl_loop.key }}
-  fail:
+- name: Validation | Fail if target Flashblade server not exist in replication for {{ repl_loop.key }}
+  ansible.builtin.fail:
     msg: FB server {{ repl_vars.dst.server }} not available in fb_details
   when: repl_vars.dst.server not in combined_inventory
 
-- name: validation | Fail if src fb_host not defined for {{ repl_loop.key }}
-  fail:
+- name: Validation | Fail if src fb_host not defined for {{ repl_loop.key }}
+  ansible.builtin.fail:
     msg: fb_host not available in fb_details for {{ repl_vars.src.server }}
   when: combined_inventory[repl_vars.src.server].fb_host is not defined
 
-- name: validation | Fail if src api_token not defined for {{ repl_loop.key }}
-  fail:
+- name: Validation | Fail if src api_token not defined for {{ repl_loop.key }}
+  ansible.builtin.fail:
     msg: api_token not available in fb_secrets for {{ repl_vars.src.server }}
   when: combined_inventory[repl_vars.src.server].api_token is not defined
 
-- name: validation | Fail if dst api_token not defined for {{ repl_loop.key }}
-  fail:
+- name: Validation | Fail if dst api_token not defined for {{ repl_loop.key }}
+  ansible.builtin.fail:
     msg: api_token not available in fb_secrets for {{ repl_vars.dst.server }}
   when: combined_inventory[repl_vars.dst.server].api_token is not defined
 
-- name: facts | Set fb_url and fb_token facts from array_inventory for {{ repl_loop.key }}
-  set_fact:
+- name: Facts | Set fb_url and fb_token facts from array_inventory for {{ repl_loop.key }}
+  ansible.builtin.set_fact:
     src_fb_url: "{{ combined_inventory[repl_vars.src.server].fb_host }}"
     src_fb_token: "{{ combined_inventory[repl_vars.src.server].api_token }}"
     dst_fb_url: "{{ combined_inventory[repl_vars.dst.server].fb_host }}"
     dst_fb_token: "{{ combined_inventory[repl_vars.dst.server].api_token }}"
   no_log: true
 
-- name: validation | Check if reachable fb_host is FB server or not to fail fast
-  uri:
+- name: Validation | Check if reachable fb_host is FB server or not to fail fast
+  ansible.builtin.uri:
     url: https://{{ src_fb_url }}/api/api_version
     method: GET
-    validate_certs: no
-    return_content: yes
+    validate_certs: false
+    return_content: true
     timeout: 10
   register: api_version
   failed_when: false
 
-- name: validation | Fail if Flashblade server mentioned in "fb_host" is not a valid FlashBlade
-  fail:
+- name: Validation | Fail if Flashblade server mentioned in "fb_host" is not a valid FlashBlade
+  ansible.builtin.fail:
     msg: fb_host {{ src_fb_url }} is not valid FlashBlade server
   when: (api_version.status != 200 )
 
-- name: validation | Check if reachable fb_host is FB server or not to fail fast
-  uri:
+- name: Validation | Check if reachable fb_host is FB server or not to fail fast
+  ansible.builtin.uri:
     url: https://{{ dst_fb_url }}/api/api_version
     method: GET
-    validate_certs: no
-    return_content: yes
+    validate_certs: false
+    return_content: true
     timeout: 10
   register: api_version
   failed_when: false
 
-- name: validation | Fail if Flashblade server mentioned in "fb_host" is not a valid FlashBlade server
-  fail:
+- name: Validation | Fail if Flashblade server mentioned in "fb_host" is not a valid FlashBlade server
+  ansible.builtin.fail:
     msg: fb_host {{ dst_fb_url }} is not valid FlashBlade server
   when: (api_version.status != 200 )
 
-- name: facts | Get information from src FB server for {{ repl_loop.key }}
-  purefb_info:
-    gather_subset: 
+- name: Facts | Get information from src FB server for {{ repl_loop.key }}
+  purestorage.flashblade.purefb_info:
+    gather_subset:
       - minimum
       - buckets
       - network
@@ -80,9 +80,9 @@
   no_log: true
   register: src_fb_info
 
-- name: facts | Get information from dst FB server for {{ repl_loop.key }}
-  purefb_info:
-    gather_subset: 
+- name: Facts | Get information from dst FB server for {{ repl_loop.key }}
+  purestorage.flashblade.purefb_info:
+    gather_subset:
       - minimum
       - buckets
       - network
@@ -93,13 +93,13 @@
   no_log: true
   register: dst_fb_info
 
-- name: facts | Set src fb name and dst fb name for {{ repl_loop.key }}
-  set_fact:
-    src_fb_name: "{{ src_fb_info.purefb_info.default.flashblade_name }}" 
-    dst_fb_name: "{{ dst_fb_info.purefb_info.default.flashblade_name }}" 
+- name: Facts | Set src fb name and dst fb name for {{ repl_loop.key }}
+  ansible.builtin.set_fact:
+    src_fb_name: "{{ src_fb_info.purefb_info.default.flashblade_name }}"
+    dst_fb_name: "{{ dst_fb_info.purefb_info.default.flashblade_name }}"
 
-- name: validation | Fail if src bucket already have replica link for {{ repl_loop.key }}
-  fail:
+- name: Validation | Fail if src bucket already have replica link for {{ repl_loop.key }}
+  ansible.builtin.fail:
     msg: Cannot have multiple replica links on the same local bucket {{ repl_vars.src.bucket }}
   when:
     - repl_vars.common_params is defined
@@ -110,364 +110,362 @@
 
 # Create replication
 - name: Create remote credential and replica link for {{ repl_loop.key }}
-  block:
-  - name: account | Create src s3 account for {{ repl_loop.key }}
-    purefb_s3acc:
-      name: "{{ repl_vars.src.account }}"
-      fb_url: "{{ src_fb_url }}"
-      api_token: "{{ src_fb_token }}"
-
-  - name: bucket | Create src bucket for {{ repl_loop.key }}
-    purefb_bucket:
-      name: "{{ repl_vars.src.bucket }}"
-      account: "{{ repl_vars.src.account }}"
-      versioning: enabled
-      fb_url: "{{ src_fb_url }}"
-      api_token: "{{ src_fb_token }}"
-
-  - name: account | Create dst s3 account for {{ repl_loop.key }}
-    purefb_s3acc:
-      name: "{{ repl_vars.dst.account }}"
-      fb_url: "{{ dst_fb_url }}"
-      api_token: "{{ dst_fb_token }}"
-
-  - name: bucket | Create bucket for {{ repl_loop.key }}
-    purefb_bucket:
-      name: "{{ repl_vars.dst.bucket }}"
-      account: "{{ repl_vars.dst.account }}"
-      versioning: enabled
-      fb_url: "{{ dst_fb_url }}"
-      api_token: "{{ dst_fb_token }}"
- 
-  - name: replvip | Set fact for replication vip on src FlashBlade server {{ repl_loop.key }}
-    set_fact:
-      src_repl_vip: "{{ item.value.address }}"
-    when: ( item.value.services[0] == "replication" )
-    loop: "{{ src_fb_info.purefb_info.network | dict2items }}"
-    loop_control:
-      label: "{{ item.key }}"
-
-  - name: replvip | Set fact for replication vip on dst FlashBlade server {{ repl_loop.key }}
-    set_fact:
-      dst_repl_vip: "{{ item.value.address }}"
-    when: ( item.value.services[0] == "replication" )
-    loop: "{{ dst_fb_info.purefb_info.network | dict2items }}"
-    loop_control:
-      label: "{{ item.key }}"
-
-  - name: replvip | Create replication interface(VIP) on {{ repl_loop.key }}
-    purefb_network:
-      name: "{{ repl_vars.src.replvip_name | default('replvip') }}"
-      address: "{{ repl_vars.src.replvip }}"
-      state: present
-      services: replication
-      fb_url: "{{ src_fb_url }}"
-      api_token: "{{ src_fb_token }}"
-    when:
-      - src_repl_vip is not defined
-      - repl_vars.src.replvip is defined
-
-  - name: replvip | Create replication interface(VIP) on {{ repl_loop.key }}
-    purefb_network:
-      name: "{{ repl_vars.dst.replvip_name | default('replvip') }}"
-      address: "{{ repl_vars.dst.replvip }}"
-      state: present
-      services: replication
-      fb_url: "{{ dst_fb_url }}"
-      api_token: "{{ dst_fb_token }}"
-    when:
-      - dst_repl_vip is not defined 
-      - repl_vars.dst.replvip is defined
-
-  - name: certificate | Create a SSL certifcate on src FlashBlade for {{ repl_loop.key }}
-    purefb_certs:
-      name: repl_cert
-      contents: "{{ dst_fb_info.purefb_info.config.ssl_certs.certificate }}"
-      fb_url: "{{ src_fb_url }}"
-      api_token: "{{ src_fb_token }}"
-    no_log: true
-
-  - name: certificate | Create a SSL certifcate on dst FlashBlade for {{ repl_loop.key }}
-    purefb_certs:
-      name: repl_cert
-      contents: "{{ src_fb_info.purefb_info.config.ssl_certs.certificate }}"
-      fb_url: "{{ dst_fb_url }}"
-      api_token: "{{ dst_fb_token }}"
-    no_log: true
-
-  - name: certificate | Add existing certificates to the default certificate group on src FlashBlade for {{ repl_loop.key }}
-    purefb_certgrp:
-      name: "_default_replication_certs"
-      certificates: repl_cert
-      fb_url: "{{ src_fb_url }}"
-      api_token: "{{ src_fb_token }}"
-    no_log: true
-
-  - name: certificate | Add existing certificates to the default certificate group on dst FlashBlade for {{ repl_loop.key }}
-    purefb_certgrp:
-      name: "_default_replication_certs"
-      certificates: repl_cert
-      fb_url: "{{ dst_fb_url }}"
-      api_token: "{{ dst_fb_token }}"
-    no_log: true
-
-  - name: replication | Enable encyption on replication connection for {{ repl_loop.key }}
-    purefb_connect:
-      target_url: "{{ dst_fb_url }}"
-      target_api: "{{ dst_fb_token }}"
-      encrypted: true
-      state: present
-      fb_url: "{{ src_fb_url }}"
-      api_token: "{{ src_fb_token }}"
-    when: 
-      - src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket] is not defined
-
-  - name: fact | Set remote_credential name on src FB
-    set_fact:
-      src_remote_credential_name: "{{ dst_fb_name ~ '/' ~ repl_vars.common_params.remote_cred_name | default('cred') }}"
-
-  - name: fact | Set remote_credential name on dst FB
-    set_fact:
-      dst_remote_credential_name: "{{ src_fb_name  ~ '/' ~ repl_vars.common_params.rev_remote_cred_name | default('cred_rev') }}"
-
-  - name: block | Create dst user when required
-    block:
-    - name: user | Create s3 user on {{ repl_vars.dst.server }} for {{ repl_loop.key }}
-      purefb_s3user:
-        name: "{{ repl_vars.dst.user }}"
-        account: "{{ repl_vars.dst.account }}"
-        access_key: true
-        state: present
-        fb_url: "{{ dst_fb_url }}"
-        api_token: "{{ dst_fb_token }}"
-      register: user_info
-      when: 
-        - dst_access_key is not defined and dst_secret_key is not defined
-      
-    - name: validation | Fail if src s3 secrets not available for {{ repl_loop.key }}
-      fail:
-        msg: >
-          Maximum Access Key count reached for user {{ repl_vars.src.user }}, 
-          create user with different name to generate secret keys
-      when:
-        - user_info.s3user_info is not defined or user_info.s3user_info | length == 0 
-
-    - name: secrets | Set destination access key and secret key for {{ repl_loop.key }}
-      set_fact:
-        dst_access_key: "{{ user_info.s3user_info.fb_s3user.access_id }}"
-        dst_secret_key: "{{ user_info.s3user_info.fb_s3user.access_key }}"
-      when: 
-        - user_info.s3user_info is defined 
-        - user_info.s3user_info | length > 0
-      no_log: true
-
-    - name: validation | Fail if dst s3 secrets not available for {{ repl_loop.key }}
-      fail:
-        msg: s3 secrets {{item}} not available
-      loop: 
-        - dst_access_key
-        - dst_secret_key
-      when: vars[item] is not defined
-
-    - name: replication | Create remote cred from src to dst for {{ repl_loop.key }}
-      purefb_remote_cred:
-        name: "{{ repl_vars.common_params.remote_cred_name | default('cred') }}"
-        access_key: "{{ dst_access_key }}"
-        secret: "{{ dst_secret_key }}"
-        target: "{{ dst_fb_name }}" 
-        state: present
-        fb_url: "{{ src_fb_url }}"
-        api_token: "{{ src_fb_token }}"
-    when: 
-      - ( src_fb_info.purefb_info.remote_credentials is defined and src_fb_info.purefb_info.remote_credentials[src_remote_credential_name] is not defined ) or
-        ( repl_vars.dst.expiration_days is defined or repl_vars.dst.noncurrent_version_expiration_days is defined )
-
-  - name: block | Create src user when required for dst FB
-    block:
-    - name: user | Create s3 user on {{ repl_vars.src.server }} for {{ repl_loop.key }}
-      purefb_s3user:
-        name: "{{ repl_vars.src.user }}"
-        account: "{{ repl_vars.src.account }}"
-        access_key: true
-        state: present
-        fb_url: "{{ src_fb_url }}"
-        api_token: "{{ src_fb_token }}"
-      register: user_info
-
-    - name: validation | Fail if src s3 secrets not available for {{ repl_loop.key }}
-      fail:
-        msg: >
-          Maximum Access Key count reached for user {{ repl_vars.src.user }}, 
-          create user with different name to generate secret keys
-      when:
-        - user_info.s3user_info is not defined or user_info.s3user_info | length == 0 
-
-    - name: secrets | Set source access key and secret key for {{ repl_loop.key }}
-      set_fact:
-        src_access_key: "{{ user_info.s3user_info.fb_s3user.access_id }}"
-        src_secret_key: "{{ user_info.s3user_info.fb_s3user.access_key }}"
-      when: 
-        - user_info.s3user_info is defined 
-        - user_info.s3user_info | length > 0
-      no_log: true
-
-    - name: validation | Fail if s3 secrets not available for {{ repl_loop.key }}
-      fail:
-        msg: s3 secrets {{item}} not available
-      loop: 
-        - src_access_key
-        - src_secret_key
-      when: vars[item] is not defined
-
-    - name: replication | Create remote cred dst to src for {{ repl_loop.key }}
-      purefb_remote_cred:
-        name: "{{ repl_vars.common_params.rev_remote_cred_name | default('cred_rev') }}"
-        access_key: "{{ src_access_key }}"
-        secret: "{{ src_secret_key }}"
-        target: "{{ src_fb_name }}" 
-        state: present
-        fb_url: "{{ dst_fb_url }}"
-        api_token: "{{ dst_fb_token }}"
-    when: 
-      - repl_vars.common_params is defined and repl_vars.common_params | length > 0
-      - repl_vars.common_params.repl_type is defined
-      - repl_vars.common_params.repl_type == 'twoway'
-      - ( dst_fb_info.purefb_info.remote_credentials is defined and dst_fb_info.purefb_info.remote_credentials[dst_remote_credential_name] is not defined ) or
-        ( repl_vars.src.expiration_days is defined or repl_vars.src.noncurrent_version_expiration_days is defined )
-
-  - name: replication | Create bucket replica link from src to dst for {{ repl_loop.key }}
-    purefb_bucket_replica:
-      name: "{{ repl_vars.src.bucket }}"
-      target: "{{ dst_fb_url }}"
-      target_bucket: "{{ repl_vars.dst.bucket }}"
-      paused: "{{ repl_vars.common_params.src_dst_repl_pause | default(omit) }}"
-      credential: "{{ repl_vars.common_params.remote_cred_name | default('cred') }}"
-      state: present
-      fb_url: "{{ src_fb_url }}"
-      api_token: "{{ src_fb_token }}"
-
-  - name: replication | Create bucket replica from dst to src for {{ repl_loop.key }}
-    purefb_bucket_replica:
-      name: "{{ repl_vars.dst.bucket }}"
-      target: "{{ src_fb_name }}"
-      target_bucket: "{{ repl_vars.src.bucket }}"
-      paused: "{{ repl_vars.common_params.dst_src_repl_pause | default(omit) }}"
-      credential: "{{ repl_vars.common_params.rev_remote_cred_name | default('cred_rev') }}"
-      state: present
-      fb_url: "{{ dst_fb_url }}"
-      api_token: "{{ dst_fb_token }}"
-    when:
-      - repl_vars.common_params is defined and repl_vars.common_params | length > 0
-      - repl_vars.common_params.repl_type is defined
-      - repl_vars.common_params.repl_type == 'twoway'
-  
-  - name: datavip | Select random data vip from src array to use it as s3 endpoint for {{ repl_loop.key }}
-    set_fact:
-      data_vip: "{{ item.value.address }}"
-    when: ( item.value.services[0] == "data" )
-    loop: "{{ src_fb_info.purefb_info.network | dict2items }}"
-    loop_control:
-      label: "{{ item.key }}"
-
-  - name: lifecyle | Set source(FB Server) s3 bucket lifecycle rules for {{ repl_loop.key }}
-    s3_lifecycle:
-      name: "{{ repl_vars.src.bucket }}"
-      ec2_url: "http://{{ data_vip }}"
-      expiration_days: "{{ repl_vars.src.expiration_days | default(omit) }}"
-      noncurrent_version_expiration_days: "{{ repl_vars.src.noncurrent_version_expiration_days | default(90) }}"
-      aws_access_key: "{{ src_access_key }}"
-      aws_secret_key: "{{ src_secret_key }}"
-      prefix: "{{ repl_vars.src.prefix | default(omit) }}"
-      status: enabled
-      state: present
-    when:
-      - data_vip | length > 0
-      - src_access_key is defined and src_secret_key is defined
-      - repl_vars.src.expiration_days is defined or repl_vars.src.noncurrent_version_expiration_days is defined
-
-  - name: datavip | Select random data vip from dst array to use it as s3 endpoint for {{ repl_loop.key }}
-    set_fact:
-      data_vip: "{{ item.value.address }}"
-    when: ( item.value.services[0] == "data" )
-    loop: "{{ dst_fb_info.purefb_info.network | dict2items }}"
-    loop_control:
-      label: "{{ item.key }}"
-
-  - name: lifecyle | Set destination(FB Server) s3 bucket lifecycle rules for {{ repl_loop.key }}
-    s3_lifecycle:
-      name: "{{ repl_vars.dst.bucket }}"
-      ec2_url: "http://{{ data_vip }}"
-      expiration_days: "{{ repl_vars.dst.expiration_days | default(omit) }}"
-      noncurrent_version_expiration_days: "{{ repl_vars.dst.noncurrent_version_expiration_days | default(90) }}"
-      aws_access_key: "{{ dst_access_key }}"
-      aws_secret_key: "{{ dst_secret_key }}"
-      prefix: "{{ repl_vars.dst.prefix | default(omit) }}"
-      status: enabled
-      state: present
-    when:
-      - data_vip | length > 0
-      - dst_access_key is defined and dst_secret_key is defined
-      - repl_vars.dst.expiration_days is defined or repl_vars.dst.noncurrent_version_expiration_days is defined
   when:
     - repl_vars.common_params is not defined or repl_vars.common_params.del_repl_link is not defined or not repl_vars.common_params.del_repl_link | bool
 
-- name: Destroy remote credential, replica link and disconnect FB servers for {{ repl_loop.key }}
   block:
-  - name: replication | Delete bucket replica from src to dst for {{ repl_loop.key }}
-    purefb_bucket_replica:
-      name: "{{ repl_vars.src.bucket }}"
-      target: "{{ dst_fb_name }}"
-      credential: "{{ repl_vars.common_params.remote_cred_name | default('cred') }}"
-      state: absent
-      fb_url: "{{ src_fb_url }}"
-      api_token: "{{ src_fb_token }}"
-    when: repl_vars.src.bucket in src_fb_info.purefb_info.bucket_replication  
-    ignore_errors: true
+    - name: Account | Create src s3 account for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_s3acc:
+        name: "{{ repl_vars.src.account }}"
+        fb_url: "{{ src_fb_url }}"
+        api_token: "{{ src_fb_token }}"
 
-  - name: fact | Set remote_credential name on src FB
-    set_fact:
-      src_remote_credential_name: "{{ dst_fb_name ~ '/' ~ repl_vars.common_params.remote_cred_name | default('cred') }}"
+    - name: Bucket | Create src bucket for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_bucket:
+        name: "{{ repl_vars.src.bucket }}"
+        account: "{{ repl_vars.src.account }}"
+        versioning: enabled
+        fb_url: "{{ src_fb_url }}"
+        api_token: "{{ src_fb_token }}"
 
-  - name: fact | Set remote_credential name on dst FB
-    set_fact:
-      dst_remote_credential_name: "{{ src_fb_name  ~ '/' ~ repl_vars.common_params.rev_remote_cred_name | default('cred_rev') }}"
+    - name: Account | Create dst s3 account for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_s3acc:
+        name: "{{ repl_vars.dst.account }}"
+        fb_url: "{{ dst_fb_url }}"
+        api_token: "{{ dst_fb_token }}"
 
-  - name: replication | Delete remote cred from src to dst for {{ repl_loop.key }}
-    purefb_remote_cred:
-      name: "{{ repl_vars.common_params.remote_cred_name | default('cred') }}"
-      target: "{{ dst_fb_name }}" 
-      state: absent
-      fb_url: "{{ src_fb_url }}"
-      api_token: "{{ src_fb_token }}"
-    when: src_remote_credential_name in src_fb_info.purefb_info.remote_credentials
-    ignore_errors: true
+    - name: Bucket | Create bucket for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_bucket:
+        name: "{{ repl_vars.dst.bucket }}"
+        account: "{{ repl_vars.dst.account }}"
+        versioning: enabled
+        fb_url: "{{ dst_fb_url }}"
+        api_token: "{{ dst_fb_token }}"
 
-  - name: replication | Delete bucket replica link from dst to src for {{ repl_loop.key }}
-    purefb_bucket_replica:
-      name: "{{ repl_vars.dst.bucket }}"
-      target: "{{ src_fb_name }}"
-      credential: "{{ repl_vars.common_params.rev_remote_cred_name | default('cred_rev') }}"
-      state: absent
-      fb_url: "{{ dst_fb_url }}"
-      api_token: "{{ dst_fb_token }}"
-    when:
-      - repl_vars.common_params is defined and repl_vars.common_params | length > 0
-      - repl_vars.common_params.repl_type is defined
-      - repl_vars.common_params.repl_type == 'twoway'
-      - repl_vars.src.bucket in src_fb_info.purefb_info.bucket_replication 
+    - name: Replvip | Set fact for replication vip on src FlashBlade server {{ repl_loop.key }}
+      ansible.builtin.set_fact:
+        src_repl_vip: "{{ item.value.address }}"
+      when: ( item.value.services[0] == "replication" )
+      loop: "{{ src_fb_info.purefb_info.network | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
 
-  - name: replication | Delete remote credential dst to src for {{ repl_loop.key }}
-    purefb_remote_cred:
-      name: "{{ repl_vars.common_params.rev_remote_cred_name | default('cred_rev') }}"
-      target: "{{ src_fb_name }}" 
-      state: absent
-      fb_url: "{{ dst_fb_url }}"
-      api_token: "{{ dst_fb_token }}"
-    when:
-      - repl_vars.common_params is defined and repl_vars.common_params | length > 0
-      - repl_vars.common_params.repl_type is defined
-      - repl_vars.common_params.repl_type == 'twoway'
-      - dst_remote_credential_name in dst_fb_info.purefb_info.remote_credentials
+    - name: Replvip | Set fact for replication vip on dst FlashBlade server {{ repl_loop.key }}
+      ansible.builtin.set_fact:
+        dst_repl_vip: "{{ item.value.address }}"
+      when: ( item.value.services[0] == "replication" )
+      loop: "{{ dst_fb_info.purefb_info.network | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+
+    - name: Replvip | Create replication interface(VIP) on {{ repl_loop.key }}
+      purestorage.flashblade.purefb_network:
+        name: "{{ repl_vars.src.replvip_name | default('replvip') }}"
+        address: "{{ repl_vars.src.replvip }}"
+        state: present
+        services: replication
+        fb_url: "{{ src_fb_url }}"
+        api_token: "{{ src_fb_token }}"
+      when:
+        - src_repl_vip is not defined
+        - repl_vars.src.replvip is defined
+
+    - name: Replvip | Create replication interface(VIP) on {{ repl_loop.key }}
+      purestorage.flashblade.purefb_network:
+        name: "{{ repl_vars.dst.replvip_name | default('replvip') }}"
+        address: "{{ repl_vars.dst.replvip }}"
+        state: present
+        services: replication
+        fb_url: "{{ dst_fb_url }}"
+        api_token: "{{ dst_fb_token }}"
+      when:
+        - dst_repl_vip is not defined
+        - repl_vars.dst.replvip is defined
+
+    - name: Certificate | Create a SSL certifcate on src FlashBlade for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_certs:
+        name: repl_cert
+        contents: "{{ dst_fb_info.purefb_info.config.ssl_certs.certificate }}"
+        fb_url: "{{ src_fb_url }}"
+        api_token: "{{ src_fb_token }}"
+      no_log: true
+
+    - name: Certificate | Create a SSL certifcate on dst FlashBlade for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_certs:
+        name: repl_cert
+        contents: "{{ src_fb_info.purefb_info.config.ssl_certs.certificate }}"
+        fb_url: "{{ dst_fb_url }}"
+        api_token: "{{ dst_fb_token }}"
+      no_log: true
+
+    - name: Certificate | Add existing certificates to the default certificate group on src FlashBlade for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_certgrp:
+        name: _default_replication_certs
+        certificates: repl_cert
+        fb_url: "{{ src_fb_url }}"
+        api_token: "{{ src_fb_token }}"
+      no_log: true
+
+    - name: Certificate | Add existing certificates to the default certificate group on dst FlashBlade for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_certgrp:
+        name: _default_replication_certs
+        certificates: repl_cert
+        fb_url: "{{ dst_fb_url }}"
+        api_token: "{{ dst_fb_token }}"
+      no_log: true
+
+    - name: Replication | Enable encyption on replication connection for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_connect:
+        target_url: "{{ dst_fb_url }}"
+        target_api: "{{ dst_fb_token }}"
+        encrypted: true
+        state: present
+        fb_url: "{{ src_fb_url }}"
+        api_token: "{{ src_fb_token }}"
+      when:
+        - src_fb_info.purefb_info.bucket_replication[repl_vars.src.bucket] is not defined
+
+    - name: Fact | Set remote_credential name on src FB
+      ansible.builtin.set_fact:
+        src_remote_credential_name: "{{ dst_fb_name ~ '/' ~ repl_vars.common_params.remote_cred_name | default('cred') }}"
+
+    - name: Fact | Set remote_credential name on dst FB
+      ansible.builtin.set_fact:
+        dst_remote_credential_name: "{{ src_fb_name  ~ '/' ~ repl_vars.common_params.rev_remote_cred_name | default('cred_rev') }}"
+
+    - name: Block | Create dst user when required
+      when:
+        - ( src_fb_info.purefb_info.remote_credentials is defined and src_fb_info.purefb_info.remote_credentials[src_remote_credential_name] is not defined ) or (
+          repl_vars.dst.expiration_days is defined or repl_vars.dst.noncurrent_version_expiration_days is defined )
+
+      block:
+        - name: User | Create s3 user on {{ repl_vars.dst.server }} for {{ repl_loop.key }}
+          purestorage.flashblade.purefb_s3user:
+            name: "{{ repl_vars.dst.user }}"
+            account: "{{ repl_vars.dst.account }}"
+            access_key: true
+            state: present
+            fb_url: "{{ dst_fb_url }}"
+            api_token: "{{ dst_fb_token }}"
+          register: user_info
+          when:
+            - dst_access_key is not defined and dst_secret_key is not defined
+
+        - name: Validation | Fail if src s3 secrets not available for {{ repl_loop.key }}
+          ansible.builtin.fail:
+            msg: >
+              Maximum Access Key count reached for user {{ repl_vars.src.user }},  create user with different name to generate secret keys
+          when:
+            - user_info.s3user_info is not defined or user_info.s3user_info | length == 0
+
+        - name: Secrets | Set destination access key and secret key for {{ repl_loop.key }}
+          ansible.builtin.set_fact:
+            dst_access_key: "{{ user_info.s3user_info.fb_s3user.access_id }}"
+            dst_secret_key: "{{ user_info.s3user_info.fb_s3user.access_key }}"
+          when:
+            - user_info.s3user_info is defined
+            - user_info.s3user_info | length > 0
+          no_log: true
+
+        - name: Validation | Fail if dst s3 secrets not available for {{ repl_loop.key }}
+          ansible.builtin.fail:
+            msg: s3 secrets {{ item }} not available
+          loop:
+            - dst_access_key
+            - dst_secret_key
+          when: vars[item] is not defined
+
+        - name: Replication | Create remote cred from src to dst for {{ repl_loop.key }}
+          purestorage.flashblade.purefb_remote_cred:
+            name: "{{ repl_vars.common_params.remote_cred_name | default('cred') }}"
+            access_key: "{{ dst_access_key }}"
+            secret: "{{ dst_secret_key }}"
+            target: "{{ dst_fb_name }}"
+            state: present
+            fb_url: "{{ src_fb_url }}"
+            api_token: "{{ src_fb_token }}"
+    - name: Block | Create src user when required for dst FB
+      when:
+        - repl_vars.common_params is defined and repl_vars.common_params | length > 0
+        - repl_vars.common_params.repl_type is defined
+        - repl_vars.common_params.repl_type == 'twoway'
+        - ( dst_fb_info.purefb_info.remote_credentials is defined and dst_fb_info.purefb_info.remote_credentials[dst_remote_credential_name] is not defined ) or (
+          repl_vars.src.expiration_days is defined or repl_vars.src.noncurrent_version_expiration_days is defined )
+
+      block:
+        - name: User | Create s3 user on {{ repl_vars.src.server }} for {{ repl_loop.key }}
+          purestorage.flashblade.purefb_s3user:
+            name: "{{ repl_vars.src.user }}"
+            account: "{{ repl_vars.src.account }}"
+            access_key: true
+            state: present
+            fb_url: "{{ src_fb_url }}"
+            api_token: "{{ src_fb_token }}"
+          register: user_info
+
+        - name: Validation | Fail if src s3 secrets not available for {{ repl_loop.key }}
+          ansible.builtin.fail:
+            msg: >
+              Maximum Access Key count reached for user {{ repl_vars.src.user }},  create user with different name to generate secret keys
+          when:
+            - user_info.s3user_info is not defined or user_info.s3user_info | length == 0
+
+        - name: Secrets | Set source access key and secret key for {{ repl_loop.key }}
+          ansible.builtin.set_fact:
+            src_access_key: "{{ user_info.s3user_info.fb_s3user.access_id }}"
+            src_secret_key: "{{ user_info.s3user_info.fb_s3user.access_key }}"
+          when:
+            - user_info.s3user_info is defined
+            - user_info.s3user_info | length > 0
+          no_log: true
+
+        - name: Validation | Fail if s3 secrets not available for {{ repl_loop.key }}
+          ansible.builtin.fail:
+            msg: s3 secrets {{ item }} not available
+          loop:
+            - src_access_key
+            - src_secret_key
+          when: vars[item] is not defined
+
+        - name: Replication | Create remote cred dst to src for {{ repl_loop.key }}
+          purestorage.flashblade.purefb_remote_cred:
+            name: "{{ repl_vars.common_params.rev_remote_cred_name | default('cred_rev') }}"
+            access_key: "{{ src_access_key }}"
+            secret: "{{ src_secret_key }}"
+            target: "{{ src_fb_name }}"
+            state: present
+            fb_url: "{{ dst_fb_url }}"
+            api_token: "{{ dst_fb_token }}"
+    - name: Replication | Create bucket replica link from src to dst for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_bucket_replica:
+        name: "{{ repl_vars.src.bucket }}"
+        target: "{{ dst_fb_url }}"
+        target_bucket: "{{ repl_vars.dst.bucket }}"
+        paused: "{{ repl_vars.common_params.src_dst_repl_pause | default(omit) }}"
+        credential: "{{ repl_vars.common_params.remote_cred_name | default('cred') }}"
+        state: present
+        fb_url: "{{ src_fb_url }}"
+        api_token: "{{ src_fb_token }}"
+
+    - name: Replication | Create bucket replica from dst to src for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_bucket_replica:
+        name: "{{ repl_vars.dst.bucket }}"
+        target: "{{ src_fb_name }}"
+        target_bucket: "{{ repl_vars.src.bucket }}"
+        paused: "{{ repl_vars.common_params.dst_src_repl_pause | default(omit) }}"
+        credential: "{{ repl_vars.common_params.rev_remote_cred_name | default('cred_rev') }}"
+        state: present
+        fb_url: "{{ dst_fb_url }}"
+        api_token: "{{ dst_fb_token }}"
+      when:
+        - repl_vars.common_params is defined and repl_vars.common_params | length > 0
+        - repl_vars.common_params.repl_type is defined
+        - repl_vars.common_params.repl_type == 'twoway'
+
+    - name: Datavip | Select random data vip from src array to use it as s3 endpoint for {{ repl_loop.key }}
+      ansible.builtin.set_fact:
+        data_vip: "{{ item.value.address }}"
+      when: ( item.value.services[0] == "data" )
+      loop: "{{ src_fb_info.purefb_info.network | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+
+    - name: Lifecyle | Set source(FB Server) s3 bucket lifecycle rules for {{ repl_loop.key }}
+      community.aws.s3_lifecycle:
+        name: "{{ repl_vars.src.bucket }}"
+        ec2_url: http://{{ data_vip }}
+        expiration_days: "{{ repl_vars.src.expiration_days | default(omit) }}"
+        noncurrent_version_expiration_days: "{{ repl_vars.src.noncurrent_version_expiration_days | default(90) }}"
+        aws_access_key: "{{ src_access_key }}"
+        aws_secret_key: "{{ src_secret_key }}"
+        prefix: "{{ repl_vars.src.prefix | default(omit) }}"
+        status: enabled
+        state: present
+      when:
+        - data_vip | length > 0
+        - src_access_key is defined and src_secret_key is defined
+        - repl_vars.src.expiration_days is defined or repl_vars.src.noncurrent_version_expiration_days is defined
+
+    - name: Datavip | Select random data vip from dst array to use it as s3 endpoint for {{ repl_loop.key }}
+      ansible.builtin.set_fact:
+        data_vip: "{{ item.value.address }}"
+      when: ( item.value.services[0] == "data" )
+      loop: "{{ dst_fb_info.purefb_info.network | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+
+    - name: Lifecyle | Set destination(FB Server) s3 bucket lifecycle rules for {{ repl_loop.key }}
+      community.aws.s3_lifecycle:
+        name: "{{ repl_vars.dst.bucket }}"
+        ec2_url: http://{{ data_vip }}
+        expiration_days: "{{ repl_vars.dst.expiration_days | default(omit) }}"
+        noncurrent_version_expiration_days: "{{ repl_vars.dst.noncurrent_version_expiration_days | default(90) }}"
+        aws_access_key: "{{ dst_access_key }}"
+        aws_secret_key: "{{ dst_secret_key }}"
+        prefix: "{{ repl_vars.dst.prefix | default(omit) }}"
+        status: enabled
+        state: present
+      when:
+        - data_vip | length > 0
+        - dst_access_key is defined and dst_secret_key is defined
+        - repl_vars.dst.expiration_days is defined or repl_vars.dst.noncurrent_version_expiration_days is defined
+- name: Destroy remote credential, replica link and disconnect FB servers for {{ repl_loop.key }}
   when:
     - repl_vars.common_params is defined and repl_vars.common_params | length > 0
     - repl_vars.common_params.del_repl_link is defined and repl_vars.common_params.del_repl_link | bool
+  block:
+    - name: Replication | Delete bucket replica from src to dst for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_bucket_replica:
+        name: "{{ repl_vars.src.bucket }}"
+        target: "{{ dst_fb_name }}"
+        credential: "{{ repl_vars.common_params.remote_cred_name | default('cred') }}"
+        state: absent
+        fb_url: "{{ src_fb_url }}"
+        api_token: "{{ src_fb_token }}"
+      when: repl_vars.src.bucket in src_fb_info.purefb_info.bucket_replication
+      failed_when: false
+
+    - name: Fact | Set remote_credential name on src FB
+      ansible.builtin.set_fact:
+        src_remote_credential_name: "{{ dst_fb_name ~ '/' ~ repl_vars.common_params.remote_cred_name | default('cred') }}"
+
+    - name: Fact | Set remote_credential name on dst FB
+      ansible.builtin.set_fact:
+        dst_remote_credential_name: "{{ src_fb_name  ~ '/' ~ repl_vars.common_params.rev_remote_cred_name | default('cred_rev') }}"
+
+    - name: Replication | Delete remote cred from src to dst for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_remote_cred:
+        name: "{{ repl_vars.common_params.remote_cred_name | default('cred') }}"
+        target: "{{ dst_fb_name }}"
+        state: absent
+        fb_url: "{{ src_fb_url }}"
+        api_token: "{{ src_fb_token }}"
+      when: src_remote_credential_name in src_fb_info.purefb_info.remote_credentials
+      failed_when: false
+
+    - name: Replication | Delete bucket replica link from dst to src for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_bucket_replica:
+        name: "{{ repl_vars.dst.bucket }}"
+        target: "{{ src_fb_name }}"
+        credential: "{{ repl_vars.common_params.rev_remote_cred_name | default('cred_rev') }}"
+        state: absent
+        fb_url: "{{ dst_fb_url }}"
+        api_token: "{{ dst_fb_token }}"
+      when:
+        - repl_vars.common_params is defined and repl_vars.common_params | length > 0
+        - repl_vars.common_params.repl_type is defined
+        - repl_vars.common_params.repl_type == 'twoway'
+        - repl_vars.src.bucket in src_fb_info.purefb_info.bucket_replication
+
+    - name: Replication | Delete remote credential dst to src for {{ repl_loop.key }}
+      purestorage.flashblade.purefb_remote_cred:
+        name: "{{ repl_vars.common_params.rev_remote_cred_name | default('cred_rev') }}"
+        target: "{{ src_fb_name }}"
+        state: absent
+        fb_url: "{{ dst_fb_url }}"
+        api_token: "{{ dst_fb_token }}"
+      when:
+        - repl_vars.common_params is defined and repl_vars.common_params | length > 0
+        - repl_vars.common_params.repl_type is defined
+        - repl_vars.common_params.repl_type == 'twoway'
+        - dst_remote_credential_name in dst_fb_info.purefb_info.remote_credentials

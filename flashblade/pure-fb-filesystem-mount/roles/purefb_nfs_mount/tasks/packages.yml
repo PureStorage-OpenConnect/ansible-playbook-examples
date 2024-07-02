@@ -1,35 +1,38 @@
 ---
 - name: Update and install NFS client packages
-  block:
-  - name: packages | Install updates using yum
-    yum:
-      name: "*"
-      state: latest
-      skip_broken: yes
-    ignore_errors: true
-
-  - name: packages | Install NFS client packages on CentOS/RHEL
-    yum:
-      name: 
-        - nfs-utils
-        - nfs4-acl-tools
-      state: latest
-  become: yes
+  become: true
   when: ansible_os_family == "RedHat"
+  block:
+    - name: packages | Install updates using yum
+      ansible.builtin.yum:
+        name: "*"
+        state: latest
+        only_upgrade: true
+        skip_broken: true
+      failed_when: false
+
+    - name: packages | Install NFS client packages on CentOS/RHEL
+      ansible.builtin.yum:
+        name:
+          - nfs-utils
+          - nfs4-acl-tools
+        state: latest
+        only_upgrade: true
 
 - name: packages | Install updates using apt
-  block:
-  - name: Update apt packages
-    apt:
-      update_cache: yes
-      cache_valid_time: 3600
-    ignore_errors: true
-
-  - name: packages | Install NFS client packages on Ubuntu
-    apt:
-      name: 
-        - nfs-common
-        - nfs4-acl-tools
-      state: latest
-  become: yes
+  become: true
   when: ansible_os_family == "Debian"
+  block:
+    - name: Update apt packages
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      failed_when: false
+
+    - name: packages | Install NFS client packages on Ubuntu
+      ansible.builtin.apt:
+        name:
+          - nfs-common
+          - nfs4-acl-tools
+        state: latest
+        only_upgrade: true

@@ -1,7 +1,7 @@
 ---
-- name: object-store | Include task to setup object-store
-  include: object-store.yml fb_vars={{outer_loop.value}}
-  loop: "{{ array_inventory|combine(array_secrets, recursive=True)|default({})|dict2items }}"
+- name: Object-store | Include task to setup object-store
+  ansible.builtin.include_tasks: object-store.yml fb_vars={{ outer_loop.value }}
+  loop: "{{ array_inventory | combine(array_secrets, recursive=True) | default({}) | dict2items }}"
   loop_control:
     loop_var: outer_loop
   when: outer_loop.value.fb_host is defined and outer_loop.value.api_token is defined

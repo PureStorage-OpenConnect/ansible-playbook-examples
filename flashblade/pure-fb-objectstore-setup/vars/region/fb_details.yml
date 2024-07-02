@@ -1,31 +1,30 @@
 ---
-array_inventory:               
+array_inventory:
 
   FBServer1: # This identifier must match the one you used in fb_secrets.yml for the same FlashBlade
     fb_host: 10.20.30.40 # Management IP of a FlashBlade
 
     object_store:
-    - account: object-store-test-account1
-      users:
-        - { name: object-store-user1a}
-        - { name: object-store-user1b, create_new_access_key: false }
-      buckets: 
-        - { name: object-store-bucket1a}
-        - { name: object-store-bucket1b, destroy_bucket: false, eradicate: false }
+      - account: object-store-test-account1
+        users:
+          - { name: object-store-user1a }
+          - { name: object-store-user1b, create_new_access_key: false }
+        buckets:
+          - { name: object-store-bucket1a }
+          - { name: object-store-bucket1b, destroy_bucket: false, eradicate: false }
 
   FBServer2:
     fb_host: 10.20.30.50 # Management IP of a second FlashBlade
 
     object_store:
-    - account: object-store-test-account2
-      users:
-        - { name: object-store-user2}
-      buckets: 
-        - { name: object-store-bucket2}
+      - account: object-store-test-account2
+        users:
+          - { name: object-store-user2 }
+        buckets:
+          - { name: object-store-bucket2 }
 
-    - account: object-store-test-account3
-      users:
-        - { name: object-store-user3}
-      buckets: 
-        - { name: object-store-bucket3}
-
+      - account: object-store-test-account3
+        users:
+          - { name: object-store-user3 }
+        buckets:
+          - { name: object-store-bucket3 }

@@ -1,71 +1,70 @@
 ---
-- name: validation | Fail if given Flashblade server not exist for {{ outer_loop.key }}
-  fail:
+- name: Validation | Fail if given Flashblade server not exist for {{ outer_loop.key }}
+  ansible.builtin.fail:
     msg: FB server {{ mount_details.server.fb_name }} not available
   when: mount_details.server.fb_name not in array_inventory
-  delegate_to: "localhost"
+  delegate_to: localhost
   run_once: true
 
-- name: facts | Set fb_url and fb_token fact from array_inventory for {{ outer_loop.key }}
-  set_fact:
+- name: Facts | Set fb_url and fb_token fact from array_inventory for {{ outer_loop.key }}
+  ansible.builtin.set_fact:
     fb_url: "{{ array_inventory[mount_details.server.fb_name].fb_host }}"
     fb_token: "{{ array_secrets[mount_details.server.fb_name].api_token }}"
   no_log: true
   run_once: true
 
-- name: facts | Get information from {{ mount_details.server.fb_name }} for {{ outer_loop.key }}
-  purefb_info:
-    gather_subset: 
+- name: Facts | Get information from {{ mount_details.server.fb_name }} for {{ outer_loop.key }}
+  purestorage.flashblade.purefb_info:
+    gather_subset:
       - network
     fb_url: "{{ fb_url }}"
     api_token: "{{ fb_token }}"
-  delegate_to: "localhost"
+  delegate_to: localhost
   run_once: true
   register: blade_info
 
-- name: validation | Fail if data VIP not exist on {{ mount_details.server.fb_name }}
-  fail:
+- name: Validation | Fail if data VIP not exist on {{ mount_details.server.fb_name }}
+  ansible.builtin.fail:
     msg: data VIP {{ mount_details.server.data_vip }} not available on FB server
   when: mount_details.server.data_vip not in blade_info['purefb_info']['network']
 
-- name: Set facts | Set data vip 
-  set_fact:
+- name: Set facts | Set data vip
+  ansible.builtin.set_fact:
     vip: "{{ blade_info['purefb_info']['network'][mount_details.server.data_vip]['address'] }}"
 
-- name: map | Map fileshare for {{ outer_loop.key }}
+- name: Map | Map fileshare for {{ outer_loop.key }}
+  when:
+    - mount_details.client.map_state is not defined or mount_details.client.map_state == "mapped"
+
   block:
-    - name: mount | Create mapped drive for {{ outer_loop.key }}
-      win_mapped_drive:
+    - name: Mount | Create mapped drive for {{ outer_loop.key }}
+      community.windows.win_mapped_drive:
         letter: "{{ mount_details.client.drive_letter }}"
-        path: \\{{vip}}\{{mount_details.server.fileshare}}
+        path: \\{{ vip }}\{{ mount_details.server.fileshare }}
         state: present
       register: mount_drive
 
     - name: Reboot the machine with all defaults
-      win_reboot:
+      ansible.windows.win_reboot:
       run_once: true
-      when: 
+      when:
         - mount_drive.changed
         - mount_details.client.reboot is defined and mount_details.client.reboot | bool
-  when:
-    - mount_details.client.map_state is not defined or mount_details.client.map_state == "mapped"
-
-- name: unmap | Remove mapped fileshare for {{ outer_loop.key }}
-  block:
-    - name: unmap | Remove mapped fileshare 
-      win_mapped_drive:
-        letter: "{{ mount_details.client.drive_letter }}"
-        path: \\{{vip}}\{{mount_details.server.fileshare}}
-        state: absent
-      register: unmount_drive
-
-    
-    - name: Reboot the machine with all defaults
-      win_reboot:
-      run_once: true
-      when: 
-        - unmount_drive.changed
-        - mount_details.client.reboot is defined and mount_details.client.reboot | bool
+- name: Unmap | Remove mapped fileshare for {{ outer_loop.key }}
   when:
     - mount_details.client.map_state is defined
     - mount_details.client.map_state == 'unmapped'
+  block:
+    - name: Unmap | Remove mapped fileshare
+      community.windows.win_mapped_drive:
+        letter: "{{ mount_details.client.drive_letter }}"
+        path: \\{{ vip }}\{{ mount_details.server.fileshare }}
+        state: absent
+      register: unmount_drive
+
+    - name: Reboot the machine with all defaults
+      ansible.windows.win_reboot:
+      run_once: true
+      when:
+        - unmount_drive.changed
+        - mount_details.client.reboot is defined and mount_details.client.reboot | bool
