@@ -3,7 +3,7 @@
   hosts: localhost
   gather_facts: false
   vars_files:
-  - "vars/{{ env }}/fb_details.yml"
-  - "vars/{{ env }}/fb_secrets.yml"
+    - vars/{{ env }}/fb_details.yml
+    - vars/{{ env }}/fb_secrets.yml
   roles:
     - purefb_object_store_setup

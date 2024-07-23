@@ -1,12 +1,13 @@
+---
 # FlashBlade inventory
-array_inventory:               
+array_inventory:
   FBServer1:
-      fb_host: 10.21.xxx.151  #FlashBlade Management IP
+    fb_host: 10.21.xxx.151 # FlashBlade Management IP
   FBServer2:
-      fb_host: 10.21.xxx.11  #FlashBlade Management IP
+    fb_host: 10.21.xxx.11 # FlashBlade Management IP
 
 # Filesystem replication
-FSReplication:       
+fsreplication:
   replication1:
     common_params: { repl_policy: daily }
     client_details:

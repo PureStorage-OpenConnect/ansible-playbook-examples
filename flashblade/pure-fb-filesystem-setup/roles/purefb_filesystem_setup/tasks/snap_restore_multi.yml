@@ -1,6 +1,6 @@
 ---
-- name: filesystem | Restore multiple File System from latest snapshots on {{ outer_loop.key }}
-  purefb_snap:
+- name: Filesystem | Restore multiple File System from latest snapshots on {{ outer_loop.key }}
+  purestorage.flashblade.purefb_snap:
     name: "{{ item }}"
     suffix: "{{ restore_loop.suffix }}"
     state: restore
