@@ -79,3 +79,7 @@ Each VM to be migrated should follow this structure in the vms_to_migrate list:
 | `os_keypair`        | SSH keypair to use              |
 | `os_security_group` | Security group(s) to assign     |
 
+## Demo
+
+There is a short video in the `demo` directory that shows an actual execution of the playbook that migrates threel Ubuntu VMs, all representing a moderately comples scenario: a microk8s that runs a postgresql example deployment.
+
