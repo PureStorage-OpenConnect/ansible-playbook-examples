@@ -1,0 +1,194 @@
+---
+# Everpure OpenStack: FlashArray stale host-object cleanup
+#
+# After compute nodes have been given unique initiator identities, the host
+# object(s) the Cinder driver created for the shared IQN/NQN are stale. This
+# playbook finds every FlashArray host object whose IQN or NQN matches a
+# duplicate value from the audit report (or values passed explicitly), reports
+# its connected volumes, and deletes it only when:
+#
+#   * -e confirm_cleanup=true is set, and
+#   * the host object has NO connected volumes, re-checked immediately before
+#     the delete, and
+#   * the host object is not in a host group (or -e allow_hgroup_members=true)
+#
+# Host objects that still have volumes connected are reported, never deleted.
+# Per runbook section 6.1 those connections must be reconciled by hand against
+# `openstack volume attachment list` before the object is removed.
+#
+# Note: purefa_host state=absent removes the host from its host group and
+# disconnects every volume before deleting it. The no-connected-volumes guard
+# in this playbook is therefore load-bearing; do not remove it.
+#
+# Host objects scoped to a realm (name contains ':') are out of scope and ignored.
+#
+# Requires the everpure.flasharray collection:
+#   ansible-galaxy collection install everpure.flasharray
+# Array credentials: -e fa_url=... -e fa_api_token=..., or the PUREFA_URL and
+# PUREFA_API environment variables (preferred for the token).
+#
+# Usage:
+#   export PUREFA_API=...
+#   ansible-playbook playbooks/03_flasharray_cleanup_stale_hosts.yml \
+#       -e fa_url=array.example.com \
+#       -e audit_report=reports/initiator_identity_<ts>.json
+#   # or pass identities directly:
+#       -e '{"duplicate_identities": ["iqn.1994-05.com.redhat:deadbeef", "nqn.2014-08.org.nvmexpress:uuid:..."]}'
+#       -e duplicate_identities=iqn.1994-05.com.redhat:deadbeef,nqn.2014-08.org.nvmexpress:uuid:...
+#
+# Run once per FlashArray that backs the affected Cinder backend(s).
+
+- name: Clean up stale FlashArray host objects left by duplicate initiators
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    _confirm: "{{ confirm_cleanup | default(false) | bool }}"
+    _allow_hgroup: "{{ allow_hgroup_members | default(false) | bool }}"
+    _audit_report: "{{ audit_report | default('') }}"
+    _fa_label: "{{ fa_url | default(lookup('ansible.builtin.env', 'PUREFA_URL')) | default('(PUREFA_URL not set)', true) }}"
+  tasks:
+    - name: Normalise explicitly passed identities
+      ansible.builtin.set_fact:
+        _identities: >-
+          {{ (duplicate_identities | default([]))
+             if (duplicate_identities | default([])) is not string
+             else (duplicate_identities | split(',') | map('trim') | select | list) }}
+
+    - name: Load the audit report
+      ansible.builtin.set_fact:
+        _report: "{{ lookup('ansible.builtin.file', _audit_report) | from_json }}"
+      when: _audit_report | length > 0
+
+    - name: Add duplicate identities from the audit report
+      ansible.builtin.set_fact:
+        _identities: >-
+          {{ (_identities
+              + (_report.duplicates.iqn | map(attribute='value') | list)
+              + (_report.duplicates.nqn | map(attribute='value') | list)) | unique }}
+      when: _report is defined
+
+    - name: Require at least one identity to search for
+      ansible.builtin.assert:
+        that: _identities | length > 0
+        fail_msg: "Pass -e audit_report=<file> or -e duplicate_identities=[...]"
+
+    # The hosts subset already carries each host's connections
+    # (hosts.<name>.volumes: list of {hostgroup, volume, lun, nsid}). The
+    # volumes subset is not needed and costs one API call per volume.
+    - name: Gather host information from the FlashArray
+      everpure.flasharray.purefa_info:
+        gather_subset:
+          - hosts
+        fa_url: "{{ fa_url | default(omit) }}"
+        api_token: "{{ fa_api_token | default(omit) }}"
+      register: fa
+
+    - name: Find host objects keyed on a duplicate identity
+      ansible.builtin.set_fact:
+        matching_hosts: >-
+          {%- set out = [] -%}
+          {%- for hname, host in (fa.purefa_info.hosts | default({})).items() if ':' not in hname -%}
+            {%- set idents = (host.iqn | default([], true)) + (host.nqn | default([], true)) -%}
+            {%- set hit = idents | intersect(_identities) -%}
+            {%- if hit | length > 0 -%}
+              {%- set _ = out.append({
+                    'name': hname,
+                    'matched': hit,
+                    'hgroup': host.hgroup | default(none),
+                    'volumes': host.volumes | default([]) | map(attribute='volume') | select | list,
+                    'personality': host.personality | default(none)
+                  }) -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+
+    - name: Classify host objects
+      ansible.builtin.set_fact:
+        unconnected: "{{ matching_hosts | selectattr('volumes', 'equalto', []) | list }}"
+        blocked: "{{ matching_hosts | rejectattr('volumes', 'equalto', []) | list }}"
+
+    - name: Separate host-group members unless explicitly allowed
+      ansible.builtin.set_fact:
+        deletable: "{{ unconnected if _allow_hgroup | bool else (unconnected | rejectattr('hgroup', 'truthy') | list) }}"
+        hgroup_held: "{{ [] if _allow_hgroup | bool else (unconnected | selectattr('hgroup', 'truthy') | list) }}"
+
+    - name: Report findings
+      ansible.builtin.debug:
+        msg:
+          - "FlashArray: {{ _fa_label }}"
+          - "Identities searched: {{ _identities }}"
+          - "Matching host objects: {{ matching_hosts | map(attribute='name') | list }}"
+          - "Deletable (no connected volumes{{ '' if _allow_hgroup | bool else ', not in a host group' }}): {{ deletable | map(attribute='name') | list }}"
+          - "Held back (member of a host group; -e allow_hgroup_members=true to include): {{ hgroup_held | map(attribute='name') | list }}"
+          - "Blocked (volumes still connected, reconcile by hand): {{ blocked | map(attribute='name') | list }}"
+          - "{{ blocked | map(attribute='volumes') | list }}"
+
+    - name: Stop here unless cleanup is confirmed
+      ansible.builtin.debug:
+        msg: "Dry run. Re-run with -e confirm_cleanup=true to delete the deletable host objects."
+      when: not (_confirm | bool)
+
+    # Cinder may have attached something since the first read. Re-read the
+    # connections and refuse to delete anything that is no longer empty.
+    - name: Re-read host connections immediately before deleting
+      everpure.flasharray.purefa_info:
+        gather_subset:
+          - hosts
+        fa_url: "{{ fa_url | default(omit) }}"
+        api_token: "{{ fa_api_token | default(omit) }}"
+      register: fa_recheck
+      when:
+        - _confirm | bool
+        - deletable | length > 0
+
+    - name: Find deletable hosts that gained a connection since the first read
+      ansible.builtin.set_fact:
+        recheck_failed: >-
+          {%- set out = [] -%}
+          {%- for h in deletable -%}
+            {%- set cur = (fa_recheck.purefa_info.hosts | default({})).get(h.name) -%}
+            {%- if cur is not none and (cur.volumes | default([]) | length) > 0 -%}
+              {%- set _ = out.append(h.name) -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+      when:
+        - _confirm | bool
+        - deletable | length > 0
+
+    - name: Abort if any host object is no longer empty
+      ansible.builtin.assert:
+        that: recheck_failed | length == 0
+        fail_msg: >-
+          {{ recheck_failed }} gained volume connections between the first read and the delete.
+          Nothing was deleted. Re-run the dry run and reconcile against openstack volume attachment list.
+      when:
+        - _confirm | bool
+        - deletable | length > 0
+
+    - name: Delete stale host objects
+      everpure.flasharray.purefa_host:
+        name: "{{ item.name }}"
+        state: absent
+        fa_url: "{{ fa_url | default(omit) }}"
+        api_token: "{{ fa_api_token | default(omit) }}"
+      loop: "{{ deletable }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: _confirm | bool
+
+    - name: Remind about blocked objects
+      ansible.builtin.debug:
+        msg: >-
+          {{ blocked | length }} host object(s) still have volumes connected and were not touched.
+          For each, confirm the Cinder attachment no longer exists (openstack volume attachment list
+          --volume <id>) and the instance is not using the device, disconnect the volume, then re-run.
+      when: blocked | length > 0
+
+    - name: Done
+      ansible.builtin.debug:
+        msg: >-
+          Deleted {{ deletable | length if _confirm | bool else 0 }} host object(s).
+          The Cinder driver will create a correctly keyed host object for each compute node on its
+          next attach. Verify with a two-node attach test per runbook 6.1.
