@@ -1,0 +1,376 @@
+---
+# Everpure OpenStack: initiator identity remediation
+#
+# Regenerates the iSCSI IQN, NVMe host NQN and NVMe host ID (and optionally
+# the systemd machine-id) on compute nodes that share an identity with another
+# node, one node at a time, with safety gates:
+#
+#   * refuses to run unless -e confirm_remediation=true
+#   * refuses to touch a node that has running instances, or whose instance
+#     count cannot be determined, unless -e allow_running_instances=true
+#     (you should evacuate first)
+#   * refuses to touch a node with live iSCSI sessions or NVMe-oF controllers
+#     (tcp/rdma/fc; local PCIe drives are not counted) unless
+#     -e allow_active_sessions=true
+#   * serial: 1, with a verification step before moving on
+#
+# Usage (typical):
+#   ansible-playbook -i inventory playbooks/02_remediate_initiator_identity.yml \
+#       -l node03,node07 -e confirm_remediation=true
+#
+# Limit (-l) to the nodes named in the audit report. By default every node in
+# the limit is regenerated; set -e only_if_duplicate=true together with
+# -e audit_report=reports/<file>.json to skip nodes the report did not flag.
+#
+# Tunables (set with -e, or in group_vars/host_vars; all are optional):
+#   openstack_distribution   rhoso | rhosp | charmed | kolla | package (default)
+#   nova_restart_commands    dict keyed by distribution, merged over the defaults
+#   iscsid_restart_commands  dict keyed by distribution, merged over the defaults
+#   regenerate_iqn / regenerate_nqn / regenerate_hostid   default true
+#   regenerate_machine_id    default false (reboot the node afterwards if used)
+#   backup_dir               default /root/initiator-identity-backup
+#   iscsi_initiator_file, nvme_hostnqn_file, nvme_hostid_file, machine_id_file
+#
+# After this playbook, run 01_audit_initiator_identity.yml again, then
+# 03_flasharray_cleanup_stale_hosts.yml to remove the shared host object(s).
+
+- name: Remediate duplicate initiator identities
+  hosts: "{{ compute_group | default('compute') }}"
+  become: true
+  serial: 1
+  gather_facts: true
+  vars:
+    # Tunables are read through | default() so that values set in inventory
+    # (group_vars/host_vars) or with -e are honoured. Plain play vars would
+    # outrank inventory variables and silently ignore group_vars.
+    _confirm: "{{ confirm_remediation | default(false) | bool }}"
+    _allow_running: "{{ allow_running_instances | default(false) | bool }}"
+    _allow_sessions: "{{ allow_active_sessions | default(false) | bool }}"
+    _regen_iqn: "{{ regenerate_iqn | default(true) | bool }}"
+    _regen_nqn: "{{ regenerate_nqn | default(true) | bool }}"
+    _regen_hostid: "{{ regenerate_hostid | default(true) | bool }}"
+    _regen_machine_id: "{{ regenerate_machine_id | default(false) | bool }}"
+    _only_if_duplicate: "{{ only_if_duplicate | default(false) | bool }}"
+    _audit_report: "{{ audit_report | default('') }}"
+    _distribution: "{{ openstack_distribution | default('package') }}"
+    _backup_dir: "{{ backup_dir | default('/root/initiator-identity-backup') }}"
+    _files:
+      iqn: "{{ iscsi_initiator_file | default('/etc/iscsi/initiatorname.iscsi') }}"
+      nqn: "{{ nvme_hostnqn_file | default('/etc/nvme/hostnqn') }}"
+      hostid: "{{ nvme_hostid_file | default('/etc/nvme/hostid') }}"
+      machine_id: "{{ machine_id_file | default('/etc/machine-id') }}"
+    _container_runtime: "{{ 'podman' if ansible_facts.pkg_mgr == 'dnf' else 'docker' }}"
+    # How to restart nova-compute and iscsid on each distribution.
+    #   rhoso   : EDPM data plane node, podman containers managed by systemd
+    #   rhosp   : TripleO node, podman containers managed by systemd
+    #   charmed : Ubuntu package services
+    #   kolla   : Docker/Podman containers
+    #   package : plain systemd units (devstack, OSA, source installs)
+    # On the containerised distributions iscsid runs inside a container with
+    # /etc/iscsi bind-mounted; the host unit (if any) is not the daemon that
+    # holds the cached initiator name, so the container must be restarted.
+    _default_nova_restart_commands:
+      rhoso: systemctl restart edpm_nova_compute.service
+      rhosp: systemctl restart tripleo_nova_compute.service
+      charmed: systemctl restart nova-compute.service
+      kolla: "{{ _container_runtime }} restart nova_compute"
+      package: systemctl restart nova-compute.service
+    _default_iscsid_restart_commands:
+      rhoso: systemctl restart edpm_iscsid.service
+      rhosp: systemctl restart tripleo_iscsid.service
+      charmed: systemctl restart iscsid.service
+      kolla: "{{ _container_runtime }} restart iscsid"
+      package: systemctl restart iscsid.service
+    _nova_restart_commands: "{{ _default_nova_restart_commands | combine(nova_restart_commands | default({})) }}"
+    _iscsid_restart_commands: "{{ _default_iscsid_restart_commands | combine(iscsid_restart_commands | default({})) }}"
+
+  pre_tasks:
+    - name: Refuse to run without explicit confirmation
+      ansible.builtin.assert:
+        that: _confirm | bool
+        fail_msg: >-
+          This playbook rewrites host initiator identities. Re-run with
+          -e confirm_remediation=true after evacuating the node(s).
+
+    - name: Refuse to run with an unknown distribution
+      ansible.builtin.assert:
+        that:
+          - _distribution in _nova_restart_commands
+          - _distribution in _iscsid_restart_commands
+        fail_msg: >-
+          openstack_distribution={{ _distribution }} has no restart command.
+          Use one of {{ _default_nova_restart_commands.keys() | list }} or add an entry to
+          nova_restart_commands and iscsid_restart_commands.
+
+    - name: Require an audit report when only_if_duplicate is set
+      ansible.builtin.assert:
+        that: _audit_report | length > 0
+        fail_msg: "only_if_duplicate=true needs -e audit_report=<file> as well."
+      when: _only_if_duplicate | bool
+
+    - name: Load audit report (optional)
+      ansible.builtin.set_fact:
+        _report: "{{ lookup('ansible.builtin.file', _audit_report) | from_json }}"
+      when: _only_if_duplicate | bool
+
+    - name: Determine whether this node was flagged in the report
+      ansible.builtin.set_fact:
+        _flagged: >-
+          {{
+            (_report.duplicates.iqn | map(attribute='nodes') | flatten
+             + _report.duplicates.nqn | map(attribute='nodes') | flatten
+             + _report.duplicates.hostid | map(attribute='nodes') | flatten
+             + _report.duplicates.machine_id | map(attribute='nodes') | flatten)
+            | unique
+          }}
+      when: _report is defined
+
+    - name: Skip nodes the report did not flag
+      ansible.builtin.meta: end_host
+      when:
+        - _report is defined
+        - inventory_hostname not in _flagged
+
+    # ---------- safety gates ----------
+    # Try virsh on the host first; fall back to the libvirt container
+    # (nova_libvirt on Kolla/older TripleO, nova_virtqemud on RHOSP 17 / RHOSO).
+    # Exit non-zero when no answer could be obtained so the gate cannot pass
+    # on a node whose libvirt is simply unreachable.
+    - name: Count running libvirt domains
+      ansible.builtin.shell: |
+        set -o pipefail
+        count() { sed '/^$/d' | wc -l; }
+        if command -v virsh >/dev/null 2>&1 && out=$(virsh list --state-running --name 2>/dev/null); then
+          printf '%s\n' "$out" | count
+          exit 0
+        fi
+        for rt in podman docker; do
+          command -v "$rt" >/dev/null 2>&1 || continue
+          c=$("$rt" ps --format '{{ "{{" }}.Names{{ "}}" }}' 2>/dev/null | grep -m1 -E 'virtqemud|libvirt') || continue
+          if out=$("$rt" exec "$c" virsh list --state-running --name 2>/dev/null); then
+            printf '%s\n' "$out" | count
+            exit 0
+          fi
+        done
+        echo unknown
+        exit 1
+      args:
+        executable: /bin/bash
+      register: running_domains
+      changed_when: false
+      failed_when: false
+
+    - name: Refuse to continue with running instances
+      ansible.builtin.assert:
+        that:
+          - (running_domains.rc == 0 and (running_domains.stdout | trim) == '0') or (_allow_running | bool)
+        fail_msg: >-
+          {{ inventory_hostname }} reports {{ running_domains.stdout | trim }} running instance(s)
+          (rc={{ running_domains.rc }}; 'unknown' means libvirt could not be queried). Live-migrate
+          or evacuate them first, or re-run with -e allow_running_instances=true if you accept the risk.
+
+    - name: Count active iSCSI sessions
+      ansible.builtin.shell: |
+        set -o pipefail
+        iscsiadm -m session 2>/dev/null | grep -c . || true
+      args:
+        executable: /bin/bash
+      register: iscsi_sessions
+      changed_when: false
+      failed_when: false
+
+    # Only fabrics controllers count. Local PCIe drives (boot disks) also show
+    # up under /sys/class/nvme and in `nvme list-subsys`, and must not block.
+    - name: Count connected NVMe-oF controllers
+      ansible.builtin.shell: |
+        set -o pipefail
+        cat /sys/class/nvme/nvme*/transport 2>/dev/null | grep -cE '^(tcp|rdma|fc)$' || true
+      args:
+        executable: /bin/bash
+      register: nvme_fabrics
+      changed_when: false
+      failed_when: false
+
+    - name: Refuse to continue with active storage sessions
+      ansible.builtin.assert:
+        that:
+          - ((iscsi_sessions.stdout | trim | int) == 0 and (nvme_fabrics.stdout | trim | int) == 0) or (_allow_sessions | bool)
+        fail_msg: >-
+          {{ inventory_hostname }} has {{ iscsi_sessions.stdout | trim }} iSCSI session(s) and
+          {{ nvme_fabrics.stdout | trim }} NVMe-oF controller(s) connected. Detach volumes first, or
+          re-run with -e allow_active_sessions=true.
+
+  tasks:
+    - name: Create backup directory
+      ansible.builtin.file:
+        path: "{{ _backup_dir }}"
+        state: directory
+        mode: "0700"
+
+    - name: Back up current identity files
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ _backup_dir }}/{{ item | basename }}.{{ ansible_date_time.iso8601_basic_short }}"
+        remote_src: true
+        mode: "0600"
+      loop: "{{ _files.values() | list }}"
+      failed_when: false
+
+    - name: Read current identities for change detection
+      ansible.builtin.command: "cat {{ item }}"
+      loop:
+        - "{{ _files.iqn }}"
+        - "{{ _files.nqn }}"
+      register: old_identity
+      changed_when: false
+      failed_when: false
+
+    - name: Record the old identities
+      ansible.builtin.set_fact:
+        _old_iqn: >-
+          {{ old_identity.results[0].stdout | default('')
+             | regex_replace('(?m)^#.*$', '') | regex_replace('(?m)^InitiatorName=', '') | trim }}
+        _old_nqn: "{{ (old_identity.results[1].stdout | default('')) | trim }}"
+
+    # ---------- iSCSI ----------
+    - name: Generate a new IQN
+      ansible.builtin.command: iscsi-iname
+      register: new_iqn
+      changed_when: false
+      when: _regen_iqn | bool
+
+    - name: Write the iSCSI initiator name file
+      ansible.builtin.copy:
+        dest: "{{ _files.iqn }}"
+        content: |
+          ## Generated by Everpure initiator identity remediation {{ ansible_date_time.iso8601 }}
+          InitiatorName={{ new_iqn.stdout | trim }}
+        mode: "0600"
+      when: _regen_iqn | bool
+      notify: Restart iscsid
+
+    # ---------- NVMe ----------
+    - name: Ensure the NVMe configuration directory exists
+      ansible.builtin.file:
+        path: "{{ _files.nqn | dirname }}"
+        state: directory
+        mode: "0755"
+
+    - name: Generate a UUID for the new NVMe identity
+      ansible.builtin.shell: command -v uuidgen >/dev/null 2>&1 && uuidgen || python3 -c 'import uuid; print(uuid.uuid4())'
+      register: new_uuid
+      changed_when: false
+      when: _regen_nqn | bool or _regen_hostid | bool
+
+    # nvme gen-hostnqn derives the NQN from the DMI product UUID. Nodes with an
+    # identical or placeholder product UUID would regenerate the very same
+    # duplicate, so fall back to a random UUID when the result is unusable or
+    # equals the value being replaced.
+    - name: Ask nvme-cli for a host NQN
+      ansible.builtin.command: nvme gen-hostnqn
+      register: gen_nqn
+      changed_when: false
+      failed_when: false
+      when: _regen_nqn | bool
+
+    - name: Choose the new host NQN
+      ansible.builtin.set_fact:
+        _new_nqn: >-
+          {{ (gen_nqn.stdout | trim)
+             if (gen_nqn.rc == 0
+                 and (gen_nqn.stdout | trim) is match('^nqn[.]')
+                 and (gen_nqn.stdout | trim) != _old_nqn)
+             else 'nqn.2014-08.org.nvmexpress:uuid:' ~ (new_uuid.stdout | trim) }}
+      when: _regen_nqn | bool
+
+    - name: Write the NVMe host NQN file
+      ansible.builtin.copy:
+        dest: "{{ _files.nqn }}"
+        content: "{{ _new_nqn }}\n"
+        mode: "0644"
+      when: _regen_nqn | bool
+
+    # Keep the host ID equal to the UUID embedded in the NQN; nvme-cli 2.x
+    # warns on every connect when they disagree.
+    - name: Derive the new NVMe host ID
+      ansible.builtin.set_fact:
+        _new_hostid: >-
+          {%- set src = _new_nqn if _regen_nqn | bool else _old_nqn -%}
+          {%- set m = src | regex_search('[0-9a-fA-F-]{36}$') if ':uuid:' in src else none -%}
+          {{ m if m else (new_uuid.stdout | trim) }}
+      when: _regen_hostid | bool
+
+    - name: Write the NVMe host ID file
+      ansible.builtin.copy:
+        dest: "{{ _files.hostid }}"
+        content: "{{ _new_hostid | trim }}\n"
+        mode: "0644"
+      when: _regen_hostid | bool
+
+    # ---------- machine-id (optional) ----------
+    - name: Regenerate the machine-id
+      when: _regen_machine_id | bool
+      block:
+        - name: Truncate the machine-id file
+          ansible.builtin.copy:
+            dest: "{{ _files.machine_id }}"
+            content: ""
+            mode: "0444"
+        - name: Generate a new machine-id
+          ansible.builtin.command: systemd-machine-id-setup
+          changed_when: true
+
+    - name: Flush handlers now so iscsid picks up the new identity
+      ansible.builtin.meta: flush_handlers
+
+    - name: Restart nova-compute
+      ansible.builtin.command: "{{ _nova_restart_commands[_distribution] }}"
+      changed_when: true
+
+    # ---------- verify ----------
+    - name: Read back the regenerated files
+      ansible.builtin.slurp:
+        src: "{{ item }}"
+      loop: >-
+        {{ ([_files.iqn] if _regen_iqn | bool else [])
+           + ([_files.nqn] if _regen_nqn | bool else [])
+           + ([_files.hostid] if _regen_hostid | bool else []) }}
+      register: readback
+
+    - name: Decode the read-back values
+      ansible.builtin.set_fact:
+        _readback: >-
+          {%- set out = {} -%}
+          {%- for r in readback.results -%}
+            {%- set _ = out.update({r.item: r.content | b64decode | trim}) -%}
+          {%- endfor -%}
+          {{ out }}
+        _iqn_now: >-
+          {{ readback.results | selectattr('item', 'equalto', _files.iqn) | map(attribute='content')
+             | map('b64decode') | map('regex_search', 'InitiatorName=[^ \t\r\n]+') | select | map('regex_replace', '^InitiatorName=', '')
+             | first | default('(unchanged)') }}
+
+    - name: Assert the new identities are in place and differ from the old ones
+      ansible.builtin.assert:
+        that:
+          - not (_regen_iqn | bool) or _readback[_files.iqn] is search('(?m)^InitiatorName=iqn[.]')
+          - not (_regen_iqn | bool) or _old_iqn == '' or ('InitiatorName=' ~ _old_iqn) not in _readback[_files.iqn]
+          - not (_regen_nqn | bool) or _readback[_files.nqn] is match('^nqn[.]')
+          - not (_regen_nqn | bool) or _readback[_files.nqn] != _old_nqn
+          - not (_regen_hostid | bool) or _readback[_files.hostid] is match('^[0-9a-fA-F-]{36}$')
+        fail_msg: >-
+          Identity files on {{ inventory_hostname }} did not read back as expected;
+          inspect {{ _backup_dir }} and the files before continuing. Read back: {{ _readback }}
+
+    - name: Record result
+      ansible.builtin.debug:
+        msg:
+          - "{{ inventory_hostname }}: IQN {{ _old_iqn | default('(none)', true) }} -> {{ _iqn_now }}"
+          - "{{ inventory_hostname }}: NQN {{ _old_nqn | default('(none)', true) }} -> {{ _readback[_files.nqn] | default('(unchanged)') }}"
+          - "{{ inventory_hostname }}: host ID now {{ _readback[_files.hostid] | default('(unchanged)') }}"
+          - "Backups in {{ _backup_dir }}. Next: re-run 01_audit, then 03_flasharray_cleanup_stale_hosts.yml."
+
+  handlers:
+    - name: Restart iscsid
+      ansible.builtin.command: "{{ _iscsid_restart_commands[_distribution] }}"
+      changed_when: true

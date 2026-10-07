@@ -1,0 +1,34 @@
+#cloud-config
+# First-boot generation of unique initiator identities for OpenStack compute nodes.
+# Include in the node's user-data, or merge into the deployment tool's cloud-init.
+#
+# iscsid regenerates a missing initiator name at boot on both RHEL and Ubuntu,
+# but nothing ever regenerates /etc/nvme/hostnqn: the nvme-cli package creates
+# it once at install time, which is how it ends up baked into gold images.
+# This step is therefore mandatory for NVMe even where iSCSI would heal itself.
+runcmd:
+  - |
+    set -e
+    mkdir -p /etc/iscsi /etc/nvme
+    new_uuid() { command -v uuidgen >/dev/null 2>&1 && uuidgen || python3 -c 'import uuid;print(uuid.uuid4())'; }
+    if [ ! -s /etc/iscsi/initiatorname.iscsi ]; then
+      echo "InitiatorName=$(iscsi-iname)" > /etc/iscsi/initiatorname.iscsi
+      chmod 600 /etc/iscsi/initiatorname.iscsi
+    fi
+    if [ ! -s /etc/nvme/hostnqn ]; then
+      # nvme gen-hostnqn derives the NQN from the DMI product UUID. Fall back to
+      # a random UUID when that is missing or a well-known vendor placeholder,
+      # otherwise every node from the same vendor batch gets the same NQN.
+      nqn=$(nvme gen-hostnqn 2>/dev/null || true)
+      case "$nqn" in
+        ""|*00000000-0000-0000-0000-000000000000|*03000200-0400-0500-0006-000700080009|*ffffffff-ffff-ffff-ffff-ffffffffffff)
+          nqn="nqn.2014-08.org.nvmexpress:uuid:$(new_uuid)" ;;
+      esac
+      echo "$nqn" > /etc/nvme/hostnqn
+    fi
+    if [ ! -s /etc/nvme/hostid ]; then
+      # Keep the host ID equal to the UUID in the NQN; nvme-cli 2.x warns when they differ.
+      sed -n 's/^nqn\.2014-08\.org\.nvmexpress:uuid:\([0-9a-fA-F-]\{36\}\)$/\1/p' /etc/nvme/hostnqn > /etc/nvme/hostid
+      [ -s /etc/nvme/hostid ] || new_uuid > /etc/nvme/hostid
+    fi
+    systemctl restart iscsid 2>/dev/null || true

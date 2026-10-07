@@ -1,0 +1,10 @@
+# Example inventory. The audit and remediation playbooks target the group named
+# by compute_group (default: compute).
+[compute]
+compute-00 ansible_host=10.0.0.10
+compute-01 ansible_host=10.0.0.11
+compute-02 ansible_host=10.0.0.12
+
+[compute:vars]
+ansible_user=cloud-admin
+ansible_become=true

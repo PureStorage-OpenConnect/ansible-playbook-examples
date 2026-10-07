@@ -1,0 +1,240 @@
+---
+# Everpure OpenStack: initiator identity audit
+#
+# Collects the iSCSI IQN, NVMe host NQN, NVMe host ID and systemd machine-id
+# from every compute / hypervisor node and reports any value that appears on
+# more than one node. Read-only: this playbook changes nothing on any host.
+#
+# Usage:
+#   ansible-playbook -i inventory playbooks/01_audit_initiator_identity.yml
+#   ansible-playbook -i inventory playbooks/01_audit_initiator_identity.yml -e compute_group=nova_compute
+#
+# Exit status is non-zero when duplicates are found, so this can gate a
+# deployment pipeline. A JSON report is written on the controller
+# (default <repo>/reports/initiator_identity_<timestamp>.json) and is the input
+# to 02_remediate_initiator_identity.yml and 03_flasharray_cleanup_stale_hosts.yml.
+#
+# Nodes that could not be reached, or that returned no data, are listed under
+# not_collected in the report. Set -e fail_on_unreachable=true to make them
+# fail the run as well.
+
+- name: Collect initiator identities from compute nodes
+  hosts: "{{ compute_group | default('compute') }}"
+  become: true
+  gather_facts: false
+  vars:
+    identity_files:
+      iqn: /etc/iscsi/initiatorname.iscsi
+      nqn: /etc/nvme/hostnqn
+      hostid: /etc/nvme/hostid
+      machine_id: /etc/machine-id
+  tasks:
+    - name: Stat identity files
+      ansible.builtin.stat:
+        path: "{{ item.value }}"
+      loop: "{{ identity_files | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+      register: identity_stat
+
+    - name: Read identity files that exist and are readable
+      ansible.builtin.slurp:
+        src: "{{ item.item.value }}"
+      loop: "{{ identity_stat.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+      when: item.stat.exists and item.stat.readable
+      register: identity_raw
+
+    - name: Normalise identity values
+      ansible.builtin.set_fact:
+        initiator_identity: >-
+          {{
+            initiator_identity | default({}) | combine({
+              item.item.item.key:
+                (
+                  (item.content | b64decode)
+                  | regex_replace('(?m)^#.*$', '')
+                  | regex_replace('(?m)^InitiatorName=', '')
+                  | trim
+                ) if item.content is defined else none
+            })
+          }}
+      loop: "{{ identity_raw.results }}"
+      loop_control:
+        label: "{{ item.item.item.key }}"
+
+    # The runtime value can differ from the file: iscsid keeps the initiator
+    # name it started with (visible per session), and nvme-cli generates a
+    # NQN from DMI when the file is missing. Record both so the report is honest.
+    - name: Read the initiator name iscsid is using for its sessions
+      ansible.builtin.command: iscsiadm -m session -P 1
+      register: iscsi_sessions
+      changed_when: false
+      failed_when: false
+
+    - name: Read the host NQN nvme-cli resolves at runtime
+      ansible.builtin.command: nvme show-hostnqn
+      register: nvme_runtime
+      changed_when: false
+      failed_when: false
+
+    - name: Record runtime values
+      ansible.builtin.set_fact:
+        initiator_identity: >-
+          {{
+            initiator_identity | default({}) | combine({
+              'iqn_runtime': (
+                iscsi_sessions.stdout | regex_findall('(?m)^[ \t]*Iface Initiatorname:[ \t]*([^ \t\r\n]+)') | unique
+              ) if iscsi_sessions.rc == 0 else [],
+              'nqn_runtime': (nvme_runtime.stdout | trim) if nvme_runtime.rc == 0 else none
+            })
+          }}
+
+- name: Analyse identities across the fleet
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    _group: "{{ compute_group | default('compute') }}"
+    _report_dir: "{{ report_dir | default(playbook_dir ~ '/../reports') }}"
+    # Fail the run if duplicates are found (-e fail_on_duplicates=false for report-only).
+    _fail: "{{ fail_on_duplicates | default(true) }}"
+    # Also fail when some nodes could not be audited (-e fail_on_unreachable=true).
+    _fail_unreachable: "{{ fail_on_unreachable | default(false) }}"
+    checked_keys:
+      - iqn
+      - nqn
+      - hostid
+      - machine_id
+  tasks:
+    - name: Build identity table from nodes that returned data
+      ansible.builtin.set_fact:
+        identity_table: >-
+          {%- set out = {} -%}
+          {%- for h in groups[_group] | default([]) -%}
+            {%- if hostvars[h]['initiator_identity'] is defined -%}
+              {%- set _ = out.update({h: hostvars[h]['initiator_identity']}) -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+        not_collected: >-
+          {%- set out = [] -%}
+          {%- for h in groups[_group] | default([]) -%}
+            {%- if hostvars[h]['initiator_identity'] is not defined -%}
+              {%- set _ = out.append(h) -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+
+    - name: Find duplicate values per identity type
+      ansible.builtin.set_fact:
+        duplicates: >-
+          {%- set out = {} -%}
+          {%- for key in checked_keys -%}
+            {%- set groups_ = {} -%}
+            {%- for host, ident in identity_table.items() -%}
+              {%- set val = ident.get(key) -%}
+              {%- if val -%}
+                {%- set _ = groups_.setdefault(val, []).append(host) -%}
+              {%- endif -%}
+            {%- endfor -%}
+            {%- set dups = [] -%}
+            {%- for val, hosts_ in groups_.items() if hosts_ | length > 1 -%}
+              {%- set _ = dups.append({'value': val, 'nodes': hosts_ | sort}) -%}
+            {%- endfor -%}
+            {%- set _ = out.update({key: dups}) -%}
+          {%- endfor -%}
+          {{ out }}
+
+    - name: Find nodes with no identity file at all
+      ansible.builtin.set_fact:
+        missing: >-
+          {%- set out = {} -%}
+          {%- for key in ['iqn', 'nqn'] -%}
+            {%- set lst = [] -%}
+            {%- for host, ident in identity_table.items() if not ident.get(key) -%}
+              {%- set _ = lst.append(host) -%}
+            {%- endfor -%}
+            {%- set _ = out.update({key: lst}) -%}
+          {%- endfor -%}
+          {{ out }}
+
+    - name: Find nodes where the runtime identity differs from the file
+      ansible.builtin.set_fact:
+        runtime_mismatch: >-
+          {%- set out = {'iqn': [], 'nqn': []} -%}
+          {%- for host, ident in identity_table.items() -%}
+            {%- if ident.get('nqn') and ident.get('nqn_runtime') and ident.nqn != ident.nqn_runtime -%}
+              {%- set _ = out.nqn.append(host) -%}
+            {%- endif -%}
+            {%- if ident.get('iqn') and (ident.get('iqn_runtime') or []) | reject('equalto', ident.iqn) | list | length > 0 -%}
+              {%- set _ = out.iqn.append(host) -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+
+    - name: Summarise
+      ansible.builtin.set_fact:
+        summary:
+          generated: "{{ ansible_date_time.iso8601 }}"
+          compute_group: "{{ _group }}"
+          nodes_checked: "{{ identity_table | length }}"
+          not_collected: "{{ not_collected }}"
+          duplicate_count: >-
+            {{ (duplicates.iqn | length) + (duplicates.nqn | length)
+               + (duplicates.hostid | length) + (duplicates.machine_id | length) }}
+          duplicates: "{{ duplicates }}"
+          missing_identity: "{{ missing }}"
+          iqn_runtime_mismatch: "{{ runtime_mismatch.iqn }}"
+          nqn_runtime_mismatch: "{{ runtime_mismatch.nqn }}"
+          identities: "{{ identity_table }}"
+
+    - name: Ensure report directory exists
+      ansible.builtin.file:
+        path: "{{ _report_dir }}"
+        state: directory
+        mode: "0750"
+
+    - name: Write JSON report
+      ansible.builtin.copy:
+        content: "{{ summary | to_nice_json }}"
+        dest: "{{ _report_dir }}/initiator_identity_{{ ansible_date_time.iso8601_basic_short }}.json"
+        mode: "0640"
+      register: report_file
+
+    - name: Report
+      ansible.builtin.debug:
+        msg:
+          - "Nodes checked: {{ summary.nodes_checked }}"
+          - "Nodes not collected (unreachable or no data): {{ not_collected }}"
+          - "Duplicate IQN values: {{ duplicates.iqn | length }}  -> {{ duplicates.iqn | map(attribute='nodes') | list }}"
+          - "Duplicate NQN values: {{ duplicates.nqn | length }}  -> {{ duplicates.nqn | map(attribute='nodes') | list }}"
+          - "Duplicate NVMe host IDs: {{ duplicates.hostid | length }}"
+          - "Duplicate machine-ids: {{ duplicates.machine_id | length }}"
+          - "Nodes missing IQN: {{ missing.iqn }}"
+          - "Nodes missing NQN: {{ missing.nqn }}"
+          - "Nodes where iscsid sessions use a different IQN than the file: {{ runtime_mismatch.iqn }}"
+          - "Nodes where runtime NQN differs from /etc/nvme/hostnqn: {{ runtime_mismatch.nqn }}"
+          - "Report: {{ report_file.dest }}"
+
+    - name: Fail when nodes could not be audited
+      ansible.builtin.fail:
+        msg: >-
+          {{ not_collected | length }} node(s) in group {{ _group }} could not be audited:
+          {{ not_collected }}. Report: {{ report_file.dest }}
+      when:
+        - _fail_unreachable | bool
+        - not_collected | length > 0
+
+    - name: Fail when duplicates exist
+      ansible.builtin.fail:
+        msg: >-
+          Duplicate initiator identities found on {{ summary.duplicate_count | trim }} value(s).
+          Every compute node sharing an IQN or NQN collapses onto a single FlashArray host
+          object; attaches on one node will affect the others. Follow runbook section 6.1:
+          run 02_remediate_initiator_identity.yml one node at a time, then
+          03_flasharray_cleanup_stale_hosts.yml. Report: {{ report_file.dest }}
+      when:
+        - _fail | bool
+        - summary.duplicate_count | int > 0

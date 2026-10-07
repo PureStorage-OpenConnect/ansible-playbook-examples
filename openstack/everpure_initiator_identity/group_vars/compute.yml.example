@@ -1,0 +1,23 @@
+---
+# Copy to group_vars/<your compute group>.yml and adjust. Everything here can
+# also be passed with -e on the command line.
+
+# Which distribution the compute nodes run; selects how nova-compute and
+# iscsid are restarted by 02_remediate_initiator_identity.yml.
+#   rhoso | rhosp | charmed | kolla | package
+openstack_distribution: rhoso
+
+# Override a restart command if your deployment names the unit or container
+# differently. Entries are merged over the built-in defaults.
+# nova_restart_commands:
+#   rhoso: "systemctl restart edpm_nova_compute.service"
+# iscsid_restart_commands:
+#   rhoso: "systemctl restart edpm_iscsid.service"
+
+# Identity file locations, if not the defaults.
+# iscsi_initiator_file: /etc/iscsi/initiatorname.iscsi
+# nvme_hostnqn_file: /etc/nvme/hostnqn
+# nvme_hostid_file: /etc/nvme/hostid
+
+# Where 02 keeps copies of the files it replaces.
+# backup_dir: /root/initiator-identity-backup
